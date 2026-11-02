@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app/theme/app_theme.dart';
 import 'core/routes/app_router.dart';
 import 'app/theme/theme_notifier.dart';
-import 'core/di/injection.dart'; // tambahkan ini
+import 'core/di/injection.dart';
+import 'features/profil/presentation/bloc/profil_bloc.dart';
+import 'features/profil/presentation/bloc/profil_event.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // wajib sebelum operasi async
-  await setupInjection(); // daftarkan semua dependency ke GetIt
-  runApp(const EmployeeAttendanceApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  await setupInjection();
+
+  runApp(
+    BlocProvider(
+      create: (_) => sl<ProfilBloc>()..add(LoadProfilRequested()),
+      child: const EmployeeAttendanceApp(),
+    ),
+  );
 }
 
 class EmployeeAttendanceApp extends StatelessWidget {

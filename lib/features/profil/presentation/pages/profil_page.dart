@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_event.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
 
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
     final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
@@ -38,7 +41,6 @@ class ProfilPage extends StatelessWidget {
               child: Column(
                 children: [
                   SizedBox(height: 20.h),
-
                   Text(
                     'Profil Karyawan',
                     style: TextStyle(
@@ -57,103 +59,121 @@ class ProfilPage extends StatelessWidget {
                   ),
                   SizedBox(height: 24.h),
 
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 20.w),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(24.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: shadowColor,
-                          blurRadius: 15.r,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 80.w,
-                          height: 80.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFFBBF24), width: 3.w),
-                            color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                            image: const DecorationImage(
-                              // TODO:
-                              image: AssetImage('assets/images/placeholder_profil.png'),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          child: Icon(Icons.person, color: isDark ? const Color(0xFF64748B) : Colors.white, size: 40),
-                        ),
-                        SizedBox(height: 16.h),
+                  // Membaca BLoC Global
+                  BlocBuilder<ProfilBloc, ProfilState>(
+                    builder: (context, state) {
+                      String namaLengkap = 'Karyawan';
+                      String? fotoProfilUrl;
 
-                        // Nama & Role
-                        Text(
-                          'Exclipse',
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: textPrimary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Full Stack Dev & Database Administrator',
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: textSecondary,
-                          ),
-                        ),
-                        SizedBox(height: 20.h),
+                      if (state is ProfilLoaded) {
+                        namaLengkap = state.user['nama'] ?? 'Karyawan';
+                        fotoProfilUrl = state.user['profil_foto_path'];
+                      }
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(8.r),
-                                border: isDark ? Border.all(color: const Color(0xFF1E40AF)) : null,
-                              ),
-                              child: Text(
-                                'ID: FK-002',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12.w),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5),
-                                borderRadius: BorderRadius.circular(8.r),
-                                border: isDark ? Border.all(color: const Color(0xFF047857)) : null,
-                              ),
-                              child: Text(
-                                'Intern Aktif',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
-                                ),
-                              ),
+                      return Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 20.w),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(24.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: shadowColor,
+                              blurRadius: 15.r,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 80.w,
+                              height: 80.w,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFFFBBF24), width: 3.w),
+                                color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+                                image: fotoProfilUrl != null
+                                    ? DecorationImage(
+                                  image: NetworkImage(fotoProfilUrl),
+                                  fit: BoxFit.cover,
+                                )
+                                    : const DecorationImage(
+                                  image: AssetImage('assets/images/placeholder_profil.png'),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              child: fotoProfilUrl == null
+                                  ? Icon(Icons.person, color: isDark ? const Color(0xFF64748B) : Colors.white, size: 40)
+                                  : null,
+                            ),
+                            SizedBox(height: 16.h),
+
+                            Text(
+                              namaLengkap,
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                color: textPrimary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Full Stack Dev & Database Administrator',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: textSecondary,
+                              ),
+                            ),
+                            SizedBox(height: 20.h),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    border: isDark ? Border.all(color: const Color(0xFF1E40AF)) : null,
+                                  ),
+                                  child: Text(
+                                    'ID: FK-002',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 12.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    border: isDark ? Border.all(color: const Color(0xFF047857)) : null,
+                                  ),
+                                  child: Text(
+                                    'Intern Aktif',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: 20.h),
 
-                  // --- CARD 2: MENU NAVIGASI ---
+                  // Menu Navigasi & Logout tetap sama persis seperti kode sebelumnya...
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -177,8 +197,11 @@ class ProfilPage extends StatelessWidget {
                           title: 'Edit Profil',
                           subtitle: 'Ubah data diri dan kontak',
                           isDark: isDark,
-                          onTap: () {
-                            context.push('/edit-profil');
+                          onTap: () async {
+                            await context.push('/edit-profil');
+                            if (context.mounted) {
+                              context.read<ProfilBloc>().add(LoadProfilRequested());
+                            }
                           },
                         ),
                         _buildMenuItem(
@@ -188,9 +211,7 @@ class ProfilPage extends StatelessWidget {
                           title: 'Ubah Password',
                           subtitle: 'Keamanan akun & kata sandi',
                           isDark: isDark,
-                          onTap: () {
-                            context.push('/ubah-password');
-                          },
+                          onTap: () => context.push('/ubah-password'),
                         ),
                         _buildDivider(isDark),
                         _buildMenuItem(
@@ -209,9 +230,7 @@ class ProfilPage extends StatelessWidget {
                           title: 'Notifikasi',
                           subtitle: 'Pemberitahuan aplikasi',
                           isDark: isDark,
-                          onTap: () {
-                            context.push('/notifikasi');
-                          },
+                          onTap: () => context.push('/notifikasi'),
                         ),
                         _buildMenuItem(
                           icon: Icons.settings_outlined,
@@ -220,21 +239,15 @@ class ProfilPage extends StatelessWidget {
                           title: 'Pengaturan',
                           subtitle: 'Bahasa, tema, dan preferensi',
                           isDark: isDark,
-                          onTap: () {
-                            context.push('/pengaturan');
-                          },
+                          onTap: () => context.push('/pengaturan'),
                         ),
                       ],
                     ),
                   ),
                   SizedBox(height: 24.h),
 
-                  // --- CARD 3: TOMBOL LOGOUT ---
                   GestureDetector(
-                    onTap: () {
-                      // TODO: Implementasi logika logout
-                      // context.go('/login');
-                    },
+                    onTap: () {},
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
@@ -266,21 +279,11 @@ class ProfilPage extends StatelessWidget {
                   ),
                   SizedBox(height: 32.h),
 
-                  Text(
-                    'Sistem Presensi Karyawan',
-                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
-                  ),
+                  Text('Sistem Presensi Karyawan', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
                   SizedBox(height: 4.h),
-                  Text(
-                    'Build 1.0.0 (Yogyakarta)',
-                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
-                  ),
+                  Text('Build 1.0.0 (Yogyakarta)', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
                   SizedBox(height: 4.h),
-                  Text(
-                    'Dilindungi Hak Cipta',
-                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
-                  ),
-
+                  Text('Dilindungi Hak Cipta', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
                   SizedBox(height: 100.h),
                 ],
               ),
@@ -307,7 +310,6 @@ class ProfilPage extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 20.w),
         child: Row(
           children: [
-
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
@@ -317,7 +319,6 @@ class ProfilPage extends StatelessWidget {
               child: Icon(icon, color: iconColor, size: 22.sp),
             ),
             SizedBox(width: 16.w),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +342,6 @@ class ProfilPage extends StatelessWidget {
                 ],
               ),
             ),
-
             Icon(Icons.chevron_right, color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1), size: 24.sp),
           ],
         ),

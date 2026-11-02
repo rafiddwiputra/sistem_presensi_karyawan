@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../bloc/profil_bloc.dart';
+import '../bloc/profil_event.dart';
+import '../bloc/profil_state.dart';
+
+// Langsung menggunakan StatefulWidget karena Bloc sudah disediakan secara global di main.dart
 class EditProfilPage extends StatefulWidget {
   const EditProfilPage({super.key});
 
@@ -12,13 +18,28 @@ class EditProfilPage extends StatefulWidget {
 }
 
 class _EditProfilPageState extends State<EditProfilPage> {
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _noTlpController = TextEditingController();
+  final TextEditingController _alamatController = TextEditingController();
 
-  final TextEditingController _namaController = TextEditingController(text: 'Exclipse');
-  final TextEditingController _emailController = TextEditingController(text: 'Exclipse@mail.com');
-  final TextEditingController _noTlpController = TextEditingController(text: '085755791370');
-  final TextEditingController _alamatController = TextEditingController(text: 'Jogja, Jawa Tengah, Indonesia');
   File? _imageFile;
+  String? _currentImageUrl;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    // LANGSUNG comot data dari Global State di RAM saat halaman dibuka
+    final currentState = context.read<ProfilBloc>().state;
+    if (currentState is ProfilLoaded) {
+      _namaController.text = currentState.user['nama'] ?? '';
+      _emailController.text = currentState.user['email'] ?? '';
+      _noTlpController.text = currentState.user['no_hp'] ?? '';
+      _alamatController.text = currentState.user['alamat'] ?? '';
+      _currentImageUrl = currentState.user['profil_foto_path'];
+    }
+  }
 
   @override
   void dispose() {
@@ -117,6 +138,17 @@ class _EditProfilPageState extends State<EditProfilPage> {
     }
   }
 
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -128,228 +160,251 @@ class _EditProfilPageState extends State<EditProfilPage> {
     final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
     final Color btnBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
 
-    return Scaffold(
-      backgroundColor: bgApp,
-      body: Stack(
-        children: [
+    return BlocConsumer<ProfilBloc, ProfilState>(
+      listener: (context, state) {
+        // Listener ini sekarang hanya fokus pada hasil update dan error
+        if (state is ProfilUpdateSuccess) {
+          _showSnackBar('Profil berhasil diperbarui!', Colors.green);
+          context.pop();
+        } else if (state is ProfilError) {
+          _showSnackBar(state.message, Colors.red);
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is ProfilLoading;
 
-          Container(
-            height: 120.h,
-            width: double.infinity,
-            color: headerBg,
-          ),
-
-          SafeArea(
-            child: Column(
-              children: [
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
-                      ),
-                      SizedBox(width: 16.w),
-                      Text(
-                        'Edit Profil',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // 3. Area Konten Scrollable
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 8.h),
-
-                        // --- CARD 1: FOTO PROFIL ---
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(vertical: 24.h),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: isDark ? Border.all(color: borderColor) : null,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
-                                blurRadius: 15.r,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+        return Scaffold(
+          backgroundColor: bgApp,
+          body: Stack(
+            children: [
+              Container(
+                height: 120.h,
+                width: double.infinity,
+                color: headerBg,
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
                           ),
-                          child: Column(
-                            children: [
-                              Stack(
-                                alignment: Alignment.bottomRight,
-                                children: [
-                                  Container(
-                                    width: 86.w,
-                                    height: 86.w,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: const Color(0xFFFCD34D), width: 4.w),
-                                      color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                                      image: _imageFile != null
-                                          ? DecorationImage(
-                                        image: FileImage(_imageFile!),
-                                        fit: BoxFit.cover,
-                                      )
-                                          : const DecorationImage(
-                                        image: AssetImage('assets/images/placeholder_profil.png'),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
+                          SizedBox(width: 16.w),
+                          Text(
+                            'Edit Profil',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 8.h),
+                            // --- CARD 1: FOTO PROFIL ---
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(vertical: 24.h),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(20.r),
+                                border: isDark ? Border.all(color: borderColor) : null,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                    blurRadius: 15.r,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  GestureDetector(
-                                    onTap: () => _showImageSourceActionSheet(context),
-                                    child: Container(
-                                      padding: EdgeInsets.all(6.w),
-                                      decoration: BoxDecoration(
-                                        color: btnBlue,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: cardBg, width: 2.w),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Stack(
+                                    alignment: Alignment.bottomRight,
+                                    children: [
+                                      Container(
+                                        width: 86.w,
+                                        height: 86.w,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: const Color(0xFFFCD34D), width: 4.w),
+                                          color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+                                          image: _imageFile != null
+                                              ? DecorationImage(
+                                            image: FileImage(_imageFile!),
+                                            fit: BoxFit.cover,
+                                          )
+                                              : (_currentImageUrl != null
+                                              ? DecorationImage(
+                                            image: NetworkImage(_currentImageUrl!),
+                                            fit: BoxFit.cover,
+                                          )
+                                              : const DecorationImage(
+                                            image: AssetImage('assets/images/placeholder_profil.png'),
+                                            fit: BoxFit.cover,
+                                          )),
+                                        ),
                                       ),
-                                      child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 14.sp),
+                                      GestureDetector(
+                                        onTap: () => _showImageSourceActionSheet(context),
+                                        child: Container(
+                                          padding: EdgeInsets.all(6.w),
+                                          decoration: BoxDecoration(
+                                            color: btnBlue,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: cardBg, width: 2.w),
+                                          ),
+                                          child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 14.sp),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 12.h),
+                                  Text(
+                                    _namaController.text.isNotEmpty ? _namaController.text : 'Karyawan',
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: textPrimary,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  Text(
+                                    'Karyawan',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: textSecondary,
                                     ),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 12.h),
-                              Text(
-                                'Exclipse',
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: textPrimary,
-                                ),
-                                textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 20.h),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(24.w),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(20.r),
+                                border: isDark ? Border.all(color: borderColor) : null,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                    blurRadius: 15.r,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                'Full Stack Dev & Database Administrator',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: textSecondary,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildModernFormField('Nama Lengkap', _namaController, isEnabled: true, isDark: isDark),
+                                  _buildModernFormField('Email', _emailController, isEnabled: false, isDark: isDark),
+                                  _buildModernFormField('Nomor Tlp', _noTlpController, isEnabled: true, isNumber: true, isDark: isDark),
+                                  _buildModernFormField('Alamat Domisili', _alamatController, isEnabled: true, isLast: true, maxLines: 2, isDark: isDark),
+                                ],
                               ),
-                            ],
+                            ),
+                            SizedBox(height: 32.h),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          bottomNavigationBar: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+            decoration: BoxDecoration(
+              color: bgApp,
+              border: isDark ? Border(top: BorderSide(color: borderColor)) : null,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 52.h,
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                      context.read<ProfilBloc>().add(
+                        UpdateProfilRequested(
+                          nama: _namaController.text,
+                          email: _emailController.text,
+                          noHp: _noTlpController.text,
+                          alamat: _alamatController.text,
+                          image: _imageFile,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: btnBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: isLoading
+                        ? SizedBox(height: 24.h, width: 24.h, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.save_outlined, color: Colors.white, size: 20.sp),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Simpan Perubahan',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 20.h),
-
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(24.w),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: isDark ? Border.all(color: borderColor) : null,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
-                                blurRadius: 15.r,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildModernFormField('Nama Lengkap', _namaController, isDark: isDark),
-                              _buildModernFormField('Email', _emailController, isEnabled: false, isDark: isDark),
-                              _buildModernFormField('Nomor Tlp', _noTlpController, isNumber: true, isDark: isDark),
-                              _buildModernFormField('Alamat Domisili', _alamatController, isLast: true, maxLines: 2, isDark: isDark),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 32.h),
                       ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48.h,
+                  child: TextButton(
+                    onPressed: () => context.pop(),
+                    style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : const Color(0xFF475569),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-        decoration: BoxDecoration(
-          color: bgApp,
-          border: isDark ? Border(top: BorderSide(color: borderColor)) : null,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: 52.h,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Handle API Update Profile
-                  context.pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: btnBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.save_outlined, color: Colors.white, size: 20.sp),
-                    SizedBox(width: 8.w),
-                    Text(
-                      'Simpan Perubahan',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            SizedBox(
-              width: double.infinity,
-              height: 48.h,
-              child: TextButton(
-                onPressed: () => context.pop(),
-                style: TextButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: Text(
-                  'Batal',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : const Color(0xFF475569),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 

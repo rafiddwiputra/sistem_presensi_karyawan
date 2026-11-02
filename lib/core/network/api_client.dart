@@ -29,7 +29,7 @@ class ApiClient {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://illustrated-cole-manufacture-ordinance.trycloudflare.com/api/v1/mobile',
+    defaultValue: 'https://vocal-collectible-usd-project.trycloudflare.com/api/v1/mobile',
   );
 
   Interceptor get _loggingInterceptor => LogInterceptor(

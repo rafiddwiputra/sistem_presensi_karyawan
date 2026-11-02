@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../widgets/menu_card.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
 
 class BerandaPage extends StatelessWidget {
   const BerandaPage({super.key});
+
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final List<String> months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    final List<String> days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+
+    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +25,10 @@ class BerandaPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Stack(
           children: [
-
             Positioned(
               top: -500,
               left: 0,
@@ -43,51 +52,71 @@ class BerandaPage extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 50.w,
-                            height: 50.w,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFCD34D),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.person, color: const Color(0xFF1961B6), size: 30.w),
-                          ),
-                          SizedBox(width: 12.w),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      // Langsung membaca data dari ProfilBloc Global di RAM
+                      BlocBuilder<ProfilBloc, ProfilState>(
+                        builder: (context, state) {
+                          String namaPanggilan = 'Karyawan';
+                          String? fotoProfilUrl;
+
+                          if (state is ProfilLoaded) {
+                            String namaLengkap = state.user['nama'] ?? 'Karyawan';
+                            namaPanggilan = namaLengkap.split(' ').first;
+                            fotoProfilUrl = state.user['profil_foto_path'];
+                          }
+
+                          return Row(
                             children: [
-                              Text(
-                                'Hi, Exclipse',
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                              Container(
+                                width: 50.w,
+                                height: 50.w,
+                                decoration: BoxDecoration(
+                                  color: fotoProfilUrl == null ? const Color(0xFFFCD34D) : Colors.transparent,
+                                  shape: BoxShape.circle,
+                                  image: fotoProfilUrl != null
+                                      ? DecorationImage(
+                                    image: NetworkImage(fotoProfilUrl),
+                                    fit: BoxFit.cover,
+                                  )
+                                      : null,
                                 ),
+                                child: fotoProfilUrl == null
+                                    ? Icon(Icons.person, color: const Color(0xFF1961B6), size: 30.w)
+                                    : null,
                               ),
-                              Text(
-                                'Fullstack Dev & Database Administrator',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFFFCD34D),
-                                ),
+                              SizedBox(width: 12.w),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Hi, $namaPanggilan',
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Fullstack Dev & Database Administrator',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFFFCD34D),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
+                          );
+                        },
                       ),
 
                       GestureDetector(
-                        onTap: () {
-                          context.push('/notifikasi');
-                        },
+                        onTap: () => context.push('/notifikasi'),
                         child: Container(
                           padding: EdgeInsets.all(8.w),
                           decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF282828) : Colors.white,
-                              shape: BoxShape.circle
+                            color: isDark ? const Color(0xFF282828) : Colors.white,
+                            shape: BoxShape.circle,
                           ),
                           child: Stack(
                             children: [
@@ -107,7 +136,7 @@ class BerandaPage extends StatelessWidget {
                 SizedBox(height: 24.h),
 
                 Text(
-                  'Senin, 28 September 2026',
+                  _getFormattedDate(),
                   style: TextStyle(fontSize: 14.sp, color: Colors.white),
                 ),
 
@@ -117,7 +146,6 @@ class BerandaPage extends StatelessWidget {
                   padding: EdgeInsets.only(left: 24.w, right: 24.w, bottom: 100.h),
                   child: Column(
                     children: [
-
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 24.w),
                         decoration: BoxDecoration(
