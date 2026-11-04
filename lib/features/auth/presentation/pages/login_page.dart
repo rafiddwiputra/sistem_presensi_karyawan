@@ -2,32 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sistem_presensi_karyawan/app/theme/app_colors.dart';
-import 'package:sistem_presensi_karyawan/core/di/injection.dart';
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_event.dart';
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_state.dart';
 
-// Wrapper untuk menyediakan AuthBloc dari Gudang (Injection) ke UI
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<AuthBloc>(),
-      child: const LoginView(),
-    );
-  }
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class LoginView extends StatefulWidget {
-  const LoginView({super.key});
-
-  @override
-  State<LoginView> createState() => _LoginViewState();
-}
-
-class _LoginViewState extends State<LoginView> {
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordObscured = true;
@@ -57,11 +43,10 @@ class _LoginViewState extends State<LoginView> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // BlocConsumer bertugas mendengar perubahan State (Loading/Sukses/Error)
+
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
-            _showSnackBar('Selamat datang, ${state.user['nama']}!', Colors.green);
             context.go('/beranda');
           } else if (state is AuthError) {
             _showSnackBar(state.message, AppColors.error);

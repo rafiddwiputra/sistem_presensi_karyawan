@@ -38,6 +38,7 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
     on<UpdateProfilRequested>((event, emit) async {
       emit(ProfilLoading());
       try {
+
         await repository.updateProfil(
           nama: event.nama,
           email: event.email,
@@ -45,6 +46,7 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
           alamat: event.alamat,
           image: event.image,
         );
+
         emit(ProfilUpdateSuccess());
 
         add(LoadProfilRequested());
@@ -64,7 +66,7 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
           newPasswordConfirmation: event.newPasswordConfirmation,
         );
 
-        emit(const UbahPasswordSuccess(message: 'Password berhasil diubah!'));
+        emit(const UbahPasswordSuccess(message: 'Password berhasil dirubah!'));
         add(LoadProfilRequested());
       } on AppException catch (e) {
         emit(ProfilError(e.message));

@@ -9,11 +9,11 @@ sealed class AppException implements Exception {
 }
 
 class NetworkException extends AppException {
-  const NetworkException([super.message = 'Tidak ada koneksi internet.']);
+  const NetworkException([super.message = 'Koneksi Server Terputus']);
 }
 
 class TimeoutAppException extends AppException {
-  const TimeoutAppException([super.message = 'Koneksi ke server terlalu lama.']);
+  const TimeoutAppException([super.message = 'Koneksi ke server lambat']);
 }
 
 class UnauthorizedException extends AppException {

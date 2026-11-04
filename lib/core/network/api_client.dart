@@ -29,7 +29,7 @@ class ApiClient {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://healing-signing-reasonable-empire.trycloudflare.com/api/v1/mobile',
+    defaultValue: 'https://rail-alone-katie-feeding.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {

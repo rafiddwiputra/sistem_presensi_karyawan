@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Pastikan path import ini sesuai dengan struktur foldermu
 import '../bloc/profil_bloc.dart';
 import '../bloc/profil_event.dart';
 import '../bloc/profil_state.dart';
@@ -16,22 +15,54 @@ class UbahPasswordPage extends StatefulWidget {
 }
 
 class _UbahPasswordPageState extends State<UbahPasswordPage> {
-  // Controllers
+
   final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
-  // State Visibility (Mata)
   bool _obscureCurrent = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
 
+  int _passwordStrength = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _newPasswordController.addListener(_checkPasswordStrength);
+  }
+
   @override
   void dispose() {
+    _newPasswordController.removeListener(_checkPasswordStrength);
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _checkPasswordStrength() {
+    final password = _newPasswordController.text;
+    int score = 0;
+
+    if (password.isNotEmpty) {
+      score = 1;
+
+      if (password.length >= 8 && RegExp(r'[a-zA-Z]').hasMatch(password) && RegExp(r'\d').hasMatch(password)) {
+        score = 2;
+      }
+
+      if (score == 2 && RegExp(r'[A-Z]').hasMatch(password) && RegExp(r'[^a-zA-Z0-9]').hasMatch(password)) {
+        score = 3;
+      }
+    }
+
+    if (_passwordStrength != score) {
+      setState(() {
+        _passwordStrength = score;
+      });
+    }
   }
 
   void _showSnackBar(String message, Color backgroundColor) {
@@ -47,22 +78,19 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Deteksi Mode Gelap
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 2. Definisi Warna Dinamis
     final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
     final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
     final Color btnBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
 
-    // 3. Bungkus Scaffold dengan BlocConsumer
     return BlocConsumer<ProfilBloc, ProfilState>(
       listener: (context, state) {
         if (state is UbahPasswordSuccess) {
           _showSnackBar(state.message, Colors.green);
-          context.pop(); // Kembali ke halaman profil jika sukses
+          context.pop();
         } else if (state is ProfilError) {
           _showSnackBar(state.message, Colors.red);
         }
@@ -74,17 +102,14 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
           backgroundColor: bgApp,
           body: Stack(
             children: [
-              // Latar Belakang Biru Header
               Container(
                 height: 120.h,
                 width: double.infinity,
                 color: headerBg,
               ),
-
               SafeArea(
                 child: Column(
                   children: [
-                    // Custom App Bar
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                       child: Row(
@@ -105,8 +130,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                         ],
                       ),
                     ),
-
-                    // Area Konten Scrollable
                     Expanded(
                       child: SingleChildScrollView(
                         padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -114,8 +137,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                         child: Column(
                           children: [
                             SizedBox(height: 12.h),
-
-                            // --- HEADER ICON KEMANAN ---
                             Center(
                               child: Container(
                                 width: 90.w,
@@ -145,8 +166,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                               ),
                             ),
                             SizedBox(height: 24.h),
-
-                            // --- CARD UTAMA: FORM PASSWORD ---
                             Container(
                               width: double.infinity,
                               padding: EdgeInsets.all(24.w),
@@ -165,7 +184,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // 1. Password Lama
                                   _buildPasswordField(
                                     label: 'Password Saat Ini',
                                     controller: _currentPasswordController,
@@ -174,11 +192,8 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                     isDark: isDark,
                                   ),
                                   SizedBox(height: 20.h),
-
                                   Divider(color: borderColor, thickness: 1.5.h),
                                   SizedBox(height: 20.h),
-
-                                  // 2. Password Baru
                                   _buildPasswordField(
                                     label: 'Password Baru',
                                     controller: _newPasswordController,
@@ -188,21 +203,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                   ),
                                   SizedBox(height: 12.h),
 
-                                  // Indikator Kekuatan Sandi (Visual Dummy UI)
-                                  Row(
-                                    children: [
-                                      Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), borderRadius: BorderRadius.circular(2.r)))),
-                                      SizedBox(width: 4.w),
-                                      Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), borderRadius: BorderRadius.circular(2.r)))),
-                                      SizedBox(width: 4.w),
-                                      Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2.r)))),
-                                      SizedBox(width: 12.w),
-                                      Text('Kuat', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981))),
-                                    ],
-                                  ),
-                                  SizedBox(height: 20.h),
+                                  _buildStrengthIndicator(isDark),
 
-                                  // 3. Konfirmasi Password Baru
+                                  SizedBox(height: 20.h),
                                   _buildPasswordField(
                                     label: 'Konfirmasi Password Baru',
                                     controller: _confirmPasswordController,
@@ -214,8 +217,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                               ),
                             ),
                             SizedBox(height: 24.h),
-
-                            // --- KOTAK INFO KEAMANAN ---
                             Container(
                               padding: EdgeInsets.all(16.w),
                               decoration: BoxDecoration(
@@ -230,7 +231,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                   SizedBox(width: 12.w),
                                   Expanded(
                                     child: Text(
-                                      'Gunakan minimal 8 karakter dengan kombinasi huruf dan angka agar akun Anda tetap aman.',
+                                      'Gunakan minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, angka, dan simbol agar akun Anda tetap aman.',
                                       style: TextStyle(
                                         fontSize: 12.sp,
                                         color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
@@ -241,7 +242,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: 32.h), // Jarak lega ke tombol bawah
+                            SizedBox(height: 32.h),
                           ],
                         ),
                       ),
@@ -251,8 +252,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
               ),
             ],
           ),
-
-          // 4. Tombol Simpan & Batal (Sticky)
           bottomNavigationBar: Container(
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
             decoration: BoxDecoration(
@@ -273,7 +272,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                       final newPass = _newPasswordController.text;
                       final confirm = _confirmPasswordController.text;
 
-                      // Validasi Lokal
                       if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
                         _showSnackBar('Semua kolom wajib diisi!', Colors.red);
                         return;
@@ -287,7 +285,6 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                         return;
                       }
 
-                      // Trigger Event BLoC
                       context.read<ProfilBloc>().add(
                         UbahPasswordRequested(
                           currentPassword: current,
@@ -348,6 +345,56 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStrengthIndicator(bool isDark) {
+    final Color inactiveColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final Color weakColor = const Color(0xFFEF4444);
+    final Color fairColor = const Color(0xFFF59E0B);
+    final Color strongColor = isDark ? const Color(0xFF34D399) : const Color(0xFF10B981);
+
+    Color bar1 = inactiveColor, bar2 = inactiveColor, bar3 = inactiveColor;
+    Color textColor = inactiveColor;
+    String textLabel = 'Belum diisi';
+
+    if (_passwordStrength == 1) {
+      bar1 = weakColor;
+      textColor = weakColor;
+      textLabel = 'Lemah';
+    } else if (_passwordStrength == 2) {
+      bar1 = fairColor;
+      bar2 = fairColor;
+      textColor = fairColor;
+      textLabel = 'Sedang';
+    } else if (_passwordStrength == 3) {
+      bar1 = strongColor;
+      bar2 = strongColor;
+      bar3 = strongColor;
+      textColor = strongColor;
+      textLabel = 'Kuat';
+    }
+
+    return Row(
+      children: [
+        Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: bar1, borderRadius: BorderRadius.circular(2.r)))),
+        SizedBox(width: 4.w),
+        Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: bar2, borderRadius: BorderRadius.circular(2.r)))),
+        SizedBox(width: 4.w),
+        Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: bar3, borderRadius: BorderRadius.circular(2.r)))),
+        SizedBox(width: 12.w),
+        SizedBox(
+          width: 60.w,
+          child: Text(
+            textLabel,
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

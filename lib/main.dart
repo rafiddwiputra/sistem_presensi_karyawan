@@ -12,7 +12,6 @@ import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profi
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
 
 void main() async {
-  // 1. Global Error Handling (Enterprise Standard)
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await setupInjection();
@@ -20,12 +19,11 @@ void main() async {
     runApp(
       MultiBlocProvider(
         providers: [
-          // DIPERBAIKI: ProfilBloc tidak lagi memanggil API di main.dart sebelum login
-          BlocProvider(
-            create: (_) => sl<ProfilBloc>(),
+          BlocProvider.value(
+            value: sl<ProfilBloc>(),
           ),
-          BlocProvider(
-            create: (_) => sl<AuthBloc>(),
+          BlocProvider.value(
+            value: sl<AuthBloc>(),
           ),
         ],
         child: const EmployeeAttendanceApp(),
@@ -35,7 +33,7 @@ void main() async {
     if (kDebugMode) {
       debugPrint('Uncaught Enterprise Error: $error\n$stackTrace');
     }
-    // Di level Production, error ini bisa dilempar ke Sentry / Firebase Crashlytics
+
   });
 }
 
