@@ -109,4 +109,23 @@ class ProfilRepository {
       throw _apiClient.mapError(e);
     }
   }
+
+  Future<void> ubahPassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    try {
+      await _apiClient.dio.put(
+        '/me/password',
+        data: {
+          'current_password': currentPassword,
+          'password': newPassword,
+          'password_confirmation': newPasswordConfirmation,
+        },
+      );
+    } on DioException catch (e) {
+      throw _apiClient.mapError(e);
+    }
+  }
 }

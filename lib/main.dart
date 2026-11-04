@@ -1,24 +1,42 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'app/theme/app_theme.dart';
-import 'core/routes/app_router.dart';
-import 'app/theme/theme_notifier.dart';
-import 'core/di/injection.dart';
-import 'features/profil/presentation/bloc/profil_bloc.dart';
-import 'features/profil/presentation/bloc/profil_event.dart';
+import 'package:sistem_presensi_karyawan/app/theme/app_theme.dart';
+import 'package:sistem_presensi_karyawan/core/routes/app_router.dart';
+import 'package:sistem_presensi_karyawan/app/theme/theme_notifier.dart';
+import 'package:sistem_presensi_karyawan/core/di/injection.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await setupInjection();
+  // 1. Global Error Handling (Enterprise Standard)
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await setupInjection();
 
-  runApp(
-    BlocProvider(
-      create: (_) => sl<ProfilBloc>()..add(LoadProfilRequested()),
-      child: const EmployeeAttendanceApp(),
-    ),
-  );
+    runApp(
+      MultiBlocProvider(
+        providers: [
+          // DIPERBAIKI: ProfilBloc tidak lagi memanggil API di main.dart sebelum login
+          BlocProvider(
+            create: (_) => sl<ProfilBloc>(),
+          ),
+          BlocProvider(
+            create: (_) => sl<AuthBloc>(),
+          ),
+        ],
+        child: const EmployeeAttendanceApp(),
+      ),
+    );
+  }, (error, stackTrace) {
+    if (kDebugMode) {
+      debugPrint('Uncaught Enterprise Error: $error\n$stackTrace');
+    }
+    // Di level Production, error ini bisa dilempar ke Sentry / Firebase Crashlytics
+  });
 }
 
 class EmployeeAttendanceApp extends StatelessWidget {
@@ -38,14 +56,8 @@ class EmployeeAttendanceApp extends StatelessWidget {
               title: 'Sistem Presensi Karyawan',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light,
-              darkTheme: ThemeData.dark().copyWith(
-                scaffoldBackgroundColor: const Color(0xFF121212),
-                cardColor: const Color(0xFF1E1E1E),
-                colorScheme: const ColorScheme.dark(
-                  primary: Color(0xFF1E61B6),
-                  surface: Color(0xFF1E1E1E),
-                ),
-              ),
+              // DIPERBAIKI: Menggunakan AppTheme.dark agar terpusat dan konsisten
+              darkTheme: AppTheme.dark,
               themeMode: currentThemeMode,
               routerConfig: appRouter,
             );

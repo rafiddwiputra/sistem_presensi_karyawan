@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sistem_presensi_karyawan/core/errors/app_exception.dart';
 import 'package:sistem_presensi_karyawan/core/network/api_client.dart';
 import 'package:sistem_presensi_karyawan/core/services/secure_storage_service.dart';
@@ -40,12 +42,6 @@ class AuthRepository {
         },
       );
 
-      if (response.statusCode != 200) {
-        throw _apiClient.mapError(
-          DioException(requestOptions: response.requestOptions, response: response),
-        );
-      }
-
       final token = response.data['access_token'] as String?;
       if (token == null) {
         throw const ServerException('Token tidak ditemukan pada respons server.');
@@ -55,6 +51,19 @@ class AuthRepository {
       return Map<String, dynamic>.from(response.data['user']);
     } on DioException catch (e) {
       throw _apiClient.mapError(e);
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await _apiClient.dio.post('/auth/logout');
+    } on DioException catch (e) {
+      if (kDebugMode) debugPrint('API Logout terputus, melanjutkan penghapusan lokal: ${e.message}');
+    } finally {
+      await _storageService.deleteToken();
+      try {
+        await _storageService.delete('USER_PROFIL_CACHE');
+      } catch (_) {}
     }
   }
 }

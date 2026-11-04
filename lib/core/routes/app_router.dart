@@ -74,7 +74,6 @@ final GoRouter appRouter = GoRouter(
       name: 'presensi',
       builder: (context, state) => const PresensiPage(),
     ),
-    // --- RUTE IZIN SEKARANG ADA DI SINI (TOP-LEVEL, TANPA BOTTOM NAV) ---
     GoRoute(
       path: '/izin',
       name: 'izin',

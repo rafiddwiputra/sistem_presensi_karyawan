@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+// Pastikan path import ini sesuai dengan struktur foldermu
+import '../bloc/profil_bloc.dart';
+import '../bloc/profil_event.dart';
+import '../bloc/profil_state.dart';
 
 class UbahPasswordPage extends StatefulWidget {
   const UbahPasswordPage({super.key});
@@ -28,6 +34,17 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     super.dispose();
   }
 
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // 1. Deteksi Mode Gelap
@@ -37,257 +54,300 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
     final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
     final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
     final Color btnBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
 
-    return Scaffold(
-      backgroundColor: bgApp,
-      body: Stack(
-        children: [
-          // 1. Latar Belakang Biru Header
-          Container(
-            height: 120.h,
-            width: double.infinity,
-            color: headerBg,
-          ),
+    // 3. Bungkus Scaffold dengan BlocConsumer
+    return BlocConsumer<ProfilBloc, ProfilState>(
+      listener: (context, state) {
+        if (state is UbahPasswordSuccess) {
+          _showSnackBar(state.message, Colors.green);
+          context.pop(); // Kembali ke halaman profil jika sukses
+        } else if (state is ProfilError) {
+          _showSnackBar(state.message, Colors.red);
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is ProfilLoading;
 
-          SafeArea(
-            child: Column(
-              children: [
-                // 2. Custom App Bar
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
-                      ),
-                      SizedBox(width: 16.w),
-                      Text(
-                        'Ubah Password',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        return Scaffold(
+          backgroundColor: bgApp,
+          body: Stack(
+            children: [
+              // Latar Belakang Biru Header
+              Container(
+                height: 120.h,
+                width: double.infinity,
+                color: headerBg,
+              ),
 
-                // 3. Area Konten Scrollable
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 12.h),
-
-                        // --- HEADER ICON KEMANAN ---
-                        Center(
-                          child: Container(
-                            width: 90.w,
-                            height: 90.w,
-                            decoration: BoxDecoration(
-                              color: cardBg,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                                  blurRadius: 15.r,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+              SafeArea(
+                child: Column(
+                  children: [
+                    // Custom App Bar
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                          ),
+                          SizedBox(width: 16.w),
+                          Text(
+                            'Ubah Password',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
                             ),
-                            child: Center(
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Area Konten Scrollable
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 12.h),
+
+                            // --- HEADER ICON KEMANAN ---
+                            Center(
                               child: Container(
-                                width: 66.w,
-                                height: 66.w,
+                                width: 90.w,
+                                height: 90.w,
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
+                                  color: cardBg,
                                   shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                                      blurRadius: 15.r,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                                child: Icon(Icons.shield_outlined, color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6), size: 32.sp),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 24.h),
-
-                        // --- CARD UTAMA: FORM PASSWORD ---
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(24.w),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: isDark ? Border.all(color: borderColor) : null,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
-                                blurRadius: 15.r,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 1. Password Lama
-                              _buildPasswordField(
-                                label: 'Password Saat Ini',
-                                controller: _currentPasswordController,
-                                isObscure: _obscureCurrent,
-                                onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
-                                isDark: isDark,
-                              ),
-                              SizedBox(height: 20.h),
-
-                              Divider(color: borderColor, thickness: 1.5.h),
-                              SizedBox(height: 20.h),
-
-                              // 2. Password Baru
-                              _buildPasswordField(
-                                label: 'Password Baru',
-                                controller: _newPasswordController,
-                                isObscure: _obscureNew,
-                                onToggle: () => setState(() => _obscureNew = !_obscureNew),
-                                isDark: isDark,
-                              ),
-                              SizedBox(height: 12.h),
-
-                              // Indikator Kekuatan Sandi (Visual Dummy UI)
-                              Row(
-                                children: [
-                                  Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), borderRadius: BorderRadius.circular(2.r)))),
-                                  SizedBox(width: 4.w),
-                                  Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), borderRadius: BorderRadius.circular(2.r)))),
-                                  SizedBox(width: 4.w),
-                                  Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2.r)))),
-                                  SizedBox(width: 12.w),
-                                  Text('Kuat', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981))),
-                                ],
-                              ),
-                              SizedBox(height: 20.h),
-
-                              _buildPasswordField(
-                                label: 'Konfirmasi Password Baru',
-                                controller: _confirmPasswordController,
-                                isObscure: _obscureConfirm,
-                                onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                                isDark: isDark,
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 24.h),
-
-                        // --- KOTAK INFO KEAMANAN ---
-                        Container(
-                          padding: EdgeInsets.all(16.w),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFF0FDF4),
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(color: isDark ? const Color(0xFF047857) : const Color(0xFFDCFCE7), width: 1.w),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.info_outline, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), size: 20.sp),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: Text(
-                                  'Gunakan minimal 8 karakter dengan kombinasi huruf dan angka agar akun Anda tetap aman.',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
-                                    height: 1.4,
+                                child: Center(
+                                  child: Container(
+                                    width: 66.w,
+                                    height: 66.w,
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.shield_outlined, color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6), size: 32.sp),
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
+                            SizedBox(height: 24.h),
+
+                            // --- CARD UTAMA: FORM PASSWORD ---
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(24.w),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(20.r),
+                                border: isDark ? Border.all(color: borderColor) : null,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                    blurRadius: 15.r,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 1. Password Lama
+                                  _buildPasswordField(
+                                    label: 'Password Saat Ini',
+                                    controller: _currentPasswordController,
+                                    isObscure: _obscureCurrent,
+                                    onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                                    isDark: isDark,
+                                  ),
+                                  SizedBox(height: 20.h),
+
+                                  Divider(color: borderColor, thickness: 1.5.h),
+                                  SizedBox(height: 20.h),
+
+                                  // 2. Password Baru
+                                  _buildPasswordField(
+                                    label: 'Password Baru',
+                                    controller: _newPasswordController,
+                                    isObscure: _obscureNew,
+                                    onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                                    isDark: isDark,
+                                  ),
+                                  SizedBox(height: 12.h),
+
+                                  // Indikator Kekuatan Sandi (Visual Dummy UI)
+                                  Row(
+                                    children: [
+                                      Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), borderRadius: BorderRadius.circular(2.r)))),
+                                      SizedBox(width: 4.w),
+                                      Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), borderRadius: BorderRadius.circular(2.r)))),
+                                      SizedBox(width: 4.w),
+                                      Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2.r)))),
+                                      SizedBox(width: 12.w),
+                                      Text('Kuat', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981))),
+                                    ],
+                                  ),
+                                  SizedBox(height: 20.h),
+
+                                  // 3. Konfirmasi Password Baru
+                                  _buildPasswordField(
+                                    label: 'Konfirmasi Password Baru',
+                                    controller: _confirmPasswordController,
+                                    isObscure: _obscureConfirm,
+                                    onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                                    isDark: isDark,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 24.h),
+
+                            // --- KOTAK INFO KEAMANAN ---
+                            Container(
+                              padding: EdgeInsets.all(16.w),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFF0FDF4),
+                                borderRadius: BorderRadius.circular(16.r),
+                                border: Border.all(color: isDark ? const Color(0xFF047857) : const Color(0xFFDCFCE7), width: 1.w),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.info_outline, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), size: 20.sp),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: Text(
+                                      'Gunakan minimal 8 karakter dengan kombinasi huruf dan angka agar akun Anda tetap aman.',
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 32.h), // Jarak lega ke tombol bawah
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // 4. Tombol Simpan & Batal (Sticky)
+          bottomNavigationBar: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+            decoration: BoxDecoration(
+              color: bgApp,
+              border: isDark ? Border(top: BorderSide(color: borderColor)) : null,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 52.h,
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                      final current = _currentPasswordController.text;
+                      final newPass = _newPasswordController.text;
+                      final confirm = _confirmPasswordController.text;
+
+                      // Validasi Lokal
+                      if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
+                        _showSnackBar('Semua kolom wajib diisi!', Colors.red);
+                        return;
+                      }
+                      if (newPass != confirm) {
+                        _showSnackBar('Konfirmasi password tidak cocok!', Colors.red);
+                        return;
+                      }
+                      if (newPass.length < 8) {
+                        _showSnackBar('Password baru minimal 8 karakter!', Colors.orange);
+                        return;
+                      }
+
+                      // Trigger Event BLoC
+                      context.read<ProfilBloc>().add(
+                        UbahPasswordRequested(
+                          currentPassword: current,
+                          newPassword: newPass,
+                          newPasswordConfirmation: confirm,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: btnBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: isLoading
+                        ? SizedBox(height: 24.h, width: 24.h, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock_reset, color: Colors.white, size: 20.sp),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Ubah Password',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 32.h), // Jarak lega ke tombol bawah
                       ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48.h,
+                  child: TextButton(
+                    onPressed: () => context.pop(),
+                    style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : const Color(0xFF475569),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-
-      // 4. Tombol Simpan & Batal (Sticky)
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-        decoration: BoxDecoration(
-          color: bgApp,
-          border: isDark ? Border(top: BorderSide(color: borderColor)) : null,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: 52.h,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Handle API Ubah Password
-                  context.pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: btnBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lock_reset, color: Colors.white, size: 20.sp),
-                    SizedBox(width: 8.w),
-                    Text(
-                      'Ubah Password',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            SizedBox(
-              width: double.infinity,
-              height: 48.h,
-              child: TextButton(
-                onPressed: () => context.pop(),
-                style: TextButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: Text(
-                  'Batal',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : const Color(0xFF475569),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 

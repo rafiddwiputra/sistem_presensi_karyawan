@@ -12,7 +12,7 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthSuccess extends AuthState {
-  final Map<String, dynamic> user; // Menyimpan data user yang berhasil login
+  final Map<String, dynamic> user;
 
   const AuthSuccess(this.user);
 
@@ -21,10 +21,15 @@ class AuthSuccess extends AuthState {
 }
 
 class AuthError extends AuthState {
-  final String message; // Menyimpan pesan error dari API
+  final String message;
 
   const AuthError(this.message);
 
   @override
   List<Object?> get props => [message];
+}
+
+class AuthUnauthenticated extends AuthState {
+  @override
+  List<Object?> get props => [];
 }

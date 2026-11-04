@@ -5,11 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// Pastikan import widget custom ini ada!
+import '../../../../core/widgets/authenticated_profile_image.dart';
 import '../bloc/profil_bloc.dart';
 import '../bloc/profil_event.dart';
 import '../bloc/profil_state.dart';
 
-// Langsung menggunakan StatefulWidget karena Bloc sudah disediakan secara global di main.dart
 class EditProfilPage extends StatefulWidget {
   const EditProfilPage({super.key});
 
@@ -30,14 +31,14 @@ class _EditProfilPageState extends State<EditProfilPage> {
   @override
   void initState() {
     super.initState();
-    // LANGSUNG comot data dari Global State di RAM saat halaman dibuka
     final currentState = context.read<ProfilBloc>().state;
     if (currentState is ProfilLoaded) {
       _namaController.text = currentState.user['nama'] ?? '';
       _emailController.text = currentState.user['email'] ?? '';
       _noTlpController.text = currentState.user['no_hp'] ?? '';
       _alamatController.text = currentState.user['alamat'] ?? '';
-      _currentImageUrl = currentState.user['profil_foto_path'];
+      // Kunci yang benar adalah foto_url
+      _currentImageUrl = currentState.user['foto_url'];
     }
   }
 
@@ -162,7 +163,6 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
     return BlocConsumer<ProfilBloc, ProfilState>(
       listener: (context, state) {
-        // Listener ini sekarang hanya fokus pada hasil update dan error
         if (state is ProfilUpdateSuccess) {
           _showSnackBar('Profil berhasil diperbarui!', Colors.green);
           context.pop();
@@ -230,31 +230,28 @@ class _EditProfilPageState extends State<EditProfilPage> {
                               ),
                               child: Column(
                                 children: [
+                                  // --- Penempatan Stack yang benar ada di sini ---
                                   Stack(
                                     alignment: Alignment.bottomRight,
                                     children: [
-                                      Container(
+                                      _imageFile != null
+                                          ? Container(
                                         width: 86.w,
                                         height: 86.w,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(color: const Color(0xFFFCD34D), width: 4.w),
-                                          color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                                          image: _imageFile != null
-                                              ? DecorationImage(
+                                          image: DecorationImage(
                                             image: FileImage(_imageFile!),
                                             fit: BoxFit.cover,
-                                          )
-                                              : (_currentImageUrl != null
-                                              ? DecorationImage(
-                                            image: NetworkImage(_currentImageUrl!),
-                                            fit: BoxFit.cover,
-                                          )
-                                              : const DecorationImage(
-                                            image: AssetImage('assets/images/placeholder_profil.png'),
-                                            fit: BoxFit.cover,
-                                          )),
+                                          ),
                                         ),
+                                      )
+                                          : AuthenticatedProfileImage(
+                                        imagePath: _currentImageUrl,
+                                        size: 86.w,
+                                        isDark: isDark,
+                                        borderWidth: 4.0,
                                       ),
                                       GestureDetector(
                                         onTap: () => _showImageSourceActionSheet(context),
@@ -270,6 +267,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                       ),
                                     ],
                                   ),
+                                  // ------------------------------------------------
                                   SizedBox(height: 12.h),
                                   Text(
                                     _namaController.text.isNotEmpty ? _namaController.text : 'Karyawan',

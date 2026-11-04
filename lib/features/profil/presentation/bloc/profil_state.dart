@@ -21,3 +21,11 @@ class ProfilError extends ProfilState {
   @override
   List<Object?> get props => [message];
 }
+
+class UbahPasswordSuccess extends ProfilState {
+  final String message;
+  const UbahPasswordSuccess({required this.message});
+
+  @override
+  List<Object> get props => [message];
+}

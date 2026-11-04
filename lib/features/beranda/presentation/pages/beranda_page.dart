@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../widgets/menu_card.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
+import '../../../../core/widgets/authenticated_profile_image.dart';
 
 class BerandaPage extends StatelessWidget {
   const BerandaPage({super.key});
@@ -61,27 +62,17 @@ class BerandaPage extends StatelessWidget {
                           if (state is ProfilLoaded) {
                             String namaLengkap = state.user['nama'] ?? 'Karyawan';
                             namaPanggilan = namaLengkap.split(' ').first;
-                            fotoProfilUrl = state.user['profil_foto_path'];
+                            fotoProfilUrl = state.user['foto_url'];
                           }
 
                           return Row(
                             children: [
-                              Container(
-                                width: 50.w,
-                                height: 50.w,
-                                decoration: BoxDecoration(
-                                  color: fotoProfilUrl == null ? const Color(0xFFFCD34D) : Colors.transparent,
-                                  shape: BoxShape.circle,
-                                  image: fotoProfilUrl != null
-                                      ? DecorationImage(
-                                    image: NetworkImage(fotoProfilUrl),
-                                    fit: BoxFit.cover,
-                                  )
-                                      : null,
-                                ),
-                                child: fotoProfilUrl == null
-                                    ? Icon(Icons.person, color: const Color(0xFF1961B6), size: 30.w)
-                                    : null,
+                              // MENGGUNAKAN WIDGET CUSTOM KITA:
+                              AuthenticatedProfileImage(
+                                imagePath: fotoProfilUrl,
+                                size: 50.w,
+                                isDark: isDark,
+                                borderWidth: 2.0, // Border lebih tipis untuk ukuran Beranda
                               ),
                               SizedBox(width: 12.w),
                               Column(

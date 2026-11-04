@@ -2,12 +2,94 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+// --- IMPORT PROFIL ---
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_event.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
 
+// --- IMPORT AUTH (UNTUK LOGOUT) ---
+import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_event.dart';
+import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_state.dart';
+
+import '../../../../core/widgets/authenticated_profile_image.dart';
+
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});
+
+  void _showLogoutDialog(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+          title: Row(
+            children: [
+              Icon(Icons.logout, color: const Color(0xFFEF4444), size: 28.sp),
+              SizedBox(width: 12.w),
+              Text(
+                'Konfirmasi Logout',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Apakah Anda yakin ingin keluar dari aplikasi? Anda harus login kembali untuk masuk.',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              height: 1.5,
+            ),
+          ),
+          actionsPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+              ),
+              child: Text(
+                'Batal',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+
+                context.read<AuthBloc>().add(LogoutRequested());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              ),
+              child: Text(
+                'Ya, Keluar',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,15 +141,14 @@ class ProfilPage extends StatelessWidget {
                   ),
                   SizedBox(height: 24.h),
 
-                  // Membaca BLoC Global
                   BlocBuilder<ProfilBloc, ProfilState>(
                     builder: (context, state) {
                       String namaLengkap = 'Karyawan';
                       String? fotoProfilUrl;
 
                       if (state is ProfilLoaded) {
-                        namaLengkap = state.user['nama'] ?? 'Karyawan';
-                        fotoProfilUrl = state.user['profil_foto_path'];
+                        namaLengkap = state.user?['nama'] ?? 'Karyawan';
+                        fotoProfilUrl = state.user?['foto_url'];
                       }
 
                       return Container(
@@ -86,29 +167,12 @@ class ProfilPage extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            Container(
-                              width: 80.w,
-                              height: 80.w,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFFBBF24), width: 3.w),
-                                color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                                image: fotoProfilUrl != null
-                                    ? DecorationImage(
-                                  image: NetworkImage(fotoProfilUrl),
-                                  fit: BoxFit.cover,
-                                )
-                                    : const DecorationImage(
-                                  image: AssetImage('assets/images/placeholder_profil.png'),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              child: fotoProfilUrl == null
-                                  ? Icon(Icons.person, color: isDark ? const Color(0xFF64748B) : Colors.white, size: 40)
-                                  : null,
+                            AuthenticatedProfileImage(
+                              imagePath: fotoProfilUrl,
+                              size: 80.w,
+                              isDark: isDark,
                             ),
                             SizedBox(height: 16.h),
-
                             Text(
                               namaLengkap,
                               style: TextStyle(
@@ -127,7 +191,6 @@ class ProfilPage extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 20.h),
-
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -173,7 +236,6 @@ class ProfilPage extends StatelessWidget {
                   ),
                   SizedBox(height: 20.h),
 
-                  // Menu Navigasi & Logout tetap sama persis seperti kode sebelumnya...
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -246,34 +308,43 @@ class ProfilPage extends StatelessWidget {
                   ),
                   SizedBox(height: 24.h),
 
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
-                        borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(
-                            color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
-                            width: 1.w
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.logout, color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444), size: 24.sp),
-                          SizedBox(width: 16.w),
-                          Text(
-                            'Log Out',
-                            style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444),
-                            ),
+                  // --- LISTENER UNTUK LOGOUT ---
+                  BlocListener<AuthBloc, AuthState>(
+                    listener: (context, state) {
+                      if (state is AuthUnauthenticated) {
+
+                        context.go('/login');
+                      }
+                    },
+                    child: GestureDetector(
+                      onTap: () => _showLogoutDialog(context, isDark),
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                              color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                              width: 1.w
                           ),
-                          const Spacer(),
-                          Icon(Icons.chevron_right, color: isDark ? const Color(0xFFB91C1C) : const Color(0xFFFCA5A5), size: 24.sp),
-                        ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444), size: 24.sp),
+                            SizedBox(width: 16.w),
+                            Text(
+                              'Log Out',
+                              style: TextStyle(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444),
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(Icons.chevron_right, color: isDark ? const Color(0xFFB91C1C) : const Color(0xFFFCA5A5), size: 24.sp),
+                          ],
+                        ),
                       ),
                     ),
                   ),

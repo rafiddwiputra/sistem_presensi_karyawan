@@ -9,7 +9,7 @@ import '../../features/profil/presentation/bloc/profil_bloc.dart';
 final sl = GetIt.instance;
 
 Future<void> setupInjection() async {
-  // Services
+  // Service
   sl.registerLazySingleton<SecureStorageService>(
         () => SecureStorageService(),
   );
@@ -19,22 +19,20 @@ Future<void> setupInjection() async {
         () => ApiClient(sl<SecureStorageService>()),
   );
 
-  // Repositories
   sl.registerLazySingleton<AuthRepository>(
         () => AuthRepository(sl<ApiClient>(), sl<SecureStorageService>()),
   );
 
-  // MENGATASI ERROR: Menambahkan parameter kedua sl<SecureStorageService>()
   sl.registerLazySingleton<ProfilRepository>(
         () => ProfilRepository(sl<ApiClient>(), sl<SecureStorageService>()),
   );
 
-  // Bloc
-  sl.registerFactory<AuthBloc>(
-        () => AuthBloc(authRepository: sl<AuthRepository>()),
-  );
+  // Di dalam main.dart atau injection.dart
+  sl.registerLazySingleton(() => AuthBloc(
+    authRepository: sl(),
+    profilBloc: sl(), // Suntikkan ProfilBloc ke dalam AuthBloc
+  ));
 
-  // MENGATASI WARNING IMPORT: Mendaftarkan kembali ProfilBloc
   sl.registerLazySingleton<ProfilBloc>(
         () => ProfilBloc(repository: sl<ProfilRepository>()),
   );
