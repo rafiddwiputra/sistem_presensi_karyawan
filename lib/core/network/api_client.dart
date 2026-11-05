@@ -29,7 +29,7 @@ class ApiClient {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://prominent-stock-deposits-forever.trycloudflare.com/api/v1/mobile',
+    defaultValue: 'https://reaction-sing-socket-seemed.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {

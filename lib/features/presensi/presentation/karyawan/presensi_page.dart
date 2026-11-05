@@ -1,16 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/di/injection.dart';
+import '../bloc/presensi_bloc.dart';
+import '../bloc/presensi_event.dart';
+import '../bloc/presensi_state.dart';
 import '../widgets/konfirmasi_presensi_bottom_sheet.dart';
 
-class PresensiPage extends StatefulWidget {
+class PresensiPage extends StatelessWidget {
   const PresensiPage({super.key});
 
   @override
-  State<PresensiPage> createState() => _PresensiPageState();
+  Widget build(BuildContext context) {
+    // 1. Daftarkan BLoC dan langsung tembak event LoadPresensiData saat halaman dibuka
+    return BlocProvider(
+      create: (context) => sl<PresensiBloc>()..add(LoadPresensiData()),
+      child: const PresensiView(),
+    );
+  }
 }
 
-class _PresensiPageState extends State<PresensiPage> {
-  final bool isDalamRadius = true;
+class PresensiView extends StatefulWidget {
+  const PresensiView({super.key});
+
+  @override
+  State<PresensiView> createState() => _PresensiViewState();
+}
+
+class _PresensiViewState extends State<PresensiView> {
+
+  String _formatTanggal(String? rawDate) {
+    if (rawDate == null) return '-';
+    try {
+      final date = DateTime.parse(rawDate);
+      return DateFormat('EEEE, d MMM yyyy', 'id_ID').format(date);
+    } catch (e) {
+      return rawDate;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,267 +64,284 @@ class _PresensiPageState extends State<PresensiPage> {
           style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.w600),
         ),
       ),
-      body: Stack(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height * 0.65,
-            width: double.infinity,
-            color: mapBgColor,
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: 120.h,
-                  right: 40.w,
-                  child: Container(
-                    width: 120.w,
-                    height: 120.w,
-                    decoration: BoxDecoration(
-                      color: headerBlue.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: headerBlue.withValues(alpha: 0.3), width: 1.w),
+      // 2. Bungkus body dengan BlocConsumer untuk mendengarkan perubahan State
+      body: BlocConsumer<PresensiBloc, PresensiState>(
+        listener: (context, state) {
+          if (state.status == PresensiStatus.error && state.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.red),
+            );
+          }
+        },
+        builder: (context, state) {
+          // Tampilkan loading penuh jika data awal belum termuat
+          if (state.status == PresensiStatus.initial ||
+              (state.status == PresensiStatus.loading && state.attendanceData == null)) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final data = state.attendanceData;
+          final isDalamRadius = state.isDalamRadius;
+          final isCheckingLokasi = state.status == PresensiStatus.locationChecking;
+
+          return Stack(
+            children: [
+              // --- AREA PETA (ATAS) ---
+              Container(
+                height: MediaQuery.of(context).size.height * 0.65,
+                width: double.infinity,
+                color: mapBgColor,
+                child: Stack(
+                  children: [
+                    // Indikator Posisi Anda
+                    Positioned(
+                      top: 100.h,
+                      left: 60.w,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: isCheckingLokasi ? Colors.blue : const Color(0xFFF59E0B),
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Row(
+                              children: [
+                                if (isCheckingLokasi) ...[
+                                  SizedBox(width: 10.w, height: 10.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                  SizedBox(width: 8.w),
+                                  Text('Mencari GPS...', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                                ] else ...[
+                                  Icon(Icons.location_on, color: Colors.white, size: 14.w),
+                                  SizedBox(width: 4.w),
+                                  Text('Posisi Anda (${state.jarakMeter}m)', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                                ]
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Container(
+                            width: 24.w,
+                            height: 24.w,
+                            decoration: BoxDecoration(
+                              color: headerBlue.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: 12.w,
+                                height: 12.w,
+                                decoration: const BoxDecoration(color: headerBlue, shape: BoxShape.circle),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                Positioned(
-                  top: 100.h,
-                  left: 60.w,
+              ),
+
+              // Tombol Navigasi Peta (Kanan Atas)
+              Positioned(
+                top: 16.h,
+                right: 16.w,
+                child: Column(
+                  children: [
+                    FloatingActionButton.small(
+                      heroTag: 'btn_location',
+                      backgroundColor: isDark ? const Color(0xFF282828) : Colors.white,
+                      // Eksekusi ulang penarikan koordinat GPS saat tombol ditekan
+                      onPressed: () => context.read<PresensiBloc>().add(RefreshLokasi()),
+                      child: Icon(Icons.my_location, color: headerBlue, size: 20.w),
+                    ),
+                    SizedBox(height: 8.h),
+                    FloatingActionButton.small(
+                      heroTag: 'btn_layers',
+                      backgroundColor: isDark ? const Color(0xFF282828) : Colors.white,
+                      onPressed: () {},
+                      child: Icon(Icons.layers_outlined, color: textSecondary, size: 20.w),
+                    ),
+                  ],
+                ),
+              ),
+
+              // --- AREA KARTU INFORMASI (BAWAH) ---
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(24.w),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(30.r), topRight: Radius.circular(30.r)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12), blurRadius: 20.r, offset: Offset(0, -5.h)),
+                    ],
+                  ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Center(
+                        child: Container(
+                          width: 40.w,
+                          height: 5.h,
+                          decoration: BoxDecoration(color: isDark ? const Color(0xFF333333) : Colors.grey.shade300, borderRadius: BorderRadius.circular(10.r)),
+                        ),
+                      ),
+                      SizedBox(height: 24.h),
+
+                      // Tampilan dinamis Dalam/Luar Radius
+                      isCheckingLokasi
+                          ? const Center(child: CircularProgressIndicator())
+                          : (isDalamRadius
+                          ? _buildDalamRadiusCard(isDark, state.jarakMeter)
+                          : _buildLuarRadiusCard(isDark, state.jarakMeter)),
+
+                      SizedBox(height: 16.h),
+
+                      // Box Detail Tanggal & Waktu
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B),
-                          borderRadius: BorderRadius.circular(20.r),
+                          color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(color: borderColor, width: 1.0.w),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.location_on, color: Colors.white, size: 14.w),
-                            SizedBox(width: 4.w),
-                            Text('Posisi Anda (250m)', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                            Expanded(
+                              flex: 5,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(10.w),
+                                    decoration: BoxDecoration(color: headerBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10.r)),
+                                    child: Icon(Icons.calendar_today_outlined, color: isDark ? const Color(0xFF60A5FA) : headerBlue, size: 20.w),
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('Tanggal Presensi', style: TextStyle(fontSize: 12.sp, color: textSecondary))),
+                                        SizedBox(height: 2.h),
+                                        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(_formatTanggal(data?.tanggal), style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary))),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(height: 40.h, width: 1.w, color: borderColor),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              flex: 4,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(10.w),
+                                    decoration: BoxDecoration(color: headerBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10.r)),
+                                    child: Icon(Icons.access_time_outlined, color: isDark ? const Color(0xFF60A5FA) : headerBlue, size: 20.w),
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('Jadwal Masuk', style: TextStyle(fontSize: 12.sp, color: textSecondary))),
+                                        SizedBox(height: 2.h),
+                                        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(data?.jadwal.jamMasuk ?? '--:--', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary))),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 8.h),
-                      Container(
-                        width: 24.w,
-                        height: 24.w,
-                        decoration: BoxDecoration(
-                          color: headerBlue.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 12.w,
-                            height: 12.w,
-                            decoration: const BoxDecoration(color: headerBlue, shape: BoxShape.circle),
+                      SizedBox(height: 24.h),
+
+                      // Lokasi Kantor Dinamis
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(10.w),
+                            decoration: BoxDecoration(color: headerBlue.withValues(alpha: 0.1), shape: BoxShape.circle),
+                            child: Icon(Icons.location_on_outlined, color: isDark ? const Color(0xFF60A5FA) : headerBlue, size: 24.w),
+                          ),
+                          SizedBox(width: 16.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('LOKASI KANTOR', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: textSecondary)),
+                                SizedBox(height: 4.h),
+                                Text(data?.kantor?.nama ?? 'Memuat lokasi...', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 32.h),
+
+                      // Tombol Presensi
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55.h,
+                        child: (isDalamRadius && !isCheckingLokasi && data != null && !data.presensiSelesai)
+                            ? ElevatedButton(
+                          onPressed: () {
+                            // Lempar BLoC yang aktif ini ke dalam BottomSheet agar State tidak putus
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<PresensiBloc>(),
+                                child: const KonfirmasiPresensiBottomSheet(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: headerBlue,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                            elevation: 0,
+                          ),
+                          child: Text(data.aksiBerikutnya == 'Pulang' ? 'Pulang Kerja' : 'Masuk Kerja',
+                              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)
+                          ),
+                        )
+                            : ElevatedButton.icon(
+                          onPressed: null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+                            disabledBackgroundColor: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                            elevation: 0,
+                          ),
+                          icon: Icon(Icons.lock_outline, color: const Color(0xFF94A3B8), size: 20.w),
+                          label: Text(
+                            data?.presensiSelesai == true ? 'Presensi Selesai' : (data?.aksiBerikutnya == 'Pulang' ? 'Pulang Kerja' : 'Masuk Kerja'),
+                            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF94A3B8)),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          Positioned(
-            top: 16.h,
-            right: 16.w,
-            child: Column(
-              children: [
-                FloatingActionButton.small(
-                  heroTag: 'btn_location',
-                  backgroundColor: isDark ? const Color(0xFF282828) : Colors.white,
-                  onPressed: () {},
-                  child: Icon(Icons.my_location, color: headerBlue, size: 20.w),
-                ),
-                SizedBox(height: 8.h),
-                FloatingActionButton.small(
-                  heroTag: 'btn_layers',
-                  backgroundColor: isDark ? const Color(0xFF282828) : Colors.white,
-                  onPressed: () {},
-                  child: Icon(Icons.layers_outlined, color: textSecondary, size: 20.w),
-                ),
-              ],
-            ),
-          ),
-
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(24.w),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30.r),
-                  topRight: Radius.circular(30.r),
-                ),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12), blurRadius: 20.r, offset: Offset(0, -5.h)),
-                ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Center(
-                    child: Container(
-                      width: 40.w,
-                      height: 5.h,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF333333) : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
-
-                  isDalamRadius
-                      ? _buildDalamRadiusCard(isDark)
-                      : _buildLuarRadiusCard(isDark),
-
-                  SizedBox(height: 16.h),
-
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: borderColor,
-                        width: 1.0.w,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10.w),
-                                decoration: BoxDecoration(
-                                  color: headerBlue.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(10.r),
-                                ),
-                                child: Icon(Icons.calendar_today_outlined, color: isDark ? const Color(0xFF60A5FA) : headerBlue, size: 20.w),
-                              ),
-                              SizedBox(width: 10.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('Tanggal Presensi', maxLines: 1, style: TextStyle(fontSize: 12.sp, color: textSecondary))),
-                                    SizedBox(height: 2.h),
-                                    FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('Senin, 28 Sep 2026', maxLines: 1, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary))),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(height: 40.h, width: 1.w, color: borderColor),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          flex: 4,
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10.w),
-                                decoration: BoxDecoration(color: headerBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10.r)),
-                                child: Icon(Icons.access_time_outlined, color: isDark ? const Color(0xFF60A5FA) : headerBlue, size: 20.w),
-                              ),
-                              SizedBox(width: 10.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('Waktu Presensi', maxLines: 1, style: TextStyle(fontSize: 12.sp, color: textSecondary))),
-                                    SizedBox(height: 2.h),
-                                    FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('07:45 WIB', maxLines: 1, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary))),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(10.w),
-                        decoration: BoxDecoration(color: headerBlue.withValues(alpha: 0.1), shape: BoxShape.circle),
-                        child: Icon(Icons.location_on_outlined, color: isDark ? const Color(0xFF60A5FA) : headerBlue, size: 24.w),
-                      ),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('LOKASI KANTOR', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: textSecondary)),
-                            SizedBox(height: 4.h),
-                            Text('Cyber Olympus Software House', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary)),
-                            SizedBox(height: 4.h),
-                            Text('Jl. Padma No. 22, Sleman, D.I. Yogyakarta', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 32.h),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55.h,
-                    child: isDalamRadius
-                        ? ElevatedButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => const KonfirmasiPresensiBottomSheet(),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: headerBlue,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                        elevation: 0,
-                      ),
-                      child: Text('Masuk Kerja', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
-                    )
-                        : ElevatedButton.icon(
-                      onPressed: null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                        disabledBackgroundColor: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                        elevation: 0,
-                      ),
-                      icon: Icon(Icons.lock_outline, color: const Color(0xFF94A3B8), size: 20.w),
-                      label: Text(
-                        'Masuk Kerja',
-                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF94A3B8)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildLuarRadiusCard(bool isDark) {
+  Widget _buildLuarRadiusCard(bool isDark, int jarak) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -320,12 +365,7 @@ class _PresensiPageState extends State<PresensiPage> {
                   children: [
                     Text('Di Luar Radius', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E))),
                     SizedBox(height: 2.h),
-                    Text(
-                        'Lokasi Anda berada di luar area presensi',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11.sp, color: isDark ? const Color(0xFFFDE68A).withValues(alpha: 0.8) : const Color(0xFF92400E).withValues(alpha: 0.8))
-                    ),
+                    Text('Lokasi Anda berada di luar area', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.sp, color: isDark ? const Color(0xFFFDE68A).withValues(alpha: 0.8) : const Color(0xFF92400E).withValues(alpha: 0.8))),
                   ],
                 ),
               ),
@@ -335,46 +375,19 @@ class _PresensiPageState extends State<PresensiPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('20 M', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E))),
+                  Text('$jarak m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E))),
                   SizedBox(height: 2.h),
-                  Text('Jarak ke kantor', style: TextStyle(fontSize: 10.sp, color: isDark ? const Color(0xFFFDE68A).withValues(alpha: 0.7) : const Color(0xFF92400E).withValues(alpha: 0.7))),
+                  Text('Jarak Anda', style: TextStyle(fontSize: 10.sp, color: isDark ? const Color(0xFFFDE68A).withValues(alpha: 0.7) : const Color(0xFF92400E).withValues(alpha: 0.7))),
                 ],
               )
             ],
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.h),
-            child: Divider(color: isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A), height: 1.h, thickness: 1.h),
-          ),
-          Row(
-            children: [
-              Icon(Icons.info_outline, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFFD97706), size: 14.w),
-              SizedBox(width: 8.w),
-              Expanded(
-                  child: Text(
-                      'Silahkan mendekat ke area kantor ...',
-                      style: TextStyle(fontSize: 11.sp, color: isDark ? const Color(0xFFFDE68A).withValues(alpha: 0.8) : const Color(0xFF92400E).withValues(alpha: 0.8))
-                  )
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(4.r)
-                ),
-                child: Text(
-                    'Maks. 15 m',
-                    style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFFD97706))
-                ),
-              )
-            ],
-          )
         ],
       ),
     );
   }
 
-  Widget _buildDalamRadiusCard(bool isDark) {
+  Widget _buildDalamRadiusCard(bool isDark, int jarak) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       decoration: BoxDecoration(
@@ -397,9 +410,9 @@ class _PresensiPageState extends State<PresensiPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text('15 m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp, color: isDark ? Colors.white : const Color(0xFF1E293B))),
+              Text('$jarak m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp, color: isDark ? Colors.white : const Color(0xFF1E293B))),
               SizedBox(height: 2.h),
-              Text('Jarak ke kantor', style: TextStyle(fontSize: 12.sp, color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF64748B))),
+              Text('Jarak Anda', style: TextStyle(fontSize: 12.sp, color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF64748B))),
             ],
           )
         ],

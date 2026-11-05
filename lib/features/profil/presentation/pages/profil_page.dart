@@ -147,8 +147,8 @@ class ProfilPage extends StatelessWidget {
                       String? fotoProfilUrl;
 
                       if (state is ProfilLoaded) {
-                        namaLengkap = state.user?['nama'] ?? 'Karyawan';
-                        fotoProfilUrl = state.user?['foto_url'];
+                        namaLengkap = state.user['nama'] ?? 'Karyawan';
+                        fotoProfilUrl = state.user['foto_url'];
                       }
 
                       return Container(

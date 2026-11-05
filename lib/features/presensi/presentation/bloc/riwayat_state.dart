@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../data/models/riwayat_model.dart';
 
 abstract class RiwayatState extends Equatable {
   const RiwayatState();
@@ -19,8 +20,8 @@ class RiwayatLoading extends RiwayatState {
 
 class RiwayatLoaded extends RiwayatState {
   final DateTime currentDate;
-  final Map<String, dynamic> summary;
-  final List<dynamic> riwayatList;
+  final RiwayatSummary summary;
+  final List<RiwayatItem> riwayatList;
 
   const RiwayatLoaded({
     required this.currentDate,
@@ -34,7 +35,7 @@ class RiwayatLoaded extends RiwayatState {
 
 class RiwayatError extends RiwayatState {
   final String message;
-  final DateTime currentDate; // Tetap simpan tanggal agar UI tidak hilang/rusak
+  final DateTime currentDate;
 
   const RiwayatError(this.message, this.currentDate);
 

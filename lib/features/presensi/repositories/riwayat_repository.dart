@@ -1,13 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_presensi_karyawan/core/network/api_client.dart';
+import '../data/models/riwayat_model.dart';
 
 class RiwayatRepository {
   final ApiClient _apiClient;
 
   RiwayatRepository(this._apiClient);
 
-  Future<Map<String, dynamic>> getRiwayat(DateTime date) async {
+  Future<RiwayatResponse> getRiwayat(DateTime date) async {
     try {
       final monthParam = DateFormat('yyyy-MM').format(date);
 
@@ -20,7 +21,8 @@ class RiwayatRepository {
       if (data is! Map<String, dynamic>) {
         throw const FormatException('Format respons riwayat tidak sesuai.');
       }
-      return data;
+
+      return RiwayatResponse.fromJson(data);
     } on DioException catch (e) {
       throw _apiClient.mapError(e);
     }

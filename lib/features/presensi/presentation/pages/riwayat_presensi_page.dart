@@ -22,17 +22,6 @@ class RiwayatPresensiPage extends StatelessWidget {
   }
 }
 
-String _formatDateWithDay(String rawDate) {
-  try {
-    final date = DateTime.parse(rawDate); // parse dari "2026-09-30"
-    final formatted = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(date);
-    // Hasil default: "Rabu, 30 Sep 2026" — sudah sesuai format yang diminta.
-    return formatted;
-  } catch (e) {
-    return rawDate; // fallback kalau format tanggal tidak terduga
-  }
-}
-
 class RiwayatPresensiView extends StatefulWidget {
   const RiwayatPresensiView({super.key});
 
@@ -124,11 +113,11 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Row(
                   children: [
-                    Expanded(child: _buildSummaryBox('Hadir', '${state is RiwayatLoaded ? state.summary['hadir'] : '-'} Hari', summaryBg, textPrimary, textSecondary)),
+                    Expanded(child: _buildSummaryBox('Hadir', '${state is RiwayatLoaded ? state.summary.hadir : '-'} Hari', summaryBg, textPrimary, textSecondary)),
                     SizedBox(width: 12.w),
-                    Expanded(child: _buildSummaryBox('Lembur', '${state is RiwayatLoaded ? state.summary['lembur'] : '-'} Hari', summaryBg, textPrimary, textSecondary)),
+                    Expanded(child: _buildSummaryBox('Lembur', '${state is RiwayatLoaded ? state.summary.lembur : '-'} Hari', summaryBg, textPrimary, textSecondary)),
                     SizedBox(width: 12.w),
-                    Expanded(child: _buildSummaryBox('Izin', '${state is RiwayatLoaded ? state.summary['izin'] : '-'} Hari', summaryBg, textPrimary, textSecondary)),
+                    Expanded(child: _buildSummaryBox('Izin', '${state is RiwayatLoaded ? state.summary.izin : '-'} Hari', summaryBg, textPrimary, textSecondary)),
                   ],
                 ),
               ),
@@ -200,7 +189,7 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
         itemCount: state.riwayatList.length,
         itemBuilder: (context, index) {
           final item = state.riwayatList[index];
-          final status = item['status'] as String;
+          final status = item.status;
 
           IconData iconType;
           Color? iconColor;
@@ -227,12 +216,14 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
               iconColor = null;
           }
 
+          final formattedDate = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(item.tanggal);
+
           return _buildAttendanceCard(
-            date: _formatDateWithDay(item['tanggal'] as String),
-            subtitle: item['subtitle'],
+            date: formattedDate,
+            subtitle: item.subtitle.isNotEmpty ? item.subtitle : null,
             status: status,
-            timeIn: item['jam_masuk'],
-            timeOut: item['jam_keluar'],
+            timeIn: item.waktuMasuk,
+            timeOut: item.waktuKeluar,
             iconType: iconType,
             iconColor: iconColor,
             isDark: isDark,
