@@ -8,6 +8,7 @@ import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/mai
 import 'package:sistem_presensi_karyawan/features/auth/presentation/pages/login_page.dart';
 import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/beranda_page.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/karyawan/presensi_page.dart';
+import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/riwayat_presensi_page.dart'; // Sesuaikan path jika berbeda
 
 import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/izin_page.dart';
 import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/buat_izin_page.dart';
@@ -154,7 +155,7 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/riwayat',
               name: 'riwayat',
-              builder: (context, state) => const Scaffold(body: Center(child: Text('Halaman Riwayat'))),
+              builder: (context, state) => const RiwayatPresensiPage(),
             ),
           ],
         ),

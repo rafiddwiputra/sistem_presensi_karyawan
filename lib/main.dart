@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:sistem_presensi_karyawan/app/theme/app_theme.dart';
 import 'package:sistem_presensi_karyawan/core/routes/app_router.dart';
@@ -14,6 +15,7 @@ import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bl
 void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('id_ID', null);
     await setupInjection();
 
     runApp(
@@ -33,7 +35,6 @@ void main() async {
     if (kDebugMode) {
       debugPrint('Uncaught Enterprise Error: $error\n$stackTrace');
     }
-
   });
 }
 
@@ -54,7 +55,6 @@ class EmployeeAttendanceApp extends StatelessWidget {
               title: 'Sistem Presensi Karyawan',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light,
-              // DIPERBAIKI: Menggunakan AppTheme.dark agar terpusat dan konsisten
               darkTheme: AppTheme.dark,
               themeMode: currentThemeMode,
               routerConfig: appRouter,
