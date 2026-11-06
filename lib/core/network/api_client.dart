@@ -17,7 +17,6 @@ class ApiClient {
         headers: {
           'Accept': 'application/json',
         },
-
       ),
     );
     dio.interceptors.addAll([
@@ -29,7 +28,7 @@ class ApiClient {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://reaction-sing-socket-seemed.trycloudflare.com/api/v1/mobile',
+    defaultValue: 'https://emphasis-dive-nano-medline.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {
