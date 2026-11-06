@@ -1,24 +1,48 @@
-
 import 'dart:async';
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/errors/app_exception.dart';
 import '../data/models/today_attendance_model.dart';
+
+class LocationCheckResult {
+  final bool isDalamRadius;
+  final int jarakMeter;
+  const LocationCheckResult({required this.isDalamRadius, required this.jarakMeter});
+
+  factory LocationCheckResult.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const LocationCheckResult(isDalamRadius: false, jarakMeter: 0);
+    return LocationCheckResult(
+      isDalamRadius: json['di_dalam_radius'] as bool? ?? false,
+      jarakMeter: (json['jarak_meter'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class StoreAttendanceResult {
+  final String message;
+  final Map<String, dynamic> data;
+  const StoreAttendanceResult({required this.message, required this.data});
+
+  factory StoreAttendanceResult.fromJson(Map<String, dynamic> json) {
+    return StoreAttendanceResult(
+      message: json['message'] as String? ?? 'Presensi berhasil dicatat.',
+      data: json['data'] as Map<String, dynamic>? ?? {},
+    );
+  }
+}
 
 class PresensiRepository {
   final ApiClient _apiClient;
 
   PresensiRepository(this._apiClient);
 
-  // 1. Mengambil data presensi hari ini
   Future<TodayAttendanceModel> getTodayAttendance() async {
     try {
       final response = await _apiClient.dio.get('/attendance/today');
-
       final data = response.data['data'];
+
       if (data is! Map<String, dynamic>) {
-        throw const FormatException(
-          'Format respons presensi hari ini tidak valid.',
-        );
+        throw const ServerException('Format respons presensi hari ini tidak valid.');
       }
 
       return TodayAttendanceModel.fromJson(data);
@@ -27,8 +51,7 @@ class PresensiRepository {
     }
   }
 
-  // 2. Mengecek apakah posisi saat ini berada dalam radius kantor
-  Future<Map<String, dynamic>> checkLocation({
+  Future<LocationCheckResult> checkLocation({
     required double latitude,
     required double longitude,
     required double accuracy,
@@ -43,18 +66,15 @@ class PresensiRepository {
         },
       );
 
-      return {
-        'message': response.data['message'],
-        'data': response.data['data'],
-      };
+      return LocationCheckResult.fromJson(response.data['data'] as Map<String, dynamic>?);
     } on DioException catch (e) {
       throw _apiClient.mapError(e);
     }
   }
 
-  // 3. Mengirimkan data presensi (Masuk/Keluar)
-  Future<Map<String, dynamic>> storeAttendance({
+  Future<StoreAttendanceResult> storeAttendance({
     required String uuidPresensi,
+    required String jenisPresensi, // TAMBAHAN BARU
     required double latitude,
     required double longitude,
     required double accuracy,
@@ -64,13 +84,19 @@ class PresensiRepository {
         '/attendance',
         data: {
           'uuid_presensi': uuidPresensi,
+          'jenis_presensi': jenisPresensi,
           'latitude': latitude,
           'longitude': longitude,
           'accuracy_m': accuracy,
         },
       );
 
-      return response.data as Map<String, dynamic>;
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw const ServerException('Format respons presensi tidak valid.');
+      }
+
+      return StoreAttendanceResult.fromJson(data);
     } on DioException catch (e) {
       throw _apiClient.mapError(e);
     }
