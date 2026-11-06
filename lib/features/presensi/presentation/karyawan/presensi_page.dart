@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/di/injection.dart';
 import '../bloc/presensi_bloc.dart';
@@ -57,24 +59,31 @@ class _PresensiViewState extends State<PresensiView> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.w),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Absensi Hari ini',
           style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.w600),
         ),
       ),
-      // 2. Bungkus body dengan BlocConsumer untuk mendengarkan perubahan State
+
       body: BlocConsumer<PresensiBloc, PresensiState>(
         listener: (context, state) {
           if (state.status == PresensiStatus.error && state.errorMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.red),
             );
+          } else if (state.status == PresensiStatus.submitSuccess && state.successMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.successMessage!), backgroundColor: Colors.green),
+            );
+            Future.delayed(const Duration(seconds: 1), () {
+              if (context.mounted) context.pop();
+            });
           }
         },
         builder: (context, state) {
-          // Tampilkan loading penuh jika data awal belum termuat
+
           if (state.status == PresensiStatus.initial ||
               (state.status == PresensiStatus.loading && state.attendanceData == null)) {
             return const Center(child: CircularProgressIndicator());
@@ -86,14 +95,14 @@ class _PresensiViewState extends State<PresensiView> {
 
           return Stack(
             children: [
-              // --- AREA PETA (ATAS) ---
+
               Container(
                 height: MediaQuery.of(context).size.height * 0.65,
                 width: double.infinity,
                 color: mapBgColor,
                 child: Stack(
                   children: [
-                    // Indikator Posisi Anda
+
                     Positioned(
                       top: 100.h,
                       left: 60.w,
@@ -142,7 +151,6 @@ class _PresensiViewState extends State<PresensiView> {
                 ),
               ),
 
-              // Tombol Navigasi Peta (Kanan Atas)
               Positioned(
                 top: 16.h,
                 right: 16.w,
@@ -151,7 +159,6 @@ class _PresensiViewState extends State<PresensiView> {
                     FloatingActionButton.small(
                       heroTag: 'btn_location',
                       backgroundColor: isDark ? const Color(0xFF282828) : Colors.white,
-                      // Eksekusi ulang penarikan koordinat GPS saat tombol ditekan
                       onPressed: () => context.read<PresensiBloc>().add(RefreshLokasi()),
                       child: Icon(Icons.my_location, color: headerBlue, size: 20.w),
                     ),
@@ -166,7 +173,6 @@ class _PresensiViewState extends State<PresensiView> {
                 ),
               ),
 
-              // --- AREA KARTU INFORMASI (BAWAH) ---
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
@@ -192,7 +198,6 @@ class _PresensiViewState extends State<PresensiView> {
                       ),
                       SizedBox(height: 24.h),
 
-                      // Tampilan dinamis Dalam/Luar Radius
                       isCheckingLokasi
                           ? const Center(child: CircularProgressIndicator())
                           : (isDalamRadius
@@ -201,7 +206,6 @@ class _PresensiViewState extends State<PresensiView> {
 
                       SizedBox(height: 16.h),
 
-                      // Box Detail Tanggal & Waktu
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                         decoration: BoxDecoration(
@@ -264,7 +268,6 @@ class _PresensiViewState extends State<PresensiView> {
                       ),
                       SizedBox(height: 24.h),
 
-                      // Lokasi Kantor Dinamis
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -288,14 +291,12 @@ class _PresensiViewState extends State<PresensiView> {
                       ),
                       SizedBox(height: 32.h),
 
-                      // Tombol Presensi
                       SizedBox(
                         width: double.infinity,
                         height: 55.h,
                         child: (isDalamRadius && !isCheckingLokasi && data != null && !data.presensiSelesai)
                             ? ElevatedButton(
                           onPressed: () {
-                            // Lempar BLoC yang aktif ini ke dalam BottomSheet agar State tidak putus
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,

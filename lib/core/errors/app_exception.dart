@@ -33,3 +33,7 @@ class ServerException extends AppException {
 class UnknownException extends AppException {
   const UnknownException([super.message = 'Terjadi kesalahan yang tidak diketahui.']);
 }
+
+class LocationException extends AppException {
+  const LocationException(super.message);
+}
