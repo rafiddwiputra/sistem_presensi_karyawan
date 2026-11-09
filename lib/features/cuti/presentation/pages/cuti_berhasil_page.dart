@@ -2,9 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 class CutiBerhasilPage extends StatelessWidget {
-  const CutiBerhasilPage({super.key});
+  final String namaKaryawan;
+  final String jenisCuti;
+  final String keterangan;
+  final DateTime tanggalMulai;
+  final DateTime tanggalSelesai;
+
+  const CutiBerhasilPage({
+    super.key,
+    required this.namaKaryawan,
+    required this.jenisCuti,
+    required this.keterangan,
+    required this.tanggalMulai,
+    required this.tanggalSelesai,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +32,12 @@ class CutiBerhasilPage extends StatelessWidget {
     final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1D4ED8);
     final Color borderGrey = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    // 3. Konversi Tanggal dan Durasi
+    final int durasiHari = tanggalSelesai.difference(tanggalMulai).inDays + 1;
+    final String labelMulai = DateFormat('dd MMM', 'id_ID').format(tanggalMulai);
+    final String labelSelesai = DateFormat('dd MMM yyyy', 'id_ID').format(tanggalSelesai);
+    final String rentangWaktu = '$labelMulai - $labelSelesai';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -39,7 +59,11 @@ class CutiBerhasilPage extends StatelessWidget {
                       // --- 2. TEKS JUDUL & SUBJUDUL ---
                       Text(
                         'Pengajuan Cuti Berhasil!',
-                        style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary,
+                        ),
                       ),
                       SizedBox(height: 8.h),
                       Padding(
@@ -47,7 +71,11 @@ class CutiBerhasilPage extends StatelessWidget {
                         child: Text(
                           'Permohonan cuti Anda telah dikirim dan saat ini menunggu persetujuan dari pihak Admin.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13.sp, color: textSecondary, height: 1.5),
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: textSecondary,
+                            height: 1.5,
+                          ),
                         ),
                       ),
                       SizedBox(height: 32.h),
@@ -62,32 +90,51 @@ class CutiBerhasilPage extends StatelessWidget {
                           border: isDark ? Border.all(color: borderGrey) : null,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                                blurRadius: 10.r,
-                                offset: Offset(0, 4.h)
-                            )
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                              blurRadius: 10.r,
+                              offset: Offset(0, 4.h),
+                            ),
                           ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('STATUS PENGAJUAN', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: const Color(0xFF94A3B8), letterSpacing: 0.5)),
+                            Text(
+                              'STATUS PENGAJUAN',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF94A3B8),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                             Padding(
-                                padding: EdgeInsets.symmetric(vertical: 12.h),
-                                child: Divider(color: borderGrey, height: 1.h)
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              child: Divider(color: borderGrey, height: 1.h),
                             ),
                             Row(
                               children: [
                                 Container(
                                   padding: EdgeInsets.all(10.w),
                                   decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
-                                      shape: BoxShape.circle
+                                    color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
+                                    shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.access_time_filled, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706), size: 20.w),
+                                  child: Icon(
+                                    Icons.access_time_filled,
+                                    color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                                    size: 20.w,
+                                  ),
                                 ),
                                 SizedBox(width: 12.w),
-                                Text('Menunggu Verifikasi Admin', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary)),
+                                Text(
+                                  'Menunggu Verifikasi Admin',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -105,10 +152,10 @@ class CutiBerhasilPage extends StatelessWidget {
                           border: isDark ? Border.all(color: borderGrey) : null,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                                blurRadius: 10.r,
-                                offset: Offset(0, 4.h)
-                            )
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                              blurRadius: 10.r,
+                              offset: Offset(0, 4.h),
+                            ),
                           ],
                         ),
                         child: Column(
@@ -119,68 +166,111 @@ class CutiBerhasilPage extends StatelessWidget {
                               children: [
                                 Icon(Icons.description_outlined, color: primaryBlue, size: 18.w),
                                 SizedBox(width: 8.w),
-                                Text('RINGKASAN PENGAJUAN', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: textPrimary, letterSpacing: 0.5)),
+                                Text(
+                                  'RINGKASAN PENGAJUAN',
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                               ],
                             ),
                             Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16.h),
-                                child: Divider(color: borderGrey, height: 1.h)
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              child: Divider(color: borderGrey, height: 1.h),
                             ),
 
                             // Nama Karyawan
                             _buildInfoRow(
-                                'Nama Karyawan',
-                                customValue: Text('Rafid Dwi Putra Andino', style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: textPrimary)),
-                                isDark: isDark
+                              'Nama Karyawan',
+                              customValue: Text(
+                                namaKaryawan, // <-- Menggunakan Variabel Dinamis
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: textPrimary,
+                                ),
+                              ),
+                              isDark: isDark,
                             ),
                             SizedBox(height: 16.h),
 
                             // Cuti Karena?
                             _buildInfoRow(
-                                'Cuti Karena?',
-                                customValue: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                  decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(8.r)
-                                  ),
-                                  child: Text(
-                                    'Keperluan Daftar Ulang Beasiswa Kota Madiun',
-                                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: textPrimary),
-                                    textAlign: TextAlign.right, // Meratakan teks ke kanan jika turun baris
-                                  ),
+                              'Cuti Karena?',
+                              customValue: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8.r),
                                 ),
-                                isDark: isDark
+                                child: Text(
+                                  jenisCuti, // <-- Menggunakan Variabel Dinamis
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                  ),
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                              isDark: isDark,
                             ),
                             SizedBox(height: 16.h),
 
                             // Rentang Waktu
                             _buildInfoRow(
-                                'Rentang Waktu',
-                                customValue: Wrap( // Menggunakan Wrap sebagai pengganti Row agar anti-overflow
-                                  alignment: WrapAlignment.end,
-                                  children: [
-                                    Text('20 - 22 Okt 2026 ', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: textPrimary)),
-                                    Text('(3 Hari)', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
-                                  ],
-                                ),
-                                isDark: isDark
+                              'Rentang Waktu',
+                              customValue: Wrap(
+                                alignment: WrapAlignment.end,
+                                children: [
+                                  Text(
+                                    '$rentangWaktu ', // <-- Tanggal Dinamis
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '($durasiHari Hari)', // <-- Durasi Dinamis
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              isDark: isDark,
                             ),
                             SizedBox(height: 16.h),
 
                             // Keterangan
-                            Text('Keterangan:', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
+                            Text(
+                              'Keterangan:',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: textSecondary,
+                              ),
+                            ),
                             SizedBox(height: 8.h),
                             Container(
                               width: double.infinity,
                               padding: EdgeInsets.all(12.w),
                               decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12.r)
+                                color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(12.r),
                               ),
                               child: Text(
-                                '"Menghadiri acara pernikahan saudara kandung dan mendampingi keluarga di luar kota."',
-                                style: TextStyle(fontSize: 13.sp, fontStyle: FontStyle.italic, color: textPrimary, height: 1.4),
+                                '"$keterangan"', // <-- Alasan Dinamis
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontStyle: FontStyle.italic,
+                                  color: textPrimary,
+                                  height: 1.4,
+                                ),
                               ),
                             ),
                           ],
@@ -203,16 +293,29 @@ class CutiBerhasilPage extends StatelessWidget {
                       context.go('/beranda');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1D4ED8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                      backgroundColor: primaryBlue, // Konsisten dengan tema aplikasi
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                       elevation: 0,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Kembali ke Beranda', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text(
+                          'Kembali ke Beranda',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                         SizedBox(width: 8.w),
-                        Icon(Icons.arrow_forward, color: Colors.white, size: 18.w),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                          size: 18.w,
+                        ),
                       ],
                     ),
                   ),
@@ -234,7 +337,6 @@ class CutiBerhasilPage extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Lingkaran glow luar
           Container(
             width: 100.w,
             height: 100.w,
@@ -243,7 +345,6 @@ class CutiBerhasilPage extends StatelessWidget {
               shape: BoxShape.circle,
             ),
           ),
-          // Lingkaran hijau utama
           Container(
             width: 72.w,
             height: 72.w,
@@ -252,40 +353,60 @@ class CutiBerhasilPage extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                    color: isDark ? Colors.black.withValues(alpha: 0.3) : const Color(0xFF10B981).withValues(alpha: 0.3),
-                    blurRadius: 20.r,
-                    offset: Offset(0, 8.h)
+                  color: isDark ? Colors.black.withValues(alpha: 0.3) : const Color(0xFF10B981).withValues(alpha: 0.3),
+                  blurRadius: 20.r,
+                  offset: Offset(0, 8.h),
                 ),
               ],
             ),
             child: Icon(Icons.check, color: Colors.white, size: 40.w),
           ),
-          // Dot Hijau Tosca
-          Positioned(top: 10.h, left: 10.w, child: _buildDot(isDark ? const Color(0xFF34D399) : const Color(0xFF6EE7B7), 8.w)),
-          // Dot Biru
-          Positioned(top: 20.h, right: 10.w, child: _buildDot(isDark ? const Color(0xFF60A5FA) : const Color(0xFF93C5FD), 6.w)),
-          // Dot Kuning
-          Positioned(bottom: 10.h, left: 25.w, child: _buildDot(isDark ? const Color(0xFFFBBF24) : const Color(0xFFFCD34D), 6.w)),
+          Positioned(
+            top: 10.h,
+            left: 10.w,
+            child: _buildDot(isDark ? const Color(0xFF34D399) : const Color(0xFF6EE7B7), 8.w),
+          ),
+          Positioned(
+            top: 20.h,
+            right: 10.w,
+            child: _buildDot(isDark ? const Color(0xFF60A5FA) : const Color(0xFF93C5FD), 6.w),
+          ),
+          Positioned(
+            bottom: 10.h,
+            left: 25.w,
+            child: _buildDot(isDark ? const Color(0xFFFBBF24) : const Color(0xFFFCD34D), 6.w),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildDot(Color color, double size) {
-    return Container(width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
   }
 
-  Widget _buildInfoRow(String label, {required Widget customValue, required bool isDark}) {
+  Widget _buildInfoRow(
+      String label, {
+        required Widget customValue,
+        required bool isDark,
+      }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start, // Sejajar di atas jika teks panjang turun baris
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
-        SizedBox(width: 16.w), // Memberi jarak aman antara label dan isi
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: customValue,
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
           ),
+        ),
+        SizedBox(width: 16.w),
+        Expanded(
+          child: Align(alignment: Alignment.centerRight, child: customValue),
         ),
       ],
     );

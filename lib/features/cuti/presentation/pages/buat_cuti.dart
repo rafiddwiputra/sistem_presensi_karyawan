@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sistem_presensi_karyawan/features/cuti/presentation/widgets/konfirmasi_cuti_bottom_sheet.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+
+// Import BLoC & Widgets
+import '../../../../features/profil/presentation/bloc/profil_bloc.dart';
+import '../../../../features/profil/presentation/bloc/profil_state.dart';
+import '../bloc/cuti_bloc.dart';
+import '../widgets/konfirmasi_cuti_bottom_sheet.dart';
 
 class BuatCutiPage extends StatefulWidget {
   const BuatCutiPage({super.key});
@@ -12,13 +20,42 @@ class BuatCutiPage extends StatefulWidget {
 }
 
 class _BuatCutiPageState extends State<BuatCutiPage> {
+  late final String _uuidPengajuan;
+
   final TextEditingController _kategoriController = TextEditingController();
   final TextEditingController _tglMulaiController = TextEditingController();
   final TextEditingController _tglSelesaiController = TextEditingController();
   final TextEditingController _alasanController = TextEditingController();
 
+  DateTime? _tanggalMulai;
+  DateTime? _tanggalSelesai;
+
+  // Daftar Pilihan Jenis Cuti
+  final List<String> _opsiJenisCuti = [
+    'Cuti Tahunan',
+    'Cuti Sakit (Dengan Surat Dokter)',
+    'Cuti Melahirkan / Kehamilan',
+    'Cuti Alasan Penting',
+    'Cuti Besar / Khusus',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Generate UUID Pengajuan sekali saat halaman dibuat (Idempotency)
+    _uuidPengajuan = const Uuid().v4();
+
+    // 2. Listener untuk meng-update counter karakter alasan secara real-time
+    _alasanController.addListener(_onAlasanChanged);
+  }
+
+  void _onAlasanChanged() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _alasanController.removeListener(_onAlasanChanged);
     _kategoriController.dispose();
     _tglMulaiController.dispose();
     _tglSelesaiController.dispose();
@@ -26,51 +63,242 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
     super.dispose();
   }
 
-  // Simulasi DatePicker yang sudah Dark Mode Ready
-  Future<void> _pilihTanggal(BuildContext context, TextEditingController controller) async {
+  // Helper mendapatkan nama karyawan dari ProfilBloc secara aman
+  String _getNamaKaryawan(BuildContext context) {
+    try {
+      final state = context.watch<ProfilBloc>().state;
+      if (state is ProfilLoaded) {
+        // Menggunakan dynamic untuk mencegah error getter jika properti bernama 'user', 'profile', dll.
+        final dynState = state as dynamic;
+        return dynState.profil?.nama ?? dynState.user?.nama ?? dynState.profile?.nama ?? 'Rafid Dwi Putra Andino';
+      }
+    } catch (_) {}
+    return 'Rafid Dwi Putra Andino';
+  }
+
+  // --- MODAL SELEKSI JENIS CUTI ---
+  void _tampilkanPilihanCuti(BuildContext context, bool isDark) {
+    final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cardBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (bottomSheetContext) {
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Pilih Jenis Cuti',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _opsiJenisCuti.length,
+                  separatorBuilder: (context, index) => Divider(
+                    color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+                  ),
+                  itemBuilder: (context, index) {
+                    final opsi = _opsiJenisCuti[index];
+                    final isSelected = _kategoriController.text == opsi;
+
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        opsi,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? primaryBlue : textPrimary,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle, color: primaryBlue, size: 20.w)
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _kategoriController.text = opsi;
+                        });
+                        Navigator.pop(bottomSheetContext);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // --- PICKER TANGGAL MULAI ---
+  Future<void> _pilihTanggalMulai(BuildContext context) async {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+      initialDate: _tanggalMulai ?? today,
+      firstDate: today, // Restriksi API: Tanggal mulai tidak boleh sebelum hari ini
+      lastDate: DateTime(now.year + 2),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
-                ? ColorScheme.dark(primary: primaryColor, onPrimary: Colors.white, onSurface: Colors.white)
-                : ColorScheme.light(primary: primaryColor, onPrimary: Colors.white, onSurface: const Color(0xFF1E293B)),
+                ? ColorScheme.dark(
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.white,
+            )
+                : ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: const Color(0xFF1E293B),
+            ),
           ),
           child: child!,
         );
       },
     );
+
     if (picked != null) {
       setState(() {
-        controller.text = "${picked.day} Okt 2026"; // Mockup format
+        _tanggalMulai = picked;
+        _tglMulaiController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
+
+        // Reset atau sesuaikan tanggal selesai jika lebih awal dari tanggal mulai
+        if (_tanggalSelesai != null && _tanggalSelesai!.isBefore(picked)) {
+          _tanggalSelesai = picked;
+          _tglSelesaiController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
+        }
       });
     }
   }
 
+  // --- PICKER TANGGAL SELESAI ---
+  Future<void> _pilihTanggalSelesai(BuildContext context) async {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final minDate = _tanggalMulai ?? today;
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _tanggalSelesai ?? minDate,
+      firstDate: minDate, // Restriksi API: Tanggal selesai tidak boleh sebelum tanggal mulai
+      lastDate: DateTime(now.year + 2),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? ColorScheme.dark(
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.white,
+            )
+                : ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: const Color(0xFF1E293B),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _tanggalSelesai = picked;
+        _tglSelesaiController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
+      });
+    }
+  }
+
+  // --- VALIDASI SEBELUM KONFIRMASI ---
+  void _validasiDanBukaKonfirmasi(BuildContext context, String namaKaryawan) {
+    if (_kategoriController.text.trim().isEmpty) {
+      _tampilkanSnackBar('Silakan pilih jenis cuti terlebih dahulu.');
+      return;
+    }
+    if (_tanggalMulai == null) {
+      _tampilkanSnackBar('Silakan pilih tanggal mulai cuti.');
+      return;
+    }
+    if (_tanggalSelesai == null) {
+      _tampilkanSnackBar('Silakan pilih tanggal selesai cuti.');
+      return;
+    }
+    if (_alasanController.text.trim().isEmpty) {
+      _tampilkanSnackBar('Silakan isi alasan pengajuan cuti.');
+      return;
+    }
+
+    // Ambil CutiBloc dari context saat ini
+    final cutiBloc = context.read<CutiBloc>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        // Teruskan instance CutiBloc ke dalam Modal Bottom Sheet
+        return BlocProvider.value(
+          value: cutiBloc,
+          child: KonfirmasiCutiBottomSheet(
+            uuidPengajuan: _uuidPengajuan,
+            namaKaryawan: namaKaryawan,
+            jenisCuti: _kategoriController.text.trim(),
+            tanggalMulai: _tanggalMulai!,
+            tanggalSelesai: _tanggalSelesai!,
+            keterangan: _alasanController.text.trim(),
+          ),
+        );
+      },
+    );
+  }
+
+  void _tampilkanSnackBar(String pesan) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(pesan),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 1. Deteksi Mode Gelap
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // 2. Definisi Warna Dinamis
     final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
     final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
     final Color headerBlue = isDark ? const Color(0xFF154B8C) : const Color(0xFF135CAE);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
+    final String namaKaryawan = _getNamaKaryawan(context);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: bgApp,
-
-        // TOMBOL AJUKAN CUTI DI BAGIAN BAWAH
         bottomNavigationBar: Container(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
           decoration: BoxDecoration(color: bgApp),
@@ -79,20 +307,19 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const KonfirmasiCutiBottomSheet(),
-                  );
-                },
+                onPressed: () => _validasiDanBukaKonfirmasi(context, namaKaryawan),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
                   elevation: 0,
                 ),
-                icon: Icon(Icons.send_outlined, color: Colors.white, size: 18.w),
+                icon: Icon(
+                  Icons.send_outlined,
+                  color: Colors.white,
+                  size: 18.w,
+                ),
                 label: Text(
                   'Ajukan Cuti',
                   style: TextStyle(
@@ -105,13 +332,10 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
             ),
           ),
         ),
-
-        // KONTEN UTAMA
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Stack(
             children: [
-              // --- HEADER BIRU ---
               Container(
                 height: 310.h,
                 width: double.infinity,
@@ -123,18 +347,20 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                   ),
                 ),
               ),
-
               SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- APP BAR CUSTOM ---
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.w),
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 24.w,
+                            ),
                             onPressed: () => context.pop(),
                           ),
                           Text(
@@ -148,8 +374,6 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                         ],
                       ),
                     ),
-
-                    // --- TEKS HEADER ---
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24.w),
                       child: Column(
@@ -173,8 +397,6 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                             ),
                           ),
                           SizedBox(height: 24.h),
-
-                          // --- KARTU PEMOHON CUTI ---
                           Container(
                             padding: EdgeInsets.all(16.w),
                             decoration: BoxDecoration(
@@ -192,7 +414,11 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                                     color: Colors.white.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.badge_outlined, color: Colors.white, size: 20.w),
+                                  child: Icon(
+                                    Icons.badge_outlined,
+                                    color: Colors.white,
+                                    size: 20.w,
+                                  ),
                                 ),
                                 SizedBox(width: 16.w),
                                 Column(
@@ -209,7 +435,7 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                                     ),
                                     SizedBox(height: 2.h),
                                     Text(
-                                      'Rafid Dwi Putra Andino',
+                                      namaKaryawan, // <- Nama Karyawan Dinamis
                                       style: TextStyle(
                                         fontSize: 16.sp,
                                         fontWeight: FontWeight.bold,
@@ -224,10 +450,7 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                         ],
                       ),
                     ),
-
                     SizedBox(height: 24.h),
-
-                    // --- FORM KONTINER ---
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 24.w),
                       padding: EdgeInsets.all(20.w),
@@ -245,33 +468,32 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Field 1: Kategori Cuti
+                          // Field 1: Kategori Cuti (Pilihan Dialog)
                           _buildInputField(
                             label: 'Cuti Karena Apa?',
                             isRequired: true,
-                            hintText: 'Keperluan keluarga di luar kota',
+                            hintText: 'Pilih jenis cuti',
                             controller: _kategoriController,
                             readOnly: true,
+                            suffixIcon: Icons.arrow_drop_down_circle_outlined,
                             isDark: isDark,
-                            onTap: () {
-                              // Aksi membuka pilihan cuti
-                            },
+                            onTap: () => _tampilkanPilihanCuti(context, isDark),
                           ),
                           SizedBox(height: 20.h),
 
-                          // Field 2 & 3: Tanggal (Dibagi 2 kolom)
+                          // Field 2 & 3: Tanggal Mulai dan Selesai
                           Row(
                             children: [
                               Expanded(
                                 child: _buildInputField(
                                   label: 'Tanggal Mulai Cuti',
                                   isRequired: true,
-                                  hintText: '20 Okt 2026',
+                                  hintText: 'Pilih tanggal',
                                   controller: _tglMulaiController,
                                   readOnly: true,
                                   suffixIcon: Icons.calendar_month_outlined,
                                   isDark: isDark,
-                                  onTap: () => _pilihTanggal(context, _tglMulaiController),
+                                  onTap: () => _pilihTanggalMulai(context),
                                 ),
                               ),
                               SizedBox(width: 16.w),
@@ -279,26 +501,26 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                                 child: _buildInputField(
                                   label: 'Tanggal Selesai',
                                   isRequired: true,
-                                  hintText: '22 Okt 2026',
+                                  hintText: 'Pilih tanggal',
                                   controller: _tglSelesaiController,
                                   readOnly: true,
                                   suffixIcon: Icons.calendar_today_outlined,
                                   isDark: isDark,
-                                  onTap: () => _pilihTanggal(context, _tglSelesaiController),
+                                  onTap: () => _pilihTanggalSelesai(context),
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(height: 20.h),
 
-                          // Field 4: Alasan Cuti
+                          // Field 4: Alasan Cuti (Dengan Dynamic Character Counter)
                           _buildInputField(
                             label: 'Alasan Cuti',
                             isRequired: true,
-                            hintText: 'Menghadiri acara pernikahan saudara kandung dan mendampingi keluarga di luar kota.',
+                            hintText: 'Tuliskan alasan pengajuan cuti Anda secara rinci...',
                             controller: _alasanController,
                             maxLines: 4,
-                            trailingLabel: '72 / 30', // Mockup counter
+                            trailingLabel: '${_alasanController.text.length} / 500',
                             isDark: isDark,
                           ),
                         ],
@@ -315,7 +537,6 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
     );
   }
 
-  // Helper Widget untuk Input Form seragam
   Widget _buildInputField({
     required String label,
     required bool isRequired,
@@ -352,8 +573,15 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
                 ),
                 if (isRequired) ...[
                   SizedBox(width: 4.w),
-                  Text('*', style: TextStyle(color: const Color(0xFFE11D48), fontSize: 13.sp, fontWeight: FontWeight.bold)),
-                ]
+                  Text(
+                    '*',
+                    style: TextStyle(
+                      color: const Color(0xFFE11D48),
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ],
             ),
             if (trailingLabel != null)
@@ -378,7 +606,7 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
             style: TextStyle(fontSize: 14.sp, color: textPrimary),
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: TextStyle(color: textPrimary.withValues(alpha: 0.7)),
+              hintStyle: TextStyle(color: textSecondary),
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16.w),
               suffixIcon: suffixIcon != null

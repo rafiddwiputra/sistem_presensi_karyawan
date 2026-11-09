@@ -25,28 +25,42 @@ class AuthenticatedProfileImage extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFFBBF24), width: borderWidth.w),
+        border: Border.all(
+          color: const Color(0xFFFBBF24),
+          width: borderWidth.w,
+        ),
         color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
       ),
-      child: Icon(Icons.person, color: isDark ? const Color(0xFF64748B) : Colors.white, size: size * 0.5),
+      child: Icon(
+        Icons.person,
+        color: isDark ? const Color(0xFF64748B) : Colors.white,
+        size: size * 0.5,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (imagePath == null || imagePath!.isEmpty) return _buildPlaceholder();
+    if (imagePath == null || imagePath!.isEmpty) {
+      return _buildPlaceholder();
+    }
 
     return FutureBuilder<String?>(
       future: sl<SecureStorageService>().getToken(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return _buildPlaceholder();
+        if (!snapshot.hasData) {
+          return _buildPlaceholder();
+        }
 
         return Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFFBBF24), width: borderWidth.w),
+            border: Border.all(
+              color: const Color(0xFFFBBF24),
+              width: borderWidth.w,
+            ),
           ),
           child: ClipOval(
             child: CachedNetworkImage(
@@ -66,7 +80,9 @@ class AuthenticatedProfileImage extends StatelessWidget {
                 ),
               ),
               errorWidget: (context, url, error) {
-                if (kDebugMode) debugPrint('Gagal memuat foto profil dari $url: $error');
+                if (kDebugMode) {
+                  debugPrint('Gagal memuat foto profil dari $url: $error');
+                }
                 return _buildPlaceholder();
               },
               memCacheWidth: (size * 2).toInt(),

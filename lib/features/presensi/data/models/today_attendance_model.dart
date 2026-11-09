@@ -25,7 +25,9 @@ class TodayAttendanceModel {
       kantor: json['kantor'] != null
           ? KantorModel.fromJson(json['kantor'] as Map<String, dynamic>)
           : null,
-      presensi: PresensiStatusModel.fromJson(json['presensi'] as Map<String, dynamic>),
+      presensi: PresensiStatusModel.fromJson(
+        json['presensi'] as Map<String, dynamic>,
+      ),
       aksiBerikutnya: json['aksi_berikutnya'] as String?,
       presensiSelesai: json['presensi_selesai'] as bool? ?? false,
     );

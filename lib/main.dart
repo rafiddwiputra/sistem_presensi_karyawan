@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,29 +14,28 @@ import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profi
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
 
 void main() async {
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    await initializeDateFormatting('id_ID', null);
-    await setupInjection();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await initializeDateFormatting('id_ID', null);
+      await setupInjection();
 
-    runApp(
-      MultiBlocProvider(
-        providers: [
-          BlocProvider.value(
-            value: sl<ProfilBloc>(),
-          ),
-          BlocProvider.value(
-            value: sl<AuthBloc>(),
-          ),
-        ],
-        child: const EmployeeAttendanceApp(),
-      ),
-    );
-  }, (error, stackTrace) {
-    if (kDebugMode) {
-      debugPrint('Uncaught Enterprise Error: $error\n$stackTrace');
-    }
-  });
+      runApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: sl<ProfilBloc>()),
+            BlocProvider.value(value: sl<AuthBloc>()),
+          ],
+          child: const EmployeeAttendanceApp(),
+        ),
+      );
+    },
+    (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Uncaught Enterprise Error: $error\n$stackTrace');
+      }
+    },
+  );
 }
 
 class EmployeeAttendanceApp extends StatelessWidget {

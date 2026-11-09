@@ -22,7 +22,10 @@ class UnauthorizedException extends AppException {
 
 class ValidationException extends AppException {
   final Map<String, List<String>> errors;
-  const ValidationException(this.errors, [super.message = 'Data yang dikirim tidak valid.']);
+  const ValidationException(
+    this.errors, [
+    super.message = 'Data yang dikirim tidak valid.',
+  ]);
 }
 
 class ServerException extends AppException {
@@ -31,7 +34,9 @@ class ServerException extends AppException {
 }
 
 class UnknownException extends AppException {
-  const UnknownException([super.message = 'Terjadi kesalahan yang tidak diketahui.']);
+  const UnknownException([
+    super.message = 'Terjadi kesalahan yang tidak diketahui.',
+  ]);
 }
 
 class LocationException extends AppException {

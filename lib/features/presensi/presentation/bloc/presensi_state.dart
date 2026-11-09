@@ -1,11 +1,21 @@
 import 'package:equatable/equatable.dart';
+
 import '../../data/models/today_attendance_model.dart';
 
-enum PresensiStatus { initial, loading, loaded, locationChecking, error, submitting, submitSuccess }
+enum PresensiStatus {
+  initial,
+  loading,
+  loaded,
+  locationChecking,
+  error,
+  submitting,
+  submitSuccess,
+}
 
 class _Unset {
   const _Unset();
 }
+
 const _unset = _Unset();
 
 class PresensiState extends Equatable {
@@ -44,7 +54,6 @@ class PresensiState extends Equatable {
     Object? errorMessage = _unset,
     Object? successMessage = _unset,
     String? uuidPresensi,
-
   }) {
     return PresensiState(
       status: status ?? this.status,
@@ -54,8 +63,12 @@ class PresensiState extends Equatable {
       userAccuracy: userAccuracy ?? this.userAccuracy,
       isDalamRadius: isDalamRadius ?? this.isDalamRadius,
       jarakMeter: jarakMeter ?? this.jarakMeter,
-      errorMessage: errorMessage == _unset ? this.errorMessage : errorMessage as String?,
-      successMessage: successMessage == _unset ? this.successMessage : successMessage as String?,
+      errorMessage: errorMessage == _unset
+          ? this.errorMessage
+          : errorMessage as String?,
+      successMessage: successMessage == _unset
+          ? this.successMessage
+          : successMessage as String?,
       uuidPresensi: uuidPresensi ?? this.uuidPresensi,
     );
   }

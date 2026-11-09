@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -71,7 +72,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
                   width: 40.w,
                   height: 4.h,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF475569)
+                        : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(2.r),
                   ),
                 ),
@@ -89,12 +92,25 @@ class _EditProfilPageState extends State<EditProfilPage> {
                   leading: Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFEFF6FF),
+                      color: isDark
+                          ? const Color(0xFF1E3A8A).withValues(alpha: 0.5)
+                          : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
-                    child: Icon(Icons.camera_alt, color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0B56A6)),
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: isDark
+                          ? const Color(0xFF60A5FA)
+                          : const Color(0xFF0B56A6),
+                    ),
                   ),
-                  title: Text('Ambil dari Kamera', style: TextStyle(fontSize: 14.sp, color: isDark ? Colors.white : const Color(0xFF1E293B))),
+                  title: Text(
+                    'Ambil dari Kamera',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    ),
+                  ),
                   onTap: () {
                     context.pop();
                     _pickImage(ImageSource.camera);
@@ -104,12 +120,25 @@ class _EditProfilPageState extends State<EditProfilPage> {
                   leading: Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.5) : const Color(0xFFF0FDF4),
+                      color: isDark
+                          ? const Color(0xFF064E3B).withValues(alpha: 0.5)
+                          : const Color(0xFFF0FDF4),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
-                    child: Icon(Icons.photo_library, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981)),
+                    child: Icon(
+                      Icons.photo_library,
+                      color: isDark
+                          ? const Color(0xFF34D399)
+                          : const Color(0xFF10B981),
+                    ),
                   ),
-                  title: Text('Pilih dari Galeri', style: TextStyle(fontSize: 14.sp, color: isDark ? Colors.white : const Color(0xFF1E293B))),
+                  title: Text(
+                    'Pilih dari Galeri',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    ),
+                  ),
                   onTap: () {
                     context.pop();
                     _pickImage(ImageSource.gallery);
@@ -142,10 +171,18 @@ class _EditProfilPageState extends State<EditProfilPage> {
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
       ),
     );
   }
@@ -153,13 +190,23 @@ class _EditProfilPageState extends State<EditProfilPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
-    final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFC);
+    final Color headerBg = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
-    final Color btnBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
+    final Color btnBlue = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
 
     return BlocConsumer<ProfilBloc, ProfilState>(
       listener: (context, state) {
@@ -177,21 +224,24 @@ class _EditProfilPageState extends State<EditProfilPage> {
           backgroundColor: bgApp,
           body: Stack(
             children: [
-              Container(
-                height: 120.h,
-                width: double.infinity,
-                color: headerBg,
-              ),
+              Container(height: 120.h, width: double.infinity, color: headerBg),
               SafeArea(
                 child: Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 16.h,
+                      ),
                       child: Row(
                         children: [
                           GestureDetector(
                             onTap: () => context.pop(),
-                            child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 24.sp,
+                            ),
                           ),
                           SizedBox(width: 16.w),
                           Text(
@@ -219,10 +269,14 @@ class _EditProfilPageState extends State<EditProfilPage> {
                               decoration: BoxDecoration(
                                 color: cardBg,
                                 borderRadius: BorderRadius.circular(20.r),
-                                border: isDark ? Border.all(color: borderColor) : null,
+                                border: isDark
+                                    ? Border.all(color: borderColor)
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                    color: Colors.black.withValues(
+                                      alpha: isDark ? 0.3 : 0.03,
+                                    ),
                                     blurRadius: 15.r,
                                     offset: const Offset(0, 4),
                                   ),
@@ -236,33 +290,48 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                     children: [
                                       _imageFile != null
                                           ? Container(
-                                        width: 86.w,
-                                        height: 86.w,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: const Color(0xFFFCD34D), width: 4.w),
-                                          image: DecorationImage(
-                                            image: FileImage(_imageFile!),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      )
+                                              width: 86.w,
+                                              height: 86.w,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xFFFCD34D,
+                                                  ),
+                                                  width: 4.w,
+                                                ),
+                                                image: DecorationImage(
+                                                  image: FileImage(_imageFile!),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            )
                                           : AuthenticatedProfileImage(
-                                        imagePath: _currentImageUrl,
-                                        size: 86.w,
-                                        isDark: isDark,
-                                        borderWidth: 4.0,
-                                      ),
+                                              imagePath: _currentImageUrl,
+                                              size: 86.w,
+                                              isDark: isDark,
+                                              borderWidth: 4.0,
+                                            ),
                                       GestureDetector(
-                                        onTap: () => _showImageSourceActionSheet(context),
+                                        onTap: () =>
+                                            _showImageSourceActionSheet(
+                                              context,
+                                            ),
                                         child: Container(
                                           padding: EdgeInsets.all(6.w),
                                           decoration: BoxDecoration(
                                             color: btnBlue,
                                             shape: BoxShape.circle,
-                                            border: Border.all(color: cardBg, width: 2.w),
+                                            border: Border.all(
+                                              color: cardBg,
+                                              width: 2.w,
+                                            ),
                                           ),
-                                          child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 14.sp),
+                                          child: Icon(
+                                            Icons.camera_alt_outlined,
+                                            color: Colors.white,
+                                            size: 14.sp,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -270,7 +339,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                   // ------------------------------------------------
                                   SizedBox(height: 12.h),
                                   Text(
-                                    _namaController.text.isNotEmpty ? _namaController.text : 'Karyawan',
+                                    _namaController.text.isNotEmpty
+                                        ? _namaController.text
+                                        : 'Karyawan',
                                     style: TextStyle(
                                       fontSize: 18.sp,
                                       fontWeight: FontWeight.bold,
@@ -296,10 +367,14 @@ class _EditProfilPageState extends State<EditProfilPage> {
                               decoration: BoxDecoration(
                                 color: cardBg,
                                 borderRadius: BorderRadius.circular(20.r),
-                                border: isDark ? Border.all(color: borderColor) : null,
+                                border: isDark
+                                    ? Border.all(color: borderColor)
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                    color: Colors.black.withValues(
+                                      alpha: isDark ? 0.3 : 0.03,
+                                    ),
                                     blurRadius: 15.r,
                                     offset: const Offset(0, 4),
                                   ),
@@ -308,10 +383,33 @@ class _EditProfilPageState extends State<EditProfilPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildModernFormField('Nama Lengkap', _namaController, isEnabled: true, isDark: isDark),
-                                  _buildModernFormField('Email', _emailController, isEnabled: false, isDark: isDark),
-                                  _buildModernFormField('Nomor Tlp', _noTlpController, isEnabled: true, isNumber: true, isDark: isDark),
-                                  _buildModernFormField('Alamat Domisili', _alamatController, isEnabled: true, isLast: true, maxLines: 2, isDark: isDark),
+                                  _buildModernFormField(
+                                    'Nama Lengkap',
+                                    _namaController,
+                                    isEnabled: true,
+                                    isDark: isDark,
+                                  ),
+                                  _buildModernFormField(
+                                    'Email',
+                                    _emailController,
+                                    isEnabled: false,
+                                    isDark: isDark,
+                                  ),
+                                  _buildModernFormField(
+                                    'Nomor Tlp',
+                                    _noTlpController,
+                                    isEnabled: true,
+                                    isNumber: true,
+                                    isDark: isDark,
+                                  ),
+                                  _buildModernFormField(
+                                    'Alamat Domisili',
+                                    _alamatController,
+                                    isEnabled: true,
+                                    isLast: true,
+                                    maxLines: 2,
+                                    isDark: isDark,
+                                  ),
                                 ],
                               ),
                             ),
@@ -329,7 +427,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
             decoration: BoxDecoration(
               color: bgApp,
-              border: isDark ? Border(top: BorderSide(color: borderColor)) : null,
+              border: isDark
+                  ? Border(top: BorderSide(color: borderColor))
+                  : null,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -341,16 +441,16 @@ class _EditProfilPageState extends State<EditProfilPage> {
                     onPressed: isLoading
                         ? null
                         : () {
-                      context.read<ProfilBloc>().add(
-                        UpdateProfilRequested(
-                          nama: _namaController.text,
-                          email: _emailController.text,
-                          noHp: _noTlpController.text,
-                          alamat: _alamatController.text,
-                          image: _imageFile,
-                        ),
-                      );
-                    },
+                            context.read<ProfilBloc>().add(
+                              UpdateProfilRequested(
+                                nama: _namaController.text,
+                                email: _emailController.text,
+                                noHp: _noTlpController.text,
+                                alamat: _alamatController.text,
+                                image: _imageFile,
+                              ),
+                            );
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: btnBlue,
                       shape: RoundedRectangleBorder(
@@ -359,22 +459,33 @@ class _EditProfilPageState extends State<EditProfilPage> {
                       elevation: 0,
                     ),
                     child: isLoading
-                        ? SizedBox(height: 24.h, width: 24.h, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        ? SizedBox(
+                            height: 24.h,
+                            width: 24.h,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
                         : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.save_outlined, color: Colors.white, size: 20.sp),
-                        SizedBox(width: 8.w),
-                        Text(
-                          'Simpan Perubahan',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.save_outlined,
+                                color: Colors.white,
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Simpan Perubahan',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 SizedBox(height: 12.h),
@@ -406,13 +517,31 @@ class _EditProfilPageState extends State<EditProfilPage> {
     );
   }
 
-  Widget _buildModernFormField(String label, TextEditingController controller, {bool isEnabled = true, bool isNumber = false, bool isLast = false, int maxLines = 1, required bool isDark}) {
-    final Color inputBg = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
-    final Color disabledBg = isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
-    final Color inputBorderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
-    final Color focusedBorderColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
+  Widget _buildModernFormField(
+    String label,
+    TextEditingController controller, {
+    bool isEnabled = true,
+    bool isNumber = false,
+    bool isLast = false,
+    int maxLines = 1,
+    required bool isDark,
+  }) {
+    final Color inputBg = isDark
+        ? const Color(0xFF1A1A1A)
+        : const Color(0xFFF8FAFC);
+    final Color disabledBg = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF1F5F9);
+    final Color inputBorderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
+    final Color focusedBorderColor = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color disabledTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8);
+    final Color disabledTextColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF94A3B8);
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 20.h),
@@ -441,7 +570,10 @@ class _EditProfilPageState extends State<EditProfilPage> {
             decoration: InputDecoration(
               filled: true,
               fillColor: isEnabled ? inputBg : disabledBg,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 14.h,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
                 borderSide: BorderSide(color: inputBorderColor, width: 1.w),
@@ -456,7 +588,12 @@ class _EditProfilPageState extends State<EditProfilPage> {
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(color: isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9), width: 1.w),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? const Color(0xFF333333)
+                      : const Color(0xFFF1F5F9),
+                  width: 1.w,
+                ),
               ),
             ),
           ),

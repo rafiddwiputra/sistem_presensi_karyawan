@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sistem_presensi_karyawan/core/errors/app_exception.dart';
+
 import '../../repositories/profil_repository.dart';
 import 'profil_event.dart';
 import 'profil_state.dart';
@@ -9,13 +10,10 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
 
   ProfilBloc({required this.repository}) : super(ProfilInitial()) {
     on<LoadProfilRequested>((event, emit) async {
-
       final localUser = await repository.getProfilLocal();
       if (localUser != null) {
-
         emit(ProfilLoaded(localUser));
       } else {
-
         emit(ProfilLoading());
       }
 
@@ -24,7 +22,6 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
 
         emit(ProfilLoaded(remoteUser));
       } on AppException catch (e) {
-
         if (localUser == null) {
           emit(ProfilError(e.message));
         }
@@ -38,7 +35,6 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
     on<UpdateProfilRequested>((event, emit) async {
       emit(ProfilLoading());
       try {
-
         await repository.updateProfil(
           nama: event.nama,
           email: event.email,

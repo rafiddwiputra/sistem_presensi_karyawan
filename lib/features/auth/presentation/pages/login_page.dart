@@ -28,7 +28,13 @@ class _LoginPageState extends State<LoginPage> {
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -63,7 +69,9 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(40),
+                    ),
                   ),
                 ),
                 SafeArea(
@@ -75,43 +83,110 @@ class _LoginPageState extends State<LoginPage> {
                         Container(
                           height: 72,
                           width: 72,
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                          child: const Icon(Icons.filter_center_focus, size: 36, color: AppColors.primary),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.filter_center_focus,
+                            size: 36,
+                            color: AppColors.primary,
+                          ),
                         ),
                         const SizedBox(height: 24),
-                        const Text('Selamat Datang', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
+                        const Text(
+                          'Selamat Datang',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                         const SizedBox(height: 8),
-                        const Text('Silakan masuk ke akun yang sudah didaftarkan\noleh Admin', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.white, height: 1.4)),
+                        const Text(
+                          'Silakan masuk ke akun yang sudah didaftarkan\noleh Admin',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            height: 1.4,
+                          ),
+                        ),
                         const SizedBox(height: 32),
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8))],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                              const Text(
+                                'Email',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: _emailController,
                                 enabled: !isLoading,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: 'Masukkan email',
-                                  hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 14),
-                                  prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFFA0AEC0), size: 22),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5)),
-                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+                                  hintStyle: const TextStyle(
+                                    color: Color(0xFFA0AEC0),
+                                    fontSize: 14,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.person_outline_rounded,
+                                    color: Color(0xFFA0AEC0),
+                                    size: 22,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE2E8F0),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              const Text('Kata Sandi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                              const Text(
+                                'Kata Sandi',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: _passwordController,
@@ -120,21 +195,59 @@ class _LoginPageState extends State<LoginPage> {
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) {
                                   if (!isLoading) {
-                                    context.read<AuthBloc>().add(LoginRequested(email: _emailController.text.trim(), password: _passwordController.text));
+                                    context.read<AuthBloc>().add(
+                                      LoginRequested(
+                                        email: _emailController.text.trim(),
+                                        password: _passwordController.text,
+                                      ),
+                                    );
                                   }
                                 },
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: 'Masukkan kata sandi',
-                                  hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 14),
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFFA0AEC0), size: 22),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(_isPasswordObscured ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: const Color(0xFFA0AEC0), size: 22),
-                                    onPressed: () => setState(() => _isPasswordObscured = !_isPasswordObscured),
+                                  hintStyle: const TextStyle(
+                                    color: Color(0xFFA0AEC0),
+                                    fontSize: 14,
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5)),
-                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                    color: Color(0xFFA0AEC0),
+                                    size: 22,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _isPasswordObscured
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: const Color(0xFFA0AEC0),
+                                      size: 22,
+                                    ),
+                                    onPressed: () => setState(
+                                      () => _isPasswordObscured =
+                                          !_isPasswordObscured,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE2E8F0),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 32),
@@ -143,34 +256,73 @@ class _LoginPageState extends State<LoginPage> {
                                 height: 52,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 6))],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.25,
+                                      ),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
                                 ),
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
                                     elevation: 0,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
-                                  onPressed: isLoading ? null : () {
-                                    final email = _emailController.text.trim();
-                                    final password = _passwordController.text;
-                                    if (email.isEmpty || password.isEmpty) {
-                                      _showSnackBar('Email dan Kata Sandi tidak boleh kosong!', AppColors.warning);
-                                      return;
-                                    }
-                                    // Melempar Event (Tugas) ke BLoC
-                                    context.read<AuthBloc>().add(LoginRequested(email: email, password: password));
-                                  },
+                                  onPressed: isLoading
+                                      ? null
+                                      : () {
+                                          final email = _emailController.text
+                                              .trim();
+                                          final password =
+                                              _passwordController.text;
+                                          if (email.isEmpty ||
+                                              password.isEmpty) {
+                                            _showSnackBar(
+                                              'Email dan Kata Sandi tidak boleh kosong!',
+                                              AppColors.warning,
+                                            );
+                                            return;
+                                          }
+                                          // Melempar Event (Tugas) ke BLoC
+                                          context.read<AuthBloc>().add(
+                                            LoginRequested(
+                                              email: email,
+                                              password: password,
+                                            ),
+                                          );
+                                        },
                                   child: isLoading
-                                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                                      : const Text('Masuk', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      ? const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2.5,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Masuk',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 24),
+                        SizedBox(
+                          height: MediaQuery.of(context).viewInsets.bottom + 24,
+                        ),
                       ],
                     ),
                   ),

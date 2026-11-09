@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../app/theme/app_colors.dart';
 
 class MenuCard extends StatelessWidget {
@@ -43,7 +44,6 @@ class MenuCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Container(
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
@@ -84,7 +84,11 @@ class MenuCard extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                Icon(Icons.arrow_forward, size: 20.w, color: AppColors.textPrimary),
+                Icon(
+                  Icons.arrow_forward,
+                  size: 20.w,
+                  color: AppColors.textPrimary,
+                ),
               ],
             ),
           ],

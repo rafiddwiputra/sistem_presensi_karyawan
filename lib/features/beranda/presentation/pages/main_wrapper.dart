@@ -18,10 +18,7 @@ class _OffsetNotchedShape extends NotchedShape {
 }
 
 class MainWrapper extends StatelessWidget {
-  const MainWrapper({
-    super.key,
-    required this.navigationShell,
-  });
+  const MainWrapper({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
@@ -39,12 +36,17 @@ class MainWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFC);
     final Color navBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color primaryColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
-    final Color inactiveColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+    final Color primaryColor = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
+    final Color inactiveColor = isDark
+        ? const Color(0xFF64748B)
+        : const Color(0xFF94A3B8);
 
     final int currentIndex = navigationShell.currentIndex;
 
@@ -88,9 +90,7 @@ class MainWrapper extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           shape: _OffsetNotchedShape(
             AutomaticNotchedShape(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(32.r),
-              ),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32.r)),
               const CircleBorder(),
             ),
             -20.w,
@@ -99,7 +99,6 @@ class MainWrapper extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -177,21 +176,21 @@ class MainWrapper extends StatelessWidget {
       child: SizedBox(
         width: 50.w,
         child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-        AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return ScaleTransition(scale: animation, child: child);
-        },
-        child: Icon(
-          isSelected ? activeIcon : inactiveIcon,
-          key: ValueKey<bool>(isSelected),
-          size: 26.sp,
-          color: isSelected ? primaryColor : inactiveColor,
-                ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: Icon(
+                isSelected ? activeIcon : inactiveIcon,
+                key: ValueKey<bool>(isSelected),
+                size: 26.sp,
+                color: isSelected ? primaryColor : inactiveColor,
               ),
+            ),
           ],
         ),
       ),

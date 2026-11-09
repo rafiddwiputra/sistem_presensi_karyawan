@@ -11,9 +11,15 @@ class NotifikasiPage extends StatelessWidget {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 2. Definisi Warna Dinamis Latar Belakang
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
-    final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
-    final Color sectionTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFC);
+    final Color headerBg = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF1E61B6);
+    final Color sectionTextColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF475569);
 
     return Scaffold(
       backgroundColor: bgApp,
@@ -32,7 +38,11 @@ class NotifikasiPage extends StatelessWidget {
               children: [
                 GestureDetector(
                   onTap: () => context.pop(),
-                  child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
                 ),
                 SizedBox(width: 16.w),
                 Text(
@@ -71,15 +81,23 @@ class NotifikasiPage extends StatelessWidget {
                   _buildNotificationItem(
                     isDark: isDark,
                     icon: Icons.check_circle,
-                    iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFCCFBF1),
-                    iconColor: isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
+                    iconBgColor: isDark
+                        ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                        : const Color(0xFFCCFBF1),
+                    iconColor: isDark
+                        ? const Color(0xFF2DD4BF)
+                        : const Color(0xFF0F766E),
                     title: 'Presensi Masuk Berhasil',
                     time: '08.02',
                     description: 'Presensi masuk Anda hari ini berhasil dicatat pada pukul 08.02 WIB di Kantor CROG INTERNATIONAL.',
                     isUnread: true,
                     badgeText: 'Presensi Valid',
-                    badgeBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFCCFBF1),
-                    badgeTextColor: isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
+                    badgeBgColor: isDark
+                        ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                        : const Color(0xFFCCFBF1),
+                    badgeTextColor: isDark
+                        ? const Color(0xFF2DD4BF)
+                        : const Color(0xFF0F766E),
                   ),
                   SizedBox(height: 16.h),
 
@@ -87,15 +105,23 @@ class NotifikasiPage extends StatelessWidget {
                   _buildNotificationItem(
                     isDark: isDark,
                     icon: Icons.check_circle,
-                    iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFCCFBF1),
-                    iconColor: isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
+                    iconBgColor: isDark
+                        ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                        : const Color(0xFFCCFBF1),
+                    iconColor: isDark
+                        ? const Color(0xFF2DD4BF)
+                        : const Color(0xFF0F766E),
                     title: 'Presensi Pulang Berhasil',
                     time: '16.30',
                     description: 'Presensi pulang Anda hari ini berhasil dicatat pada pukul 16.30 WIB menggunakan mesin presensi.',
                     isUnread: true,
                     badgeText: 'Biometrik Terverifikasi',
-                    badgeBgColor: isDark ? const Color(0xFF312E81).withValues(alpha: 0.4) : const Color(0xFFE0E7FF),
-                    badgeTextColor: isDark ? const Color(0xFF818CF8) : const Color(0xFF4338CA),
+                    badgeBgColor: isDark
+                        ? const Color(0xFF312E81).withValues(alpha: 0.4)
+                        : const Color(0xFFE0E7FF),
+                    badgeTextColor: isDark
+                        ? const Color(0xFF818CF8)
+                        : const Color(0xFF4338CA),
                     badgeIcon: Icons.fingerprint,
                   ),
                   SizedBox(height: 28.h),
@@ -116,14 +142,22 @@ class NotifikasiPage extends StatelessWidget {
                   _buildNotificationItem(
                     isDark: isDark,
                     icon: Icons.calendar_today_outlined,
-                    iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
-                    iconColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    iconBgColor: isDark
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                        : const Color(0xFFEFF6FF),
+                    iconColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                     title: 'Pengajuan Izin Cuti',
                     time: '24/09/2026',
                     description: 'Pengajuan izin sakit Anda untuk tanggal 28-29 Sep telah disetujui oleh Pembimbing Magang.',
                     badgeText: 'Disetujui',
-                    badgeBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFCCFBF1),
-                    badgeTextColor: isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
+                    badgeBgColor: isDark
+                        ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                        : const Color(0xFFCCFBF1),
+                    badgeTextColor: isDark
+                        ? const Color(0xFF2DD4BF)
+                        : const Color(0xFF0F766E),
                     badgeIcon: Icons.verified_outlined,
                   ),
                   SizedBox(height: 16.h),
@@ -132,14 +166,22 @@ class NotifikasiPage extends StatelessWidget {
                   _buildNotificationItem(
                     isDark: isDark,
                     icon: Icons.description_outlined,
-                    iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
-                    iconColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    iconBgColor: isDark
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                        : const Color(0xFFEFF6FF),
+                    iconColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                     title: 'Pengajuan Izin Lembur',
                     time: '20/09/2026',
                     description: 'Pengajuan lembur Anda untuk tanggal 20 September telah disetujui oleh Admin.',
                     badgeText: 'Disetujui Admin',
-                    badgeBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFCCFBF1),
-                    badgeTextColor: isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E),
+                    badgeBgColor: isDark
+                        ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                        : const Color(0xFFCCFBF1),
+                    badgeTextColor: isDark
+                        ? const Color(0xFF2DD4BF)
+                        : const Color(0xFF0F766E),
                     badgeIcon: Icons.verified_outlined,
                   ),
 
@@ -170,10 +212,18 @@ class NotifikasiPage extends StatelessWidget {
   }) {
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color titleColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color timeColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
-    final Color unreadDotColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB);
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.transparent;
+    final Color descColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color timeColor = isDark
+        ? const Color(0xFF64748B)
+        : const Color(0xFF94A3B8);
+    final Color unreadDotColor = isDark
+        ? const Color(0xFF60A5FA)
+        : const Color(0xFF2563EB);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.transparent;
 
     return Container(
       width: double.infinity,
@@ -226,10 +276,7 @@ class NotifikasiPage extends StatelessWidget {
                     SizedBox(width: 8.w),
                     Text(
                       time,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: timeColor,
-                      ),
+                      style: TextStyle(fontSize: 12.sp, color: timeColor),
                     ),
                     // Indikator Titik Biru (Unread)
                     if (isUnread) ...[
@@ -263,7 +310,10 @@ class NotifikasiPage extends StatelessWidget {
 
                 // Badge Status
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeBgColor,
                     borderRadius: BorderRadius.circular(6.r),

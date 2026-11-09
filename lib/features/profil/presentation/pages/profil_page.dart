@@ -25,7 +25,9 @@ class ProfilPage extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
           title: Row(
             children: [
               Icon(Icons.logout, color: const Color(0xFFEF4444), size: 28.sp),
@@ -48,19 +50,26 @@ class ProfilPage extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          actionsPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          actionsPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               style: TextButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
               ),
               child: Text(
                 'Batal',
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
             ),
@@ -73,7 +82,9 @@ class ProfilPage extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEF4444),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
               ),
               child: Text(
@@ -94,12 +105,20 @@ class ProfilPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
-    final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFC);
+    final Color headerBg = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color shadowColor = Colors.black.withValues(alpha: isDark ? 0.3 : 0.03);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color shadowColor = Colors.black.withValues(
+      alpha: isDark ? 0.3 : 0.03,
+    );
 
     return Scaffold(
       backgroundColor: bgApp,
@@ -153,7 +172,10 @@ class ProfilPage extends StatelessWidget {
 
                       return Container(
                         width: double.infinity,
-                        padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 20.w),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 24.h,
+                          horizontal: 20.w,
+                        ),
                         decoration: BoxDecoration(
                           color: cardBg,
                           borderRadius: BorderRadius.circular(24.r),
@@ -195,35 +217,59 @@ class ProfilPage extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 8.h,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
+                                    color: isDark
+                                        ? const Color(0xFF1E3A8A)
+                                              .withValues(alpha: 0.3)
+                                        : const Color(0xFFEFF6FF),
                                     borderRadius: BorderRadius.circular(8.r),
-                                    border: isDark ? Border.all(color: const Color(0xFF1E40AF)) : null,
+                                    border: isDark
+                                        ? Border.all(
+                                            color: const Color(0xFF1E40AF),
+                                          )
+                                        : null,
                                   ),
                                   child: Text(
                                     'ID: FK-002',
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+                                      color: isDark
+                                          ? const Color(0xFF60A5FA)
+                                          : const Color(0xFF1D4ED8),
                                     ),
                                   ),
                                 ),
                                 SizedBox(width: 12.w),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 8.h,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5),
+                                    color: isDark
+                                        ? const Color(0xFF064E3B)
+                                              .withValues(alpha: 0.3)
+                                        : const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(8.r),
-                                    border: isDark ? Border.all(color: const Color(0xFF047857)) : null,
+                                    border: isDark
+                                        ? Border.all(
+                                            color: const Color(0xFF047857),
+                                          )
+                                        : null,
                                   ),
                                   child: Text(
                                     'Intern Aktif',
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
+                                      color: isDark
+                                          ? const Color(0xFF34D399)
+                                          : const Color(0xFF047857),
                                     ),
                                   ),
                                 ),
@@ -254,22 +300,32 @@ class ProfilPage extends StatelessWidget {
                       children: [
                         _buildMenuItem(
                           icon: Icons.person_outline,
-                          iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFEFF6FF),
-                          iconColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6),
+                          iconBgColor: isDark
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.5)
+                              : const Color(0xFFEFF6FF),
+                          iconColor: isDark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF3B82F6),
                           title: 'Edit Profil',
                           subtitle: 'Ubah data diri dan kontak',
                           isDark: isDark,
                           onTap: () async {
                             await context.push('/edit-profil');
                             if (context.mounted) {
-                              context.read<ProfilBloc>().add(LoadProfilRequested());
+                              context.read<ProfilBloc>().add(
+                                LoadProfilRequested(),
+                              );
                             }
                           },
                         ),
                         _buildMenuItem(
                           icon: Icons.lock_outline,
-                          iconBgColor: isDark ? const Color(0xFF4C1D95).withValues(alpha: 0.5) : const Color(0xFFF3E8FF),
-                          iconColor: isDark ? const Color(0xFFC084FC) : const Color(0xFF9333EA),
+                          iconBgColor: isDark
+                              ? const Color(0xFF4C1D95).withValues(alpha: 0.5)
+                              : const Color(0xFFF3E8FF),
+                          iconColor: isDark
+                              ? const Color(0xFFC084FC)
+                              : const Color(0xFF9333EA),
                           title: 'Ubah Password',
                           subtitle: 'Keamanan akun & kata sandi',
                           isDark: isDark,
@@ -278,8 +334,12 @@ class ProfilPage extends StatelessWidget {
                         _buildDivider(isDark),
                         _buildMenuItem(
                           icon: Icons.calendar_today_outlined,
-                          iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.5) : const Color(0xFFECFDF5),
-                          iconColor: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981),
+                          iconBgColor: isDark
+                              ? const Color(0xFF064E3B).withValues(alpha: 0.5)
+                              : const Color(0xFFECFDF5),
+                          iconColor: isDark
+                              ? const Color(0xFF34D399)
+                              : const Color(0xFF10B981),
                           title: 'Riwayat Presensi',
                           subtitle: 'Lihat log kehadiran',
                           isDark: isDark,
@@ -287,8 +347,12 @@ class ProfilPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           icon: Icons.notifications_none_outlined,
-                          iconBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.5) : const Color(0xFFFFFBEB),
-                          iconColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B),
+                          iconBgColor: isDark
+                              ? const Color(0xFF78350F).withValues(alpha: 0.5)
+                              : const Color(0xFFFFFBEB),
+                          iconColor: isDark
+                              ? const Color(0xFFFBBF24)
+                              : const Color(0xFFF59E0B),
                           title: 'Notifikasi',
                           subtitle: 'Pemberitahuan aplikasi',
                           isDark: isDark,
@@ -296,8 +360,12 @@ class ProfilPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           icon: Icons.settings_outlined,
-                          iconBgColor: isDark ? const Color(0xFF282828) : const Color(0xFFF8FAFC),
-                          iconColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          iconBgColor: isDark
+                              ? const Color(0xFF282828)
+                              : const Color(0xFFF8FAFC),
+                          iconColor: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                           title: 'Pengaturan',
                           subtitle: 'Bahasa, tema, dan preferensi',
                           isDark: isDark,
@@ -312,7 +380,6 @@ class ProfilPage extends StatelessWidget {
                   BlocListener<AuthBloc, AuthState>(
                     listener: (context, state) {
                       if (state is AuthUnauthenticated) {
-
                         context.go('/login');
                       }
                     },
@@ -320,29 +387,50 @@ class ProfilPage extends StatelessWidget {
                       onTap: () => _showLogoutDialog(context, isDark),
                       child: Container(
                         width: double.infinity,
-                        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 16.h,
+                          horizontal: 20.w,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
+                          color: isDark
+                              ? const Color(0xFF450A0A)
+                              : const Color(0xFFFEF2F2),
                           borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
-                              color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
-                              width: 1.w
+                            color: isDark
+                                ? const Color(0xFF7F1D1D)
+                                : const Color(0xFFFECACA),
+                            width: 1.w,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.logout, color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444), size: 24.sp),
+                            Icon(
+                              Icons.logout,
+                              color: isDark
+                                  ? const Color(0xFFF87171)
+                                  : const Color(0xFFEF4444),
+                              size: 24.sp,
+                            ),
                             SizedBox(width: 16.w),
                             Text(
                               'Log Out',
                               style: TextStyle(
                                 fontSize: 15.sp,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444),
+                                color: isDark
+                                    ? const Color(0xFFF87171)
+                                    : const Color(0xFFEF4444),
                               ),
                             ),
                             const Spacer(),
-                            Icon(Icons.chevron_right, color: isDark ? const Color(0xFFB91C1C) : const Color(0xFFFCA5A5), size: 24.sp),
+                            Icon(
+                              Icons.chevron_right,
+                              color: isDark
+                                  ? const Color(0xFFB91C1C)
+                                  : const Color(0xFFFCA5A5),
+                              size: 24.sp,
+                            ),
                           ],
                         ),
                       ),
@@ -350,11 +438,20 @@ class ProfilPage extends StatelessWidget {
                   ),
                   SizedBox(height: 32.h),
 
-                  Text('Sistem Presensi Karyawan', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
+                  Text(
+                    'Sistem Presensi Karyawan',
+                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
+                  ),
                   SizedBox(height: 4.h),
-                  Text('Build 1.0.0 (Yogyakarta)', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
+                  Text(
+                    'Build 1.0.0 (Yogyakarta)',
+                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
+                  ),
                   SizedBox(height: 4.h),
-                  Text('Dilindungi Hak Cipta', style: TextStyle(fontSize: 12.sp, color: textSecondary)),
+                  Text(
+                    'Dilindungi Hak Cipta',
+                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
+                  ),
                   SizedBox(height: 100.h),
                 ],
               ),
@@ -407,13 +504,19 @@ class ProfilPage extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF94A3B8),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1), size: 24.sp),
+            Icon(
+              Icons.chevron_right,
+              color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+              size: 24.sp,
+            ),
           ],
         ),
       ),

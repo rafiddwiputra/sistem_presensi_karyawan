@@ -8,6 +8,7 @@ import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/mai
 import 'package:sistem_presensi_karyawan/features/auth/presentation/pages/login_page.dart';
 import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/beranda_page.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/karyawan/presensi_page.dart';
+import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/presensi_berhasil_page.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/riwayat_presensi_page.dart'; // Sesuaikan path jika berbeda
 
 import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/izin_page.dart';
@@ -32,6 +33,9 @@ import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/ubah
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/notifikasi_page.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/pengaturan_page.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sistem_presensi_karyawan/core/di/injection.dart'; // Untuk memanggil sl
+import 'package:sistem_presensi_karyawan/features/cuti/presentation/bloc/cuti_bloc.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -39,7 +43,6 @@ final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
-
     GoRoute(
       path: '/splash',
       name: 'splash',
@@ -77,6 +80,21 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const PresensiPage(),
     ),
     GoRoute(
+      path: '/presensi-berhasil',
+      name: 'presensi-berhasil',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+
+        return PresensiBerhasilPage(
+          namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
+          lokasiKantor: args['lokasiKantor'] as String? ?? '-',
+          jenisPresensi: args['jenisPresensi'] as String? ?? 'Masuk',
+          jarakMeter: args['jarakMeter'] as String? ?? '0',
+          waktuPresensi: args['waktuPresensi'] as DateTime? ?? DateTime.now(),
+        );
+      },
+    ),
+    GoRoute(
       path: '/izin',
       name: 'izin',
       builder: (context, state) => const IzinPage(),
@@ -89,7 +107,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/izin-berhasil',
       name: 'izin-berhasil',
-      builder: (context, state) => const IzinBerhasilPage(),
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+
+        return IzinBerhasilPage(
+          namaKaryawan: args['namaKaryawan'] ?? 'Rafid Dwi Putra Andino',
+          jenisIzin: args['jenisIzin'] ?? 'Sakit',
+          keterangan: args['keterangan'] ?? '-',
+          tanggalMulai: args['tanggalMulai'] ?? DateTime.now(),
+          tanggalSelesai: args['tanggalSelesai'] ?? DateTime.now(),
+          namaLampiran: args['namaLampiran'],
+        );
+      },
     ),
     GoRoute(
       path: '/cuti',
@@ -99,12 +128,29 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/buat-cuti',
       name: 'buat-cuti',
-      builder: (context, state) => const BuatCutiPage(),
+      builder: (context, state) {
+        // PENAMBAHAN ENTERPRISE: Suntikkan Factory CutiBloc secara lokal di rute ini
+        return BlocProvider(
+          create: (context) => sl<CutiBloc>(),
+          child: const BuatCutiPage(),
+        );
+      },
     ),
     GoRoute(
       path: '/cuti-berhasil',
       name: 'cuti-berhasil',
-      builder: (context, state) => const CutiBerhasilPage(),
+      builder: (context, state) {
+        // PENAMBAHAN ENTERPRISE: Menangkap data dari Bottom Sheet konfirmasi
+        final args = state.extra as Map<String, dynamic>? ?? {};
+
+        return CutiBerhasilPage(
+          namaKaryawan: args['namaKaryawan'] ?? 'Rafid Dwi Putra Andino',
+          jenisCuti: args['jenisCuti'] ?? 'Cuti Tahunan',
+          keterangan: args['keterangan'] ?? '-',
+          tanggalMulai: args['tanggalMulai'] ?? DateTime.now(),
+          tanggalSelesai: args['tanggalSelesai'] ?? DateTime.now(),
+        );
+      },
     ),
     GoRoute(
       path: '/lembur',

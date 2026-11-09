@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sistem_presensi_karyawan/core/errors/app_exception.dart';
 import 'package:sistem_presensi_karyawan/features/auth/repositories/auth_repository.dart';
+
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -14,18 +15,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   // 2. Tambahkan ProfilBloc di constructor melalui Dependency Injection (GetIt / sl)
   final ProfilBloc profilBloc;
 
-  AuthBloc({
-    required this.authRepository,
-    required this.profilBloc,
-  }) : super(AuthInitial()) {
+  AuthBloc({required this.authRepository, required this.profilBloc})
+    : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<LogoutRequested>(_onLogoutRequested);
   }
 
   Future<void> _onLoginRequested(
-      LoginRequested event,
-      Emitter<AuthState> emit,
-      ) async {
+    LoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     try {
       final user = await authRepository.login(event.email, event.password);
@@ -43,9 +42,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogoutRequested(
-      LogoutRequested event,
-      Emitter<AuthState> emit,
-      ) async {
+    LogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     try {
       await authRepository.logout();

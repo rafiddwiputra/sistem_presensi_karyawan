@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sistem_presensi_karyawan/core/network/api_client.dart';
@@ -86,10 +87,16 @@ class ProfilRepository {
           "foto": await MultipartFile.fromFile(image.path, filename: fileName),
         });
 
-        final photoResponse = await _apiClient.dio.post('/me/photo', data: photoFormData);
+        final photoResponse = await _apiClient.dio.post(
+          '/me/photo',
+          data: photoFormData,
+        );
 
         if (photoResponse.data != null) {
-          final updatedData = photoResponse.data['user'] ?? photoResponse.data['data'] ?? photoResponse.data;
+          final updatedData =
+              photoResponse.data['user'] ??
+              photoResponse.data['data'] ??
+              photoResponse.data;
           if (updatedData is Map<String, dynamic>) {
             await saveProfilLocal(updatedData);
             return updatedData;
@@ -97,7 +104,8 @@ class ProfilRepository {
         }
       } else {
         if (response.data != null && response.data is Map<String, dynamic>) {
-          final updatedData = response.data['user'] ?? response.data['data'] ?? response.data;
+          final updatedData =
+              response.data['user'] ?? response.data['data'] ?? response.data;
           if (updatedData is Map<String, dynamic>) {
             await saveProfilLocal(updatedData);
           }

@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+
 import '../network/api_client.dart';
 import '../services/secure_storage_service.dart';
 import '../../features/auth/repositories/auth_repository.dart';
@@ -10,12 +11,18 @@ import '../../features/presensi/presentation/bloc/riwayat_bloc.dart';
 import '../../features/presensi/repositories/presensi_repository.dart';
 import '../../features/presensi/presentation/bloc/presensi_bloc.dart';
 
+// --- IZIN ---
+import '../../features/izin/repositories/izin_repository.dart';
+import '../../features/izin/presentation/bloc/izin_bloc.dart';
+
+// --- TAMBAHKAN IMPORT CUTI DI SINI ---
+import '../../features/cuti/repositories/cuti_repository.dart';
+import '../../features/cuti/presentation/bloc/cuti_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> setupInjection() async {
-  sl.registerLazySingleton<SecureStorageService>(
-        () => SecureStorageService(),
-  );
+  sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService());
 
   sl.registerLazySingleton<ApiClient>(
         () => ApiClient(sl<SecureStorageService>()),
@@ -29,10 +36,9 @@ Future<void> setupInjection() async {
         () => ProfilRepository(sl<ApiClient>(), sl<SecureStorageService>()),
   );
 
-  sl.registerLazySingleton(() => AuthBloc(
-    authRepository: sl(),
-    profilBloc: sl(),
-  ));
+  sl.registerLazySingleton(
+        () => AuthBloc(authRepository: sl(), profilBloc: sl()),
+  );
 
   sl.registerLazySingleton<ProfilBloc>(
         () => ProfilBloc(repository: sl<ProfilRepository>()),
@@ -47,9 +53,29 @@ Future<void> setupInjection() async {
         () => RiwayatBloc(repository: sl<RiwayatRepository>()),
   );
 
+  // --- Presensi ---
   sl.registerLazySingleton<PresensiRepository>(
         () => PresensiRepository(sl<ApiClient>()),
   );
 
   sl.registerFactory(() => PresensiBloc(repository: sl()));
+
+  // --- IZIN ---
+  sl.registerLazySingleton<IzinRepository>(
+        () => IzinRepository(sl<ApiClient>()),
+  );
+
+  sl.registerFactory<IzinBloc>(
+        () => IzinBloc(repository: sl<IzinRepository>()),
+  );
+
+  // --- TAMBAHKAN REGISTRASI CUTI DI SINI ---
+  sl.registerLazySingleton<CutiRepository>(
+        () => CutiRepository(sl<ApiClient>()),
+  );
+
+  // Gunakan Factory agar setiap kali form Cuti dibuka, BLoC mendapatkan state initial yang bersih
+  sl.registerFactory<CutiBloc>(
+        () => CutiBloc(repository: sl<CutiRepository>()),
+  );
 }

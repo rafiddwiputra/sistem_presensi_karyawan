@@ -46,11 +46,7 @@ class KartuRingkasan extends StatelessWidget {
                   color: warnaIkon,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  ikon,
-                  color: Colors.white,
-                  size: 22,
-                ),
+                child: Icon(ikon, color: Colors.white, size: 22),
               ),
               const Spacer(),
               Text(
@@ -69,10 +65,7 @@ class KartuRingkasan extends StatelessWidget {
                 subjudul,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: warnaSubjudul,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: warnaSubjudul, fontSize: 12),
               ),
               const SizedBox(height: 2),
               Row(

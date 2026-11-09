@@ -7,10 +7,13 @@ class ReimbursementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color primaryBlue = isDark ? const Color(0xFF154B8C) : const Color(0xFF0B56A6);
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA);
+    final Color primaryBlue = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF0B56A6);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8F9FA);
 
     return Scaffold(
       backgroundColor: primaryBlue,
@@ -18,14 +21,17 @@ class ReimbursementPage extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
                   ),
                   SizedBox(width: 16.w),
                   Text(
@@ -63,7 +69,9 @@ class ReimbursementPage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -82,12 +90,22 @@ class ReimbursementPage extends StatelessWidget {
 
   Widget _buildAjukanCard(BuildContext context, bool isDark) {
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFF1F5F9);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color iconBg = isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0E7FF);
-    final Color iconColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0B56A6);
-    final Color btnBg = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color iconBg = isDark
+        ? const Color(0xFF1E3A8A)
+        : const Color(0xFFE0E7FF);
+    final Color iconColor = isDark
+        ? const Color(0xFF60A5FA)
+        : const Color(0xFF0B56A6);
+    final Color btnBg = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -184,48 +202,72 @@ class ReimbursementPage extends StatelessWidget {
         ReimbursementHistoryCard(
           date: '22 Okt 2026',
           status: 'Menunggu Persetujuan',
-          statusColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-          statusBgColor: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
+          statusColor: isDark
+              ? const Color(0xFFFBBF24)
+              : const Color(0xFFD97706),
+          statusBgColor: isDark
+              ? const Color(0xFF451A03)
+              : const Color(0xFFFEF3C7),
           title: 'Pembelian Sensor',
           fileName: 'struk nota pembelian sensor.png',
           amount: 'Rp 350.000',
-          amountColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E61B6),
+          amountColor: isDark
+              ? const Color(0xFF60A5FA)
+              : const Color(0xFF1E61B6),
           isDark: isDark,
         ),
         SizedBox(height: 12.h),
         ReimbursementHistoryCard(
           date: '25 Okt 2026',
           status: 'Disetujui',
-          statusColor: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
-          statusBgColor: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+          statusColor: isDark
+              ? const Color(0xFF34D399)
+              : const Color(0xFF059669),
+          statusBgColor: isDark
+              ? const Color(0xFF064E3B)
+              : const Color(0xFFD1FAE5),
           title: 'Biaya Transportasi',
           fileName: 'struk nota pembelian bensin.jpg',
           amount: 'Rp 30.000',
-          amountColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E61B6),
+          amountColor: isDark
+              ? const Color(0xFF60A5FA)
+              : const Color(0xFF1E61B6),
           isDark: isDark,
         ),
         SizedBox(height: 12.h),
         ReimbursementHistoryCard(
           date: '30 Okt 2026',
           status: 'Disetujui',
-          statusColor: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
-          statusBgColor: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+          statusColor: isDark
+              ? const Color(0xFF34D399)
+              : const Color(0xFF059669),
+          statusBgColor: isDark
+              ? const Color(0xFF064E3B)
+              : const Color(0xFFD1FAE5),
           title: 'Biaya Konsumsi & Jajan',
           fileName: 'foto-nota.jpg',
           amount: 'Rp 240.000',
-          amountColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E61B6),
+          amountColor: isDark
+              ? const Color(0xFF60A5FA)
+              : const Color(0xFF1E61B6),
           isDark: isDark,
         ),
         SizedBox(height: 12.h),
         ReimbursementHistoryCard(
           date: '18 Sep 2026',
           status: 'Ditolak',
-          statusColor: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
-          statusBgColor: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
+          statusColor: isDark
+              ? const Color(0xFFF87171)
+              : const Color(0xFFDC2626),
+          statusBgColor: isDark
+              ? const Color(0xFF450A0A)
+              : const Color(0xFFFEE2E2),
           title: 'Kuota habis beliin dong',
           fileName: '',
           amount: 'Rp 150.000',
-          amountColor: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+          amountColor: isDark
+              ? const Color(0xFFF87171)
+              : const Color(0xFFDC2626),
           adminNote: 'Catatan Admin:\n"Cuih ga modal"',
           isDark: isDark,
         ),
@@ -263,9 +305,13 @@ class ReimbursementHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFF1F5F9);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -277,20 +323,20 @@ class ReimbursementHistoryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 14.sp, color: textSecondary),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 14.sp,
+                    color: textSecondary,
+                  ),
                   SizedBox(width: 6.w),
                   Text(
                     date,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
                   ),
                 ],
               ),
@@ -299,7 +345,12 @@ class ReimbursementHistoryCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: statusBgColor,
                   borderRadius: BorderRadius.circular(8.r),
-                  border: isDark ? Border.all(color: statusColor.withValues(alpha: 0.3), width: 1.w) : null,
+                  border: isDark
+                      ? Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                          width: 1.w,
+                        )
+                      : null,
                 ),
                 child: Row(
                   children: [
@@ -341,7 +392,13 @@ class ReimbursementHistoryCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Icon(Icons.chevron_right, size: 20.sp, color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+              Icon(
+                Icons.chevron_right,
+                size: 20.sp,
+                color: isDark
+                    ? const Color(0xFF475569)
+                    : const Color(0xFFCBD5E1),
+              ),
             ],
           ),
 
@@ -352,19 +409,22 @@ class ReimbursementHistoryCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF282828)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(4.r),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.attach_file, size: 12.sp, color: textSecondary),
+                      Icon(
+                        Icons.attach_file,
+                        size: 12.sp,
+                        color: textSecondary,
+                      ),
                       SizedBox(width: 4.w),
                       Text(
                         'File',
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          color: textSecondary,
-                        ),
+                        style: TextStyle(fontSize: 10.sp, color: textSecondary),
                       ),
                     ],
                   ),
@@ -373,10 +433,7 @@ class ReimbursementHistoryCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     fileName,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -390,21 +447,33 @@ class ReimbursementHistoryCard extends StatelessWidget {
               width: double.infinity,
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFFF1F2),
+                color: isDark
+                    ? const Color(0xFF450A0A)
+                    : const Color(0xFFFFF1F2),
                 borderRadius: BorderRadius.circular(8.r),
-                border: isDark ? Border.all(color: const Color(0xFF7F1D1D)) : null,
+                border: isDark
+                    ? Border.all(color: const Color(0xFF7F1D1D))
+                    : null,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, size: 16.sp, color: isDark ? const Color(0xFFF87171) : const Color(0xFFE11D48)),
+                  Icon(
+                    Icons.info_outline,
+                    size: 16.sp,
+                    color: isDark
+                        ? const Color(0xFFF87171)
+                        : const Color(0xFFE11D48),
+                  ),
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
                       adminNote!,
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFE11D48),
+                        color: isDark
+                            ? const Color(0xFFFCA5A5)
+                            : const Color(0xFFE11D48),
                         height: 1.4,
                       ),
                     ),
@@ -423,10 +492,7 @@ class ReimbursementHistoryCard extends StatelessWidget {
             children: [
               Text(
                 'Total Nominal Pengajuan',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: textSecondary,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: textSecondary),
               ),
               Text(
                 amount,

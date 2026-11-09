@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:equatable/equatable.dart';
 
+import 'package:equatable/equatable.dart';
 
 abstract class ProfilEvent extends Equatable {
   const ProfilEvent();
@@ -41,5 +41,9 @@ class UbahPasswordRequested extends ProfilEvent {
   });
 
   @override
-  List<Object> get props => [currentPassword, newPassword, newPasswordConfirmation];
+  List<Object> get props => [
+    currentPassword,
+    newPassword,
+    newPasswordConfirmation,
+  ];
 }

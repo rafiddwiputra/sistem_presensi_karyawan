@@ -7,14 +7,18 @@ abstract class ProfilState extends Equatable {
 }
 
 class ProfilInitial extends ProfilState {}
+
 class ProfilLoading extends ProfilState {}
+
 class ProfilLoaded extends ProfilState {
   final Map<String, dynamic> user;
   const ProfilLoaded(this.user);
   @override
   List<Object?> get props => [user];
 }
+
 class ProfilUpdateSuccess extends ProfilState {}
+
 class ProfilError extends ProfilState {
   final String message;
   const ProfilError(this.message);

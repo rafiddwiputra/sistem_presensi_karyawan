@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
 import '../errors/app_exception.dart';
 import '../services/secure_storage_service.dart';
 import 'auth_interceptor.dart';
@@ -14,9 +15,7 @@ class ApiClient {
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         sendTimeout: const Duration(seconds: 15),
-        headers: {
-          'Accept': 'application/json',
-        },
+        headers: {'Accept': 'application/json'},
       ),
     );
     dio.interceptors.addAll([
@@ -28,7 +27,7 @@ class ApiClient {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://emphasis-dive-nano-medline.trycloudflare.com/api/v1/mobile',
+    defaultValue: 'https://swim-surge-ecommerce-doors.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {
@@ -43,7 +42,9 @@ class ApiClient {
         case DioExceptionType.badResponse:
           return _mapResponseError(error.response);
         default:
-          return UnknownException(error.message ?? 'Terjadi kesalahan jaringan.');
+          return UnknownException(
+            error.message ?? 'Terjadi kesalahan jaringan.',
+          );
       }
     }
     return const UnknownException();
@@ -61,7 +62,8 @@ class ApiClient {
       final rawErrors = data['errors'];
       if (rawErrors is Map) {
         final errors = rawErrors.map<String, List<String>>(
-              (key, value) => MapEntry(key.toString(), List<String>.from(value as List)),
+          (key, value) =>
+              MapEntry(key.toString(), List<String>.from(value as List)),
         );
         final message = (data['message'] as String?) ?? 'Data tidak valid.';
         return ValidationException(errors, message);
@@ -71,14 +73,21 @@ class ApiClient {
       return ValidationException({}, message);
     }
 
-    final message = (data is Map ? data['message'] as String? : null) ??
+    final message =
+        (data is Map ? data['message'] as String? : null) ??
         'Terjadi kesalahan pada server.';
     return ServerException(message, statusCode: statusCode);
   }
 }
 
 class SanitizingLogInterceptor extends Interceptor {
-  static const _sensitiveKeys = {'password', 'current_password', 'new_password', 'password_confirmation', 'token'};
+  static const _sensitiveKeys = {
+    'password',
+    'current_password',
+    'new_password',
+    'password_confirmation',
+    'token',
+  };
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -102,7 +111,9 @@ class SanitizingLogInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (kDebugMode) {
-      debugPrint('<-- ERROR ${err.response?.statusCode} ${err.requestOptions.uri}');
+      debugPrint(
+        '<-- ERROR ${err.response?.statusCode} ${err.requestOptions.uri}',
+      );
       debugPrint('Message: ${err.message}');
       if (err.response?.data != null) {
         debugPrint('Error Data: ${err.response?.data}');
@@ -113,15 +124,19 @@ class SanitizingLogInterceptor extends Interceptor {
 
   dynamic _sanitize(dynamic data) {
     if (data is FormData) {
-      final fields = data.fields.map((e) {
-        final isSensitive = _sensitiveKeys.contains(e.key.toLowerCase());
-        return '${e.key}: ${isSensitive ? '***' : e.value}';
-      }).join(', ');
+      final fields = data.fields
+          .map((e) {
+            final isSensitive = _sensitiveKeys.contains(e.key.toLowerCase());
+            return '${e.key}: ${isSensitive ? '***' : e.value}';
+          })
+          .join(', ');
       return '{$fields}';
     }
     if (data is Map) {
       return data.map((key, value) {
-        final isSensitive = _sensitiveKeys.contains(key.toString().toLowerCase());
+        final isSensitive = _sensitiveKeys.contains(
+          key.toString().toLowerCase(),
+        );
         return MapEntry(key, isSensitive ? '***' : value);
       });
     }

@@ -1,16 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+// Import BLoC Cuti
+import '../bloc/cuti_bloc.dart';
+import '../bloc/cuti_event.dart';
+import '../bloc/cuti_state.dart';
 
 class KonfirmasiCutiBottomSheet extends StatelessWidget {
-  const KonfirmasiCutiBottomSheet({super.key});
+  final String uuidPengajuan;
+  final String namaKaryawan; // Dibutuhkan untuk diteruskan ke CutiBerhasilPage
+  final String jenisCuti;
+  final DateTime tanggalMulai;
+  final DateTime tanggalSelesai;
+  final String keterangan;
+
+  const KonfirmasiCutiBottomSheet({
+    super.key,
+    required this.uuidPengajuan,
+    required this.namaKaryawan,
+    required this.jenisCuti,
+    required this.tanggalMulai,
+    required this.tanggalSelesai,
+    required this.keterangan,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Deteksi Mode Gelap
+    // 1. Deteksi Mode Gelap & Warna Tema (dipertahankan dari kodemu)
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // 2. Definisi Warna Dinamis
     final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
     final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
@@ -18,6 +38,17 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
     final Color bgLightBlue = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF);
     final Color bgSheet = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color cardBg = isDark ? const Color(0xFF121212) : Colors.white;
+
+    // 2. Format Waktu untuk Ditampilkan
+    final durasiHari = tanggalSelesai.difference(tanggalMulai).inDays + 1;
+    final String labelTglMulai = DateFormat('dd MMM yyyy', 'id_ID').format(tanggalMulai);
+    final String labelHariMulai = DateFormat('EEEE', 'id_ID').format(tanggalMulai);
+    final String labelTglSelesai = DateFormat('dd MMM yyyy', 'id_ID').format(tanggalSelesai);
+    final String labelHariSelesai = DateFormat('EEEE', 'id_ID').format(tanggalSelesai);
+
+    // 3. Format Waktu Murni untuk Backend (yyyy-MM-dd)
+    final String formatApiMulai = DateFormat('yyyy-MM-dd').format(tanggalMulai);
+    final String formatApiSelesai = DateFormat('yyyy-MM-dd').format(tanggalSelesai);
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -70,9 +101,9 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         ),
                         child: Icon(Icons.close, size: 16.w, color: textSecondary),
                       ),
-                      onPressed: () => context.pop(), // Tutup Bottom Sheet
+                      onPressed: () => context.pop(),
                     ),
-                  )
+                  ),
                 ],
               ),
               SizedBox(height: 12.h),
@@ -88,10 +119,14 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                       color: primaryBlue.withValues(alpha: isDark ? 0.2 : 0.1),
                       blurRadius: 10.r,
                       spreadRadius: 2.r,
-                    )
+                    ),
                   ],
                 ),
-                child: Icon(Icons.event_available_outlined, color: primaryBlue, size: 32.w),
+                child: Icon(
+                  Icons.event_available_outlined,
+                  color: primaryBlue,
+                  size: 32.w,
+                ),
               ),
               SizedBox(height: 16.h),
 
@@ -126,20 +161,23 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                       color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                       blurRadius: 10.r,
                       offset: Offset(0, 4.h),
-                    )
+                    ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Row(
                       children: [
                         Icon(Icons.receipt_long_outlined, size: 18.w, color: primaryBlue),
                         SizedBox(width: 8.w),
                         Text(
                           'Ringkasan Pengajuan',
-                          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary,
+                          ),
                         ),
                         const Spacer(),
                         Container(
@@ -149,8 +187,12 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                             borderRadius: BorderRadius.circular(5.r),
                           ),
                           child: Text(
-                            '3 Hari Kerja',
-                            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: primaryBlue),
+                            '$durasiHari Hari Kerja', // <- Durasi Dinamis
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                              color: primaryBlue,
+                            ),
                           ),
                         ),
                       ],
@@ -168,8 +210,12 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
-                            'Keperluan keluarga di luar kota',
-                            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                            jenisCuti, // <- Jenis Cuti Dinamis
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                              color: textPrimary,
+                            ),
                           ),
                         ),
                       ],
@@ -181,8 +227,8 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         Expanded(
                           child: _buildDateCard(
                             label: 'MULAI CUTI',
-                            date: '20 Okt 2026',
-                            day: 'Selasa',
+                            date: labelTglMulai,
+                            day: labelHariMulai,
                             isDark: isDark,
                           ),
                         ),
@@ -190,8 +236,8 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         Expanded(
                           child: _buildDateCard(
                             label: 'SELESAI CUTI',
-                            date: '22 Okt 2026',
-                            day: 'Kamis',
+                            date: labelTglSelesai,
+                            day: labelHariSelesai,
                             isDark: isDark,
                           ),
                         ),
@@ -199,7 +245,6 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                     ),
                     SizedBox(height: 16.h),
 
-                    // Alasan Cuti
                     Text('ALASAN CUTI', style: _labelStyle(isDark)),
                     SizedBox(height: 8.h),
                     Container(
@@ -208,15 +253,17 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(color: isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9)),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9),
+                        ),
                       ),
                       child: Text(
-                        '“Menghadiri acara pernikahan saudara kandung dan mendampingi keluarga di luar kota.”',
+                        '“$keterangan”', // <- Keterangan Dinamis
                         style: TextStyle(
-                            fontSize: 13.sp,
-                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-                            fontStyle: FontStyle.italic,
-                            height: 1.5
+                          fontSize: 13.sp,
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                          fontStyle: FontStyle.italic,
+                          height: 1.5,
                         ),
                       ),
                     ),
@@ -225,21 +272,91 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
               ),
               SizedBox(height: 32.h),
 
+              // --- 3. BLOC CONSUMER (Tombol Kirim) ---
               SizedBox(
                 width: double.infinity,
                 height: 52.h,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    context.pop();
-                    context.push('/cuti-berhasil');
+                child: BlocConsumer<CutiBloc, CutiState>(
+                  listener: (context, state) {
+                    if (state.status == CutiStatus.success) {
+                      // Jika sukses, tutup BottomSheet dan arahkan ke Halaman Berhasil
+                      context.pop();
+                      context.pushReplacement('/cuti-berhasil', extra: {
+                        'namaKaryawan': namaKaryawan,
+                        'jenisCuti': jenisCuti,
+                        'keterangan': keterangan,
+                        'tanggalMulai': tanggalMulai,
+                        'tanggalSelesai': tanggalSelesai,
+                      });
+                    } else if (state.status == CutiStatus.error) {
+                      // Menampilkan pesan error backend via SnackBar tanpa menutup form
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage ?? 'Terjadi kesalahan.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryBlue,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                    elevation: 0,
-                  ),
-                  icon: Icon(Icons.send_outlined, color: Colors.white, size: 18.w),
-                  label: Text('Konfirmasi & Kirim', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                  builder: (context, state) {
+                    // Animasi Loading
+                    if (state.status == CutiStatus.submitting) {
+                      return ElevatedButton(
+                        onPressed: null, // Disabled saat loading
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: SizedBox(
+                          height: 24.w,
+                          width: 24.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Tampilan Normal
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        // Memicu trigger pengiriman data ke Backend
+                        context.read<CutiBloc>().add(
+                          SubmitCuti(
+                            uuidPengajuan: uuidPengajuan,
+                            jenisCuti: jenisCuti,
+                            tanggalMulai: formatApiMulai,
+                            tanggalSelesai: formatApiSelesai,
+                            keterangan: keterangan,
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        elevation: 0,
+                      ),
+                      icon: Icon(
+                        Icons.send_outlined,
+                        color: Colors.white,
+                        size: 18.w,
+                      ),
+                      label: Text(
+                        'Konfirmasi & Kirim',
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
 
@@ -248,18 +365,22 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                 width: double.infinity,
                 height: 52.h,
                 child: OutlinedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () => context.pop(), // Kembali untuk mengedit
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
                   ),
                   child: Text(
-                      'Periksa Kembali',
-                      style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF334155)
-                      )
+                    'Periksa Kembali',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF334155),
+                    ),
                   ),
                 ),
               ),
@@ -270,49 +391,62 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
     );
   }
 
+  // --- WIDGET HELPER DIPERTAHANKAN ---
+
   TextStyle _labelStyle(bool isDark) {
     return TextStyle(
-        fontSize: 10.sp,
-        fontWeight: FontWeight.bold,
-        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
-        letterSpacing: 0.5
+      fontSize: 10.sp,
+      fontWeight: FontWeight.bold,
+      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
+      letterSpacing: 0.5,
     );
   }
 
-  Widget _buildDateCard({required String label, required String date, required String day, required bool isDark}) {
+  Widget _buildDateCard({
+    required String label,
+    required String date,
+    required String day,
+    required bool isDark,
+  }) {
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.calendar_today_outlined, size: 14.w, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 14.w,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
               SizedBox(width: 6.w),
               Text(label, style: _labelStyle(isDark)),
             ],
           ),
           SizedBox(height: 8.h),
           Text(
-              date,
-              style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B)
-              )
+            date,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF1E293B),
+            ),
           ),
           SizedBox(height: 2.h),
           Text(
-              day,
-              style: TextStyle(
-                  fontSize: 12.sp,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)
-              )
+            day,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
           ),
         ],
       ),

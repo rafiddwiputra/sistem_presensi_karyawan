@@ -15,10 +15,11 @@ class UbahPasswordPage extends StatefulWidget {
 }
 
 class _UbahPasswordPageState extends State<UbahPasswordPage> {
-
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _obscureCurrent = true;
   bool _obscureNew = true;
@@ -49,11 +50,15 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     if (password.isNotEmpty) {
       score = 1;
 
-      if (password.length >= 8 && RegExp(r'[a-zA-Z]').hasMatch(password) && RegExp(r'\d').hasMatch(password)) {
+      if (password.length >= 8 &&
+          RegExp(r'[a-zA-Z]').hasMatch(password) &&
+          RegExp(r'\d').hasMatch(password)) {
         score = 2;
       }
 
-      if (score == 2 && RegExp(r'[A-Z]').hasMatch(password) && RegExp(r'[^a-zA-Z0-9]').hasMatch(password)) {
+      if (score == 2 &&
+          RegExp(r'[A-Z]').hasMatch(password) &&
+          RegExp(r'[^a-zA-Z0-9]').hasMatch(password)) {
         score = 3;
       }
     }
@@ -68,10 +73,18 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
       ),
     );
   }
@@ -80,11 +93,19 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
-    final Color headerBg = isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFC);
+    final Color headerBg = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
-    final Color btnBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
+    final Color btnBlue = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
 
     return BlocConsumer<ProfilBloc, ProfilState>(
       listener: (context, state) {
@@ -102,21 +123,24 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
           backgroundColor: bgApp,
           body: Stack(
             children: [
-              Container(
-                height: 120.h,
-                width: double.infinity,
-                color: headerBg,
-              ),
+              Container(height: 120.h, width: double.infinity, color: headerBg),
               SafeArea(
                 child: Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 16.h,
+                      ),
                       child: Row(
                         children: [
                           GestureDetector(
                             onTap: () => context.pop(),
-                            child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 24.sp,
+                            ),
                           ),
                           SizedBox(width: 16.w),
                           Text(
@@ -146,7 +170,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                                      color: Colors.black.withValues(
+                                        alpha: isDark ? 0.3 : 0.05,
+                                      ),
                                       blurRadius: 15.r,
                                       offset: const Offset(0, 4),
                                     ),
@@ -157,10 +183,19 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                     width: 66.w,
                                     height: 66.w,
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
+                                      color: isDark
+                                          ? const Color(0xFF1E3A8A)
+                                                .withValues(alpha: 0.3)
+                                          : const Color(0xFFEFF6FF),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(Icons.shield_outlined, color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6), size: 32.sp),
+                                    child: Icon(
+                                      Icons.shield_outlined,
+                                      color: isDark
+                                          ? const Color(0xFF60A5FA)
+                                          : const Color(0xFF3B82F6),
+                                      size: 32.sp,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -172,10 +207,14 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                               decoration: BoxDecoration(
                                 color: cardBg,
                                 borderRadius: BorderRadius.circular(20.r),
-                                border: isDark ? Border.all(color: borderColor) : null,
+                                border: isDark
+                                    ? Border.all(color: borderColor)
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                    color: Colors.black.withValues(
+                                      alpha: isDark ? 0.3 : 0.03,
+                                    ),
                                     blurRadius: 15.r,
                                     offset: const Offset(0, 4),
                                   ),
@@ -188,7 +227,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                     label: 'Password Saat Ini',
                                     controller: _currentPasswordController,
                                     isObscure: _obscureCurrent,
-                                    onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                                    onToggle: () => setState(
+                                      () => _obscureCurrent = !_obscureCurrent,
+                                    ),
                                     isDark: isDark,
                                   ),
                                   SizedBox(height: 20.h),
@@ -198,7 +239,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                     label: 'Password Baru',
                                     controller: _newPasswordController,
                                     isObscure: _obscureNew,
-                                    onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                                    onToggle: () => setState(
+                                      () => _obscureNew = !_obscureNew,
+                                    ),
                                     isDark: isDark,
                                   ),
                                   SizedBox(height: 12.h),
@@ -210,7 +253,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                                     label: 'Konfirmasi Password Baru',
                                     controller: _confirmPasswordController,
                                     isObscure: _obscureConfirm,
-                                    onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                                    onToggle: () => setState(
+                                      () => _obscureConfirm = !_obscureConfirm,
+                                    ),
                                     isDark: isDark,
                                   ),
                                 ],
@@ -220,21 +265,37 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                             Container(
                               padding: EdgeInsets.all(16.w),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFF0FDF4),
+                                color: isDark
+                                    ? const Color(0xFF064E3B)
+                                          .withValues(alpha: 0.3)
+                                    : const Color(0xFFF0FDF4),
                                 borderRadius: BorderRadius.circular(16.r),
-                                border: Border.all(color: isDark ? const Color(0xFF047857) : const Color(0xFFDCFCE7), width: 1.w),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF047857)
+                                      : const Color(0xFFDCFCE7),
+                                  width: 1.w,
+                                ),
                               ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.info_outline, color: isDark ? const Color(0xFF34D399) : const Color(0xFF10B981), size: 20.sp),
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: isDark
+                                        ? const Color(0xFF34D399)
+                                        : const Color(0xFF10B981),
+                                    size: 20.sp,
+                                  ),
                                   SizedBox(width: 12.w),
                                   Expanded(
                                     child: Text(
                                       'Gunakan minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, angka, dan simbol agar akun Anda tetap aman.',
                                       style: TextStyle(
                                         fontSize: 12.sp,
-                                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+                                        color: isDark
+                                            ? const Color(0xFF6EE7B7)
+                                            : const Color(0xFF047857),
                                         height: 1.4,
                                       ),
                                     ),
@@ -256,7 +317,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
             decoration: BoxDecoration(
               color: bgApp,
-              border: isDark ? Border(top: BorderSide(color: borderColor)) : null,
+              border: isDark
+                  ? Border(top: BorderSide(color: borderColor))
+                  : null,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -268,31 +331,42 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                     onPressed: isLoading
                         ? null
                         : () {
-                      final current = _currentPasswordController.text;
-                      final newPass = _newPasswordController.text;
-                      final confirm = _confirmPasswordController.text;
+                            final current = _currentPasswordController.text;
+                            final newPass = _newPasswordController.text;
+                            final confirm = _confirmPasswordController.text;
 
-                      if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
-                        _showSnackBar('Semua kolom wajib diisi!', Colors.red);
-                        return;
-                      }
-                      if (newPass != confirm) {
-                        _showSnackBar('Konfirmasi password tidak cocok!', Colors.red);
-                        return;
-                      }
-                      if (newPass.length < 8) {
-                        _showSnackBar('Password baru minimal 8 karakter!', Colors.orange);
-                        return;
-                      }
+                            if (current.isEmpty ||
+                                newPass.isEmpty ||
+                                confirm.isEmpty) {
+                              _showSnackBar(
+                                'Semua kolom wajib diisi!',
+                                Colors.red,
+                              );
+                              return;
+                            }
+                            if (newPass != confirm) {
+                              _showSnackBar(
+                                'Konfirmasi password tidak cocok!',
+                                Colors.red,
+                              );
+                              return;
+                            }
+                            if (newPass.length < 8) {
+                              _showSnackBar(
+                                'Password baru minimal 8 karakter!',
+                                Colors.orange,
+                              );
+                              return;
+                            }
 
-                      context.read<ProfilBloc>().add(
-                        UbahPasswordRequested(
-                          currentPassword: current,
-                          newPassword: newPass,
-                          newPasswordConfirmation: confirm,
-                        ),
-                      );
-                    },
+                            context.read<ProfilBloc>().add(
+                              UbahPasswordRequested(
+                                currentPassword: current,
+                                newPassword: newPass,
+                                newPasswordConfirmation: confirm,
+                              ),
+                            );
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: btnBlue,
                       shape: RoundedRectangleBorder(
@@ -301,22 +375,33 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                       elevation: 0,
                     ),
                     child: isLoading
-                        ? SizedBox(height: 24.h, width: 24.h, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        ? SizedBox(
+                            height: 24.h,
+                            width: 24.h,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
                         : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.lock_reset, color: Colors.white, size: 20.sp),
-                        SizedBox(width: 8.w),
-                        Text(
-                          'Ubah Password',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.lock_reset,
+                                color: Colors.white,
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Ubah Password',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 SizedBox(height: 12.h),
@@ -349,10 +434,14 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
   }
 
   Widget _buildStrengthIndicator(bool isDark) {
-    final Color inactiveColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final Color inactiveColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
     final Color weakColor = const Color(0xFFEF4444);
     final Color fairColor = const Color(0xFFF59E0B);
-    final Color strongColor = isDark ? const Color(0xFF34D399) : const Color(0xFF10B981);
+    final Color strongColor = isDark
+        ? const Color(0xFF34D399)
+        : const Color(0xFF10B981);
 
     Color bar1 = inactiveColor, bar2 = inactiveColor, bar3 = inactiveColor;
     Color textColor = inactiveColor;
@@ -377,11 +466,35 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
 
     return Row(
       children: [
-        Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: bar1, borderRadius: BorderRadius.circular(2.r)))),
+        Expanded(
+          child: Container(
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: bar1,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+        ),
         SizedBox(width: 4.w),
-        Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: bar2, borderRadius: BorderRadius.circular(2.r)))),
+        Expanded(
+          child: Container(
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: bar2,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+        ),
         SizedBox(width: 4.w),
-        Expanded(child: Container(height: 4.h, decoration: BoxDecoration(color: bar3, borderRadius: BorderRadius.circular(2.r)))),
+        Expanded(
+          child: Container(
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: bar3,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+        ),
         SizedBox(width: 12.w),
         SizedBox(
           width: 60.w,
@@ -405,11 +518,19 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     required VoidCallback onToggle,
     required bool isDark,
   }) {
-    final Color inputBg = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
-    final Color inputBorderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
-    final Color focusedBorderColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
+    final Color inputBg = isDark
+        ? const Color(0xFF1A1A1A)
+        : const Color(0xFFF8FAFC);
+    final Color inputBorderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
+    final Color focusedBorderColor = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color iconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8);
+    final Color iconColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF94A3B8);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,10 +556,15 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
           decoration: InputDecoration(
             filled: true,
             fillColor: inputBg,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 14.h,
+            ),
             suffixIcon: IconButton(
               icon: Icon(
-                isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                isObscure
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: iconColor,
                 size: 20.sp,
               ),

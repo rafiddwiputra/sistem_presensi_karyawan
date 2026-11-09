@@ -63,7 +63,11 @@ class _PengaturanPageState extends State<PengaturanPage> {
               children: [
                 GestureDetector(
                   onTap: () => context.pop(),
-                  child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
                 ),
                 SizedBox(width: 16.w),
                 Text(
@@ -97,7 +101,8 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           title: 'Pengingat Presensi',
                           subtitle: 'Pengingat masuk dan pulang kerja',
                           value: _isPengingatPresensi,
-                          onChanged: (val) => setState(() => _isPengingatPresensi = val),
+                          onChanged: (val) =>
+                              setState(() => _isPengingatPresensi = val),
                           isDark: isDark,
                         ),
                         _buildDivider(isDark),
@@ -106,7 +111,8 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           title: 'Informasi Izin dan Cuti',
                           subtitle: 'Pembaruan status pengajuan',
                           value: _isInfoIzinCuti,
-                          onChanged: (val) => setState(() => _isInfoIzinCuti = val),
+                          onChanged: (val) =>
+                              setState(() => _isInfoIzinCuti = val),
                           isDark: isDark,
                         ),
                       ],
@@ -190,7 +196,9 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           width: 48.w,
                           height: 48.w,
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF282828) : const Color(0xFFEFF6FF),
+                            color: isDark
+                                ? const Color(0xFF282828)
+                                : const Color(0xFFEFF6FF),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -200,7 +208,9 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF1E293B),
                           ),
                         ),
                         SizedBox(height: 4.h),
@@ -208,14 +218,21 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           'Versi x.x.x (Build xxxx.xx)',
                           style: TextStyle(
                             fontSize: 12.sp,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                           ),
                         ),
                         SizedBox(height: 12.h),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF),
+                            color: isDark
+                                ? const Color(0xFF1E3A8A)
+                                : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(8.r),
                           ),
                           child: Text(
@@ -223,7 +240,9 @@ class _PengaturanPageState extends State<PengaturanPage> {
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6),
+                              color: isDark
+                                  ? const Color(0xFF60A5FA)
+                                  : const Color(0xFF3B82F6),
                             ),
                           ),
                         ),
@@ -304,7 +323,13 @@ class _PengaturanPageState extends State<PengaturanPage> {
             ),
             child: isIconBlank
                 ? null
-                : Icon(icon, color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8), size: 22.sp),
+                : Icon(
+                    icon,
+                    color: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF1D4ED8),
+                    size: 22.sp,
+                  ),
           ),
           SizedBox(width: 16.w),
           Expanded(
@@ -324,7 +349,9 @@ class _PengaturanPageState extends State<PengaturanPage> {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -361,10 +388,18 @@ class _PengaturanPageState extends State<PengaturanPage> {
               width: 42.w,
               height: 42.w,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF282828) : const Color(0xFFEFF6FF),
+                color: isDark
+                    ? const Color(0xFF282828)
+                    : const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(12.r),
               ),
-              child: Icon(icon, color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8), size: 22.sp),
+              child: Icon(
+                icon,
+                color: isDark
+                    ? const Color(0xFF60A5FA)
+                    : const Color(0xFF1D4ED8),
+                size: 22.sp,
+              ),
             ),
             SizedBox(width: 16.w),
             Expanded(
@@ -384,13 +419,19 @@ class _PengaturanPageState extends State<PengaturanPage> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1), size: 24.sp),
+            Icon(
+              Icons.chevron_right,
+              color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+              size: 24.sp,
+            ),
           ],
         ),
       ),

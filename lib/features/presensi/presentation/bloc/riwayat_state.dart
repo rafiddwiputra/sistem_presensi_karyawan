@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../data/models/riwayat_model.dart';
 
 abstract class RiwayatState extends Equatable {

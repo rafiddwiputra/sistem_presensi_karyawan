@@ -14,17 +14,25 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
     // 2. Definisi Warna Dinamis
     final Color bgSheet = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color cardBg = isDark ? const Color(0xFF121212) : Colors.white;
-    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF0B56A6);
+    final Color primaryBlue = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF0B56A6);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9);
-    final Color iconBgLight = isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
-    final Color highlightBlueBg = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFF1F5F9);
+    final Color iconBgLight = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF1F5F9);
+    final Color highlightBlueBg = isDark
+        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+        : const Color(0xFFEFF6FF);
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.85,
-      ),
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -33,7 +41,12 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.only(left: 24.w, right: 24.w, top: 12.h, bottom: 20.h),
+            padding: EdgeInsets.only(
+              left: 24.w,
+              right: 24.w,
+              top: 12.h,
+              bottom: 20.h,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -42,7 +55,9 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                   width: 48.w,
                   height: 5.h,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF475569)
+                        : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
@@ -66,7 +81,11 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                                   color: highlightBlueBg,
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Icons.receipt_long, color: primaryBlue, size: 32.sp),
+                                child: Icon(
+                                  Icons.receipt_long,
+                                  color: primaryBlue,
+                                  size: 32.sp,
+                                ),
                               ),
                               Positioned(
                                 bottom: 0,
@@ -76,9 +95,16 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: primaryBlue,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: bgSheet, width: 2.w),
+                                    border: Border.all(
+                                      color: bgSheet,
+                                      width: 2.w,
+                                    ),
                                   ),
-                                  child: Icon(Icons.check, color: Colors.white, size: 12.sp),
+                                  child: Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 12.sp,
+                                  ),
                                 ),
                               ),
                             ],
@@ -96,7 +122,11 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                             color: iconBgLight,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.close, color: textSecondary, size: 20.sp),
+                          child: Icon(
+                            Icons.close,
+                            color: textSecondary,
+                            size: 20.sp,
+                          ),
                         ),
                       ),
                     ),
@@ -132,17 +162,21 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-
                         Container(
                           width: double.infinity,
                           padding: EdgeInsets.all(20.w),
                           decoration: BoxDecoration(
                             color: cardBg,
                             borderRadius: BorderRadius.circular(24.r),
-                            border: Border.all(color: borderColor, width: 1.5.w),
+                            border: Border.all(
+                              color: borderColor,
+                              width: 1.5.w,
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.02,
+                                ),
                                 blurRadius: 15.r,
                                 offset: const Offset(0, 4),
                               ),
@@ -152,14 +186,19 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Nominal Pengajuan',
-                                        style: TextStyle(fontSize: 11.sp, color: textSecondary),
+                                        style: TextStyle(
+                                          fontSize: 11.sp,
+                                          color: textSecondary,
+                                        ),
                                       ),
                                       SizedBox(height: 4.h),
                                       Text(
@@ -178,7 +217,11 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                                       color: highlightBlueBg,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(Icons.payments_outlined, color: primaryBlue, size: 24.sp),
+                                    child: Icon(
+                                      Icons.payments_outlined,
+                                      color: primaryBlue,
+                                      size: 24.sp,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -198,23 +241,34 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                               _buildListItem(
                                 icon: Icons.category_outlined,
                                 title: 'Keperluan Pengeluaran',
-                                value: 'Pembelian Sensor & Beli Bensin Full Tenk',
+                                value:
+                                    'Pembelian Sensor & Beli Bensin Full Tenk',
                                 hideDivider: true,
                                 isDark: isDark,
                               ),
                               SizedBox(height: 8.h),
                               Text(
                                 'Keterangan Tambahan',
-                                style: TextStyle(fontSize: 11.sp, color: textSecondary),
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: textSecondary,
+                                ),
                               ),
                               SizedBox(height: 8.h),
                               Container(
                                 width: double.infinity,
                                 padding: EdgeInsets.all(14.w),
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1A1A1A) : Colors.transparent,
+                                  color: isDark
+                                      ? const Color(0xFF1A1A1A)
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(16.r),
-                                  border: Border.all(color: isDark ? const Color(0xFF282828) : borderColor, width: 1.5.w),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? const Color(0xFF282828)
+                                        : borderColor,
+                                    width: 1.5.w,
+                                  ),
                                 ),
                                 child: Text(
                                   'Ganti tinta printer dan beli kertas HVS Lorem Ipsum Dolor sit amet laboratur.',
@@ -236,10 +290,15 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: cardBg,
                             borderRadius: BorderRadius.circular(24.r),
-                            border: Border.all(color: borderColor, width: 1.5.w),
+                            border: Border.all(
+                              color: borderColor,
+                              width: 1.5.w,
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.02,
+                                ),
                                 blurRadius: 15.r,
                                 offset: const Offset(0, 4),
                               ),
@@ -249,7 +308,11 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.attach_file, color: primaryBlue, size: 20.sp),
+                                  Icon(
+                                    Icons.attach_file,
+                                    color: primaryBlue,
+                                    size: 20.sp,
+                                  ),
                                   SizedBox(width: 8.w),
                                   Text(
                                     'Lampiran Bukti Transaksi',
@@ -261,22 +324,39 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                                   ),
                                   const Spacer(),
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10.w,
+                                      vertical: 6.h,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF064E3B) : const Color(0xFFCCFBF1),
+                                      color: isDark
+                                          ? const Color(0xFF064E3B)
+                                          : const Color(0xFFCCFBF1),
                                       borderRadius: BorderRadius.circular(8.r),
-                                      border: isDark ? Border.all(color: const Color(0xFF047857)) : null,
+                                      border: isDark
+                                          ? Border.all(
+                                              color: const Color(0xFF047857),
+                                            )
+                                          : null,
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.check_circle, color: isDark ? const Color(0xFF34D399) : const Color(0xFF0F766E), size: 14.sp),
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: isDark
+                                              ? const Color(0xFF34D399)
+                                              : const Color(0xFF0F766E),
+                                          size: 14.sp,
+                                        ),
                                         SizedBox(width: 4.w),
                                         Text(
                                           'Terlampir',
                                           style: TextStyle(
                                             fontSize: 10.sp,
                                             fontWeight: FontWeight.w600,
-                                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF0F766E),
+                                            color: isDark
+                                                ? const Color(0xFF34D399)
+                                                : const Color(0xFF0F766E),
                                           ),
                                         ),
                                       ],
@@ -288,28 +368,41 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                               Container(
                                 padding: EdgeInsets.all(12.w),
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
+                                  color: isDark
+                                      ? const Color(0xFF1A1A1A)
+                                      : const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(16.r),
-                                  border: Border.all(color: isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9)),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? const Color(0xFF282828)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
                                     Container(
                                       padding: EdgeInsets.all(10.w),
                                       decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
-                                        borderRadius: BorderRadius.circular(10.r),
+                                        color: isDark
+                                            ? const Color(0xFF450A0A)
+                                            : const Color(0xFFFEE2E2),
+                                        borderRadius: BorderRadius.circular(
+                                          10.r,
+                                        ),
                                       ),
                                       child: Icon(
                                         Icons.picture_as_pdf_outlined,
-                                        color: isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444),
+                                        color: isDark
+                                            ? const Color(0xFFF87171)
+                                            : const Color(0xFFEF4444),
                                         size: 24.sp,
                                       ),
                                     ),
                                     SizedBox(width: 12.w),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             'nota-transaksi.pdf',
@@ -324,13 +417,22 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                                           SizedBox(height: 4.h),
                                           Text(
                                             '1.4 MB',
-                                            style: TextStyle(fontSize: 11.sp, color: textSecondary),
+                                            style: TextStyle(
+                                              fontSize: 11.sp,
+                                              color: textSecondary,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     SizedBox(width: 8.w),
-                                    Icon(Icons.check_circle, color: isDark ? const Color(0xFF10B981) : const Color(0xFF047857), size: 28.sp),
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: isDark
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFF047857),
+                                      size: 28.sp,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -349,7 +451,9 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                               context.push('/reimbursement-berhasil');
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6),
+                              backgroundColor: isDark
+                                  ? const Color(0xFF3B82F6)
+                                  : const Color(0xFF1E61B6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.r),
                               ),
@@ -367,7 +471,11 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(width: 8.w),
-                                Icon(Icons.send_outlined, color: Colors.white, size: 18.sp),
+                                Icon(
+                                  Icons.send_outlined,
+                                  color: Colors.white,
+                                  size: 18.sp,
+                                ),
                               ],
                             ),
                           ),
@@ -389,7 +497,9 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : const Color(0xFF475569),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF475569),
                               ),
                             ),
                           ),
@@ -416,8 +526,12 @@ class KonfirmasiReimbursementBottomSheet extends StatelessWidget {
     required bool isDark,
   }) {
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color iconBgLight = isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color iconBgLight = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF1F5F9);
 
     return Padding(
       padding: EdgeInsets.only(bottom: hideDivider ? 0 : 16.h),

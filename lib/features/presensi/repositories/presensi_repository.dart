@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
+
 import '../../../../core/network/api_client.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../data/models/today_attendance_model.dart';
@@ -7,10 +9,15 @@ import '../data/models/today_attendance_model.dart';
 class LocationCheckResult {
   final bool isDalamRadius;
   final int jarakMeter;
-  const LocationCheckResult({required this.isDalamRadius, required this.jarakMeter});
+  const LocationCheckResult({
+    required this.isDalamRadius,
+    required this.jarakMeter,
+  });
 
   factory LocationCheckResult.fromJson(Map<String, dynamic>? json) {
-    if (json == null) return const LocationCheckResult(isDalamRadius: false, jarakMeter: 0);
+    if (json == null) {
+      return const LocationCheckResult(isDalamRadius: false, jarakMeter: 0);
+    }
     return LocationCheckResult(
       isDalamRadius: json['di_dalam_radius'] as bool? ?? false,
       jarakMeter: (json['jarak_meter'] as num?)?.toInt() ?? 0,
@@ -42,7 +49,9 @@ class PresensiRepository {
       final data = response.data['data'];
 
       if (data is! Map<String, dynamic>) {
-        throw const ServerException('Format respons presensi hari ini tidak valid.');
+        throw const ServerException(
+          'Format respons presensi hari ini tidak valid.',
+        );
       }
 
       return TodayAttendanceModel.fromJson(data);
@@ -66,7 +75,9 @@ class PresensiRepository {
         },
       );
 
-      return LocationCheckResult.fromJson(response.data['data'] as Map<String, dynamic>?);
+      return LocationCheckResult.fromJson(
+        response.data['data'] as Map<String, dynamic>?,
+      );
     } on DioException catch (e) {
       throw _apiClient.mapError(e);
     }
@@ -74,7 +85,7 @@ class PresensiRepository {
 
   Future<StoreAttendanceResult> storeAttendance({
     required String uuidPresensi,
-    required String jenisPresensi, // TAMBAHAN BARU
+    required String jenisPresensi,
     required double latitude,
     required double longitude,
     required double accuracy,

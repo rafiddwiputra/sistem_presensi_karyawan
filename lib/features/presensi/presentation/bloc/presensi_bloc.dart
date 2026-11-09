@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:geolocator/geolocator.dart';
+
 import '../../../../core/errors/app_exception.dart';
 import '../../repositories/presensi_repository.dart';
 import 'presensi_event.dart';
@@ -22,16 +23,25 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
     emit(state.copyWith(status: PresensiStatus.loading));
     try {
       final attendanceData = await repository.getTodayAttendance();
-      emit(state.copyWith(
-        status: PresensiStatus.loaded,
-        attendanceData: attendanceData,
-        uuidPresensi: const Uuid().v4(),
-      ));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.loaded,
+          attendanceData: attendanceData,
+          uuidPresensi: const Uuid().v4(),
+        ),
+      );
       add(RefreshLokasi());
     } on AppException catch (e) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: e.message));
+      emit(
+        state.copyWith(status: PresensiStatus.error, errorMessage: e.message),
+      );
     } catch (e) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: 'Terjadi kesalahan sistem.'));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.error,
+          errorMessage: 'Terjadi kesalahan sistem.',
+        ),
+      );
     }
   }
 
@@ -43,19 +53,31 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
 
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) throw const LocationException('GPS belum diaktifkan. Silakan nyalakan lokasi perangkat Anda.');
+      if (!serviceEnabled) {
+        throw const LocationException(
+          'GPS belum diaktifkan. Silakan nyalakan lokasi perangkat Anda.',
+        );
+      }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) throw const LocationException('Izin lokasi ditolak. Aplikasi butuh akses GPS.');
+        if (permission == LocationPermission.denied) {
+          throw const LocationException(
+            'Izin lokasi ditolak. Aplikasi butuh akses GPS.',
+          );
+        }
       }
       if (permission == LocationPermission.deniedForever) {
-        throw const LocationException('Izin lokasi ditolak permanen. Buka pengaturan HP untuk mengizinkan.');
+        throw const LocationException(
+          'Izin lokasi ditolak permanen. Buka pengaturan HP untuk mengizinkan.',
+        );
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       final locationCheck = await repository.checkLocation(
@@ -64,19 +86,28 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
         accuracy: position.accuracy,
       );
 
-      emit(state.copyWith(
-        status: PresensiStatus.loaded,
-        userLatitude: position.latitude,
-        userLongitude: position.longitude,
-        userAccuracy: position.accuracy,
-        isDalamRadius: locationCheck.isDalamRadius,
-        jarakMeter: locationCheck.jarakMeter,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.loaded,
+          userLatitude: position.latitude,
+          userLongitude: position.longitude,
+          userAccuracy: position.accuracy,
+          isDalamRadius: locationCheck.isDalamRadius,
+          jarakMeter: locationCheck.jarakMeter,
+          errorMessage: null,
+        ),
+      );
     } on AppException catch (e) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: e.message));
+      emit(
+        state.copyWith(status: PresensiStatus.error, errorMessage: e.message),
+      );
     } catch (e) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: 'Gagal mendeteksi lokasi.'));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.error,
+          errorMessage: 'Gagal mendeteksi lokasi.',
+        ),
+      );
     }
   }
 
@@ -85,11 +116,22 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
       Emitter<PresensiState> emit,
       ) async {
     if (state.userLatitude == null || state.userLongitude == null) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: 'Lokasi belum ditemukan. Silakan refresh.'));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.error,
+          errorMessage: 'Lokasi belum ditemukan. Silakan refresh.',
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(status: PresensiStatus.submitting, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(
+        status: PresensiStatus.submitting,
+        errorMessage: null,
+        successMessage: null,
+      ),
+    );
 
     try {
       final result = await repository.storeAttendance(
@@ -100,14 +142,23 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
         accuracy: state.userAccuracy ?? 0.0,
       );
 
-      emit(state.copyWith(
-        status: PresensiStatus.submitSuccess,
-        successMessage: result.message,
-      ));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.submitSuccess,
+          successMessage: result.message,
+        ),
+      );
     } on AppException catch (e) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: e.message));
+      emit(
+        state.copyWith(status: PresensiStatus.error, errorMessage: e.message),
+      );
     } catch (e) {
-      emit(state.copyWith(status: PresensiStatus.error, errorMessage: 'Gagal memproses presensi.'));
+      emit(
+        state.copyWith(
+          status: PresensiStatus.error,
+          errorMessage: 'Gagal memproses presensi.',
+        ),
+      );
     }
   }
 }

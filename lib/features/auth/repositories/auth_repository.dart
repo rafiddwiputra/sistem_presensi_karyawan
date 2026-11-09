@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -35,16 +36,14 @@ class AuthRepository {
 
       final response = await _apiClient.dio.post(
         '/auth/login',
-        data: {
-          'email': email,
-          'password': password,
-          'device_name': deviceName,
-        },
+        data: {'email': email, 'password': password, 'device_name': deviceName},
       );
 
       final token = response.data['access_token'] as String?;
       if (token == null) {
-        throw const ServerException('Token tidak ditemukan pada respons server.');
+        throw const ServerException(
+          'Token tidak ditemukan pada respons server.',
+        );
       }
 
       await _storageService.saveToken(token);
@@ -58,7 +57,11 @@ class AuthRepository {
     try {
       await _apiClient.dio.post('/auth/logout');
     } on DioException catch (e) {
-      if (kDebugMode) debugPrint('API Logout terputus, melanjutkan penghapusan lokal: ${e.message}');
+      if (kDebugMode) {
+        debugPrint(
+          'API Logout terputus, melanjutkan penghapusan lokal: ${e.message}',
+        );
+      }
     } finally {
       await _storageService.deleteToken();
       try {

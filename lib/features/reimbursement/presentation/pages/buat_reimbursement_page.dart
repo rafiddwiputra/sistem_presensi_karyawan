@@ -1,9 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+
 import '../widgets/konfirmasi_reimbursement_bottom_sheet.dart';
 
 class BuatReimbursementPage extends StatefulWidget {
@@ -16,7 +18,9 @@ class BuatReimbursementPage extends StatefulWidget {
 class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
   // Controller
   final TextEditingController _keperluanController = TextEditingController();
-  final TextEditingController _nominalController = TextEditingController(text: '55.000');
+  final TextEditingController _nominalController = TextEditingController(
+    text: '55.000',
+  );
 
   // State Dinamis
   DateTime _selectedDate = DateTime.now();
@@ -43,8 +47,18 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
   // Helper Format Tanggal Indonesia
   String _formatDate(DateTime date) {
     final List<String> months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -63,16 +77,16 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? const ColorScheme.dark(
-              primary: Color(0xFF3B82F6),
-              onPrimary: Colors.white,
-              onSurface: Colors.white,
-              surface: Color(0xFF1E1E1E),
-            )
+                    primary: Color(0xFF3B82F6),
+                    onPrimary: Colors.white,
+                    onSurface: Colors.white,
+                    surface: Color(0xFF1E1E1E),
+                  )
                 : const ColorScheme.light(
-              primary: Color(0xFF0B56A6),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF1E293B),
-            ),
+                    primary: Color(0xFF0B56A6),
+                    onPrimary: Colors.white,
+                    onSurface: Color(0xFF1E293B),
+                  ),
           ),
           child: child!,
         );
@@ -139,14 +153,26 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 2. Definisi Warna Dinamis
-    final Color headerBlue = isDark ? const Color(0xFF154B8C) : const Color(0xFF0B56A6);
-    final Color btnBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
-    final Color bgApp = isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA);
+    final Color headerBlue = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF0B56A6);
+    final Color btnBlue = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1E61B6);
+    final Color bgApp = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8F9FA);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
-    final Color inputBg = isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
+    final Color inputBg = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF1F5F9);
 
     return Scaffold(
       backgroundColor: bgApp,
@@ -171,12 +197,19 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
               children: [
                 // Custom Appbar
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 16.h,
+                  ),
                   child: Row(
                     children: [
                       GestureDetector(
                         onTap: () => context.pop(),
-                        child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 24.sp,
+                        ),
                       ),
                       SizedBox(width: 16.w),
                       Text(
@@ -220,11 +253,18 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
 
                         // Kotak Info Pemohon
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 12.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFF1D64B9),
+                            color: isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.5)
+                                : const Color(0xFF1D64B9),
                             borderRadius: BorderRadius.circular(12.r),
-                            border: isDark ? Border.all(color: const Color(0xFF1E40AF)) : null,
+                            border: isDark
+                                ? Border.all(color: const Color(0xFF1E40AF))
+                                : null,
                           ),
                           child: Row(
                             children: [
@@ -234,7 +274,11 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                   color: Colors.white.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
-                                child: Icon(Icons.assignment_ind_outlined, color: Colors.white, size: 20.sp),
+                                child: Icon(
+                                  Icons.assignment_ind_outlined,
+                                  color: Colors.white,
+                                  size: 20.sp,
+                                ),
                               ),
                               SizedBox(width: 12.w),
                               Column(
@@ -245,7 +289,9 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                     style: TextStyle(
                                       fontSize: 10.sp,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -272,10 +318,14 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                           decoration: BoxDecoration(
                             color: cardBg,
                             borderRadius: BorderRadius.circular(24.r),
-                            border: isDark ? Border.all(color: borderColor) : null,
+                            border: isDark
+                                ? Border.all(color: borderColor)
+                                : null,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.3 : 0.03,
+                                ),
                                 blurRadius: 10.r,
                                 offset: const Offset(0, 4),
                               ),
@@ -285,25 +335,48 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Field 1: Tanggal Transaksi
-                              _buildLabel('Tanggal Transaksi', isRequired: true, subtitle: 'Tanggal pembayaran saat pengeluaran dilakukan', isDark: isDark),
+                              _buildLabel(
+                                'Tanggal Transaksi',
+                                isRequired: true,
+                                subtitle: 'Tanggal pembayaran saat pengeluaran dilakukan',
+                                isDark: isDark,
+                              ),
                               SizedBox(height: 8.h),
                               GestureDetector(
                                 onTap: () => _selectDate(context),
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16.w,
+                                    vertical: 14.h,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
+                                    color: isDark
+                                        ? const Color(0xFF1A1A1A)
+                                        : const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(12.r),
-                                    border: Border.all(color: isDark ? const Color(0xFF282828) : const Color(0xFFE2E8F0)),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? const Color(0xFF282828)
+                                          : const Color(0xFFE2E8F0),
+                                    ),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         _formatDate(_selectedDate),
-                                        style: TextStyle(fontSize: 14.sp, color: textPrimary, fontWeight: FontWeight.w500),
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          color: textPrimary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                      Icon(Icons.calendar_today_outlined, size: 20.sp, color: btnBlue),
+                                      Icon(
+                                        Icons.calendar_today_outlined,
+                                        size: 20.sp,
+                                        color: btnBlue,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -314,7 +387,8 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                               _buildLabel(
                                 'Keperluan Pengeluaran',
                                 isRequired: true,
-                                trailingText: '${_keperluanController.text.length} / $_maxKeperluanLength',
+                                trailingText:
+                                    '${_keperluanController.text.length} / $_maxKeperluanLength',
                                 isDark: isDark,
                               ),
                               SizedBox(height: 8.h),
@@ -324,7 +398,10 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                 onChanged: (value) {
                                   setState(() {});
                                 },
-                                style: TextStyle(fontSize: 14.sp, color: textPrimary),
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: textPrimary,
+                                ),
                                 decoration: InputDecoration(
                                   filled: true,
                                   fillColor: inputBg,
@@ -333,13 +410,20 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                     borderRadius: BorderRadius.circular(12.r),
                                     borderSide: BorderSide.none,
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16.w,
+                                    vertical: 14.h,
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 20.h),
 
                               // Field 3: Nominal Pengajuan
-                              _buildLabel('Nominal Pengajuan', isRequired: true, isDark: isDark),
+                              _buildLabel(
+                                'Nominal Pengajuan',
+                                isRequired: true,
+                                isDark: isDark,
+                              ),
                               SizedBox(height: 8.h),
                               Container(
                                 decoration: BoxDecoration(
@@ -349,9 +433,15 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16.w,
+                                        vertical: 14.h,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFE0E7FF),
+                                        color: isDark
+                                            ? const Color(0xFF1E3A8A)
+                                                  .withValues(alpha: 0.3)
+                                            : const Color(0xFFE0E7FF),
                                         borderRadius: BorderRadius.only(
                                           topLeft: Radius.circular(12.r),
                                           bottomLeft: Radius.circular(12.r),
@@ -377,7 +467,9 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                         ),
                                         decoration: InputDecoration(
                                           border: InputBorder.none,
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 16.w),
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 16.w,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -390,7 +482,13 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                         SizedBox(height: 20.h),
 
                         // Field 4: Bukti Transaksi
-                        _buildLabel('Bukti Transaksi', isRequired: true, subtitle: 'Upload bukti transaksi (Foto, Struk Transaksi)', isDark: isDark),
+                        _buildLabel(
+                          'Bukti Transaksi',
+                          isRequired: true,
+                          subtitle:
+                              'Upload bukti transaksi (Foto, Struk Transaksi)',
+                          isDark: isDark,
+                        ),
                         SizedBox(height: 12.h),
                         Row(
                           children: [
@@ -422,15 +520,29 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                         if (_lampiranFile != null) ...[
                           SizedBox(height: 12.h),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 12.h,
+                            ),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.2) : const Color(0xFFEFF6FF),
+                              color: isDark
+                                  ? const Color(0xFF1E3A8A)
+                                        .withValues(alpha: 0.2)
+                                  : const Color(0xFFEFF6FF),
                               borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: isDark ? const Color(0xFF1E40AF) : const Color(0xFFBFDBFE)),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF1E40AF)
+                                    : const Color(0xFFBFDBFE),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.insert_drive_file, color: btnBlue, size: 20.sp),
+                                Icon(
+                                  Icons.insert_drive_file,
+                                  color: btnBlue,
+                                  size: 20.sp,
+                                ),
                                 SizedBox(width: 10.w),
                                 Expanded(
                                   child: Text(
@@ -445,7 +557,11 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                                 ),
                                 GestureDetector(
                                   onTap: _removeFile,
-                                  child: Icon(Icons.delete_outline, color: const Color(0xFFDC2626), size: 20.sp),
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    color: const Color(0xFFDC2626),
+                                    size: 20.sp,
+                                  ),
                                 ),
                               ],
                             ),
@@ -466,7 +582,10 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                           ),
                           child: Text(
                             'Upload dengan format: Jpg, Png, atau PDF (Max 2 Mb)',
-                            style: TextStyle(fontSize: 11.sp, color: textSecondary),
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: textSecondary,
+                            ),
                           ),
                         ),
                         SizedBox(height: 100.h),
@@ -497,7 +616,9 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 builder: (context) => Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
                   child: const KonfirmasiReimbursementBottomSheet(),
                 ),
               );
@@ -531,7 +652,13 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
   }
 
   // Widget Bantuan Label Form
-  Widget _buildLabel(String title, {bool isRequired = false, String? subtitle, String? trailingText, required bool isDark}) {
+  Widget _buildLabel(
+    String title, {
+    bool isRequired = false,
+    String? subtitle,
+    String? trailingText,
+    required bool isDark,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -550,7 +677,12 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
                   if (isRequired)
                     TextSpan(
                       text: ' *',
-                      style: TextStyle(color: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626), fontSize: 14.sp),
+                      style: TextStyle(
+                        color: isDark
+                            ? const Color(0xFFF87171)
+                            : const Color(0xFFDC2626),
+                        fontSize: 14.sp,
+                      ),
                     ),
                 ],
               ),
@@ -558,7 +690,13 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
             if (trailingText != null)
               Text(
                 trailingText,
-                style: TextStyle(fontSize: 12.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
           ],
         ),
@@ -566,9 +704,12 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
           SizedBox(height: 4.h),
           Text(
             subtitle,
-            style: TextStyle(fontSize: 12.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
           ),
-        ]
+        ],
       ],
     );
   }
@@ -583,13 +724,25 @@ class _BuatReimbursementPageState extends State<BuatReimbursementPage> {
     required bool isDark,
   }) {
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color selectedBg = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF);
-    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
-    final Color selectedBorderColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF0B56A6);
-    final Color iconBg = isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
-    final Color selectedIconBg = isDark ? const Color(0xFF3B82F6) : const Color(0xFF0B56A6);
+    final Color selectedBg = isDark
+        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+        : const Color(0xFFEFF6FF);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
+    final Color selectedBorderColor = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF0B56A6);
+    final Color iconBg = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF1F5F9);
+    final Color selectedIconBg = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF0B56A6);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
 
     return GestureDetector(
       onTap: onTap,

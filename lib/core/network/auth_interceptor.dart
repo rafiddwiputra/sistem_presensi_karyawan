@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import '../services/secure_storage_service.dart';
 
 /// Interceptor khusus untuk menyisipkan token dan menangani token kadaluarsa.
@@ -15,7 +16,10 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (!_isPublicPath(options.path)) {
       final token = await _storageService.getToken();
       if (token != null && token.isNotEmpty) {
