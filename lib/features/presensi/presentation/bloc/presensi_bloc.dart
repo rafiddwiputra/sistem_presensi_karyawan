@@ -17,9 +17,9 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
   }
 
   Future<void> _onLoadPresensiData(
-      LoadPresensiData event,
-      Emitter<PresensiState> emit,
-      ) async {
+    LoadPresensiData event,
+    Emitter<PresensiState> emit,
+  ) async {
     emit(state.copyWith(status: PresensiStatus.loading));
     try {
       final attendanceData = await repository.getTodayAttendance();
@@ -46,9 +46,9 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
   }
 
   Future<void> _onRefreshLokasi(
-      RefreshLokasi event,
-      Emitter<PresensiState> emit,
-      ) async {
+    RefreshLokasi event,
+    Emitter<PresensiState> emit,
+  ) async {
     emit(state.copyWith(status: PresensiStatus.locationChecking));
 
     try {
@@ -112,9 +112,9 @@ class PresensiBloc extends Bloc<PresensiEvent, PresensiState> {
   }
 
   Future<void> _onSubmitPresensi(
-      SubmitPresensi event,
-      Emitter<PresensiState> emit,
-      ) async {
+    SubmitPresensi event,
+    Emitter<PresensiState> emit,
+  ) async {
     if (state.userLatitude == null || state.userLongitude == null) {
       emit(
         state.copyWith(

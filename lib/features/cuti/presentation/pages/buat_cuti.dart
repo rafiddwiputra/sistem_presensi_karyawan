@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 // Import BLoC & Widgets
@@ -23,154 +22,85 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
   late final String _uuidPengajuan;
 
   final TextEditingController _kategoriController = TextEditingController();
-  final TextEditingController _tglMulaiController = TextEditingController();
-  final TextEditingController _tglSelesaiController = TextEditingController();
   final TextEditingController _alasanController = TextEditingController();
+
+  int _kategoriLength = 0;
+  int _alasanLength = 0;
 
   DateTime? _tanggalMulai;
   DateTime? _tanggalSelesai;
-
-  // Daftar Pilihan Jenis Cuti
-  final List<String> _opsiJenisCuti = [
-    'Cuti Tahunan',
-    'Cuti Sakit (Dengan Surat Dokter)',
-    'Cuti Melahirkan / Kehamilan',
-    'Cuti Alasan Penting',
-    'Cuti Besar / Khusus',
-  ];
+  String? _errorTanggal;
 
   @override
   void initState() {
     super.initState();
-    // 1. Generate UUID Pengajuan sekali saat halaman dibuat (Idempotency)
+    // Generate UUID Pengajuan (Idempotency)
     _uuidPengajuan = const Uuid().v4();
 
-    // 2. Listener untuk meng-update counter karakter alasan secara real-time
-    _alasanController.addListener(_onAlasanChanged);
-  }
-
-  void _onAlasanChanged() {
-    setState(() {});
+    // Listener untuk menghitung jumlah karakter secara real-time
+    _kategoriController.addListener(() {
+      setState(() => _kategoriLength = _kategoriController.text.length);
+    });
+    _alasanController.addListener(() {
+      setState(() => _alasanLength = _alasanController.text.length);
+    });
   }
 
   @override
   void dispose() {
-    _alasanController.removeListener(_onAlasanChanged);
     _kategoriController.dispose();
-    _tglMulaiController.dispose();
-    _tglSelesaiController.dispose();
     _alasanController.dispose();
     super.dispose();
   }
 
-  // Helper mendapatkan nama karyawan dari ProfilBloc secara aman
-  String _getNamaKaryawan(BuildContext context) {
-    try {
-      final state = context.watch<ProfilBloc>().state;
-      if (state is ProfilLoaded) {
-        // Menggunakan dynamic untuk mencegah error getter jika properti bernama 'user', 'profile', dll.
-        final dynState = state as dynamic;
-        return dynState.profil?.nama ?? dynState.user?.nama ?? dynState.profile?.nama ?? 'Rafid Dwi Putra Andino';
-      }
-    } catch (_) {}
-    return 'Rafid Dwi Putra Andino';
-  }
-
-  // --- MODAL SELEKSI JENIS CUTI ---
-  void _tampilkanPilihanCuti(BuildContext context, bool isDark) {
-    final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: cardBg,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      builder: (bottomSheetContext) {
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Pilih Jenis Cuti',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: textPrimary,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: _opsiJenisCuti.length,
-                  separatorBuilder: (context, index) => Divider(
-                    color: isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
-                  ),
-                  itemBuilder: (context, index) {
-                    final opsi = _opsiJenisCuti[index];
-                    final isSelected = _kategoriController.text == opsi;
-
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        opsi,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? primaryBlue : textPrimary,
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? Icon(Icons.check_circle, color: primaryBlue, size: 20.w)
-                          : null,
-                      onTap: () {
-                        setState(() {
-                          _kategoriController.text = opsi;
-                        });
-                        Navigator.pop(bottomSheetContext);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  // Helper Format Tanggal untuk Tampilan Kalender
+  String _formatTanggal(DateTime? date) {
+    if (date == null) return 'Pilih Tanggal';
+    const bulan = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Ags',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return '${date.day} ${bulan[date.month - 1]} ${date.year}';
   }
 
   // --- PICKER TANGGAL MULAI ---
-  Future<void> _pilihTanggalMulai(BuildContext context) async {
+  Future<void> _pilihTanggalMulai() async {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    final Color primaryColor = isDark
+        ? const Color(0xFF60A5FA)
+        : const Color(0xFF135CAE);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _tanggalMulai ?? today,
-      firstDate: today, // Restriksi API: Tanggal mulai tidak boleh sebelum hari ini
+      firstDate: today,
       lastDate: DateTime(now.year + 2),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? ColorScheme.dark(
-              primary: primaryColor,
-              onPrimary: Colors.white,
-              onSurface: Colors.white,
-            )
+                    primary: primaryColor,
+                    onPrimary: Colors.white,
+                    onSurface: Colors.white,
+                  )
                 : ColorScheme.light(
-              primary: primaryColor,
-              onPrimary: Colors.white,
-              onSurface: const Color(0xFF1E293B),
-            ),
+                    primary: primaryColor,
+                    onPrimary: Colors.white,
+                    onSurface: const Color(0xFF1E293B),
+                  ),
           ),
           child: child!,
         );
@@ -180,44 +110,50 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
     if (picked != null) {
       setState(() {
         _tanggalMulai = picked;
-        _tglMulaiController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
+        _errorTanggal = null;
 
-        // Reset atau sesuaikan tanggal selesai jika lebih awal dari tanggal mulai
-        if (_tanggalSelesai != null && _tanggalSelesai!.isBefore(picked)) {
-          _tanggalSelesai = picked;
-          _tglSelesaiController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
+        // Reset tanggal selesai jika ternyata lebih awal dari tanggal mulai yang baru dipilih
+        if (_tanggalSelesai != null &&
+            _tanggalSelesai!.isBefore(_tanggalMulai!)) {
+          _tanggalSelesai = null;
         }
       });
     }
   }
 
   // --- PICKER TANGGAL SELESAI ---
-  Future<void> _pilihTanggalSelesai(BuildContext context) async {
+  Future<void> _pilihTanggalSelesai() async {
+    if (_tanggalMulai == null) {
+      setState(
+        () => _errorTanggal = '* Silakan pilih Tanggal Mulai terlebih dahulu!',
+      );
+      return;
+    }
+
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final minDate = _tanggalMulai ?? today;
+    final Color primaryColor = isDark
+        ? const Color(0xFF60A5FA)
+        : const Color(0xFF135CAE);
 
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _tanggalSelesai ?? minDate,
-      firstDate: minDate, // Restriksi API: Tanggal selesai tidak boleh sebelum tanggal mulai
-      lastDate: DateTime(now.year + 2),
+      initialDate: _tanggalSelesai ?? _tanggalMulai!,
+      firstDate: _tanggalMulai!,
+      lastDate: DateTime(DateTime.now().year + 2),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? ColorScheme.dark(
-              primary: primaryColor,
-              onPrimary: Colors.white,
-              onSurface: Colors.white,
-            )
+                    primary: primaryColor,
+                    onPrimary: Colors.white,
+                    onSurface: Colors.white,
+                  )
                 : ColorScheme.light(
-              primary: primaryColor,
-              onPrimary: Colors.white,
-              onSurface: const Color(0xFF1E293B),
-            ),
+                    primary: primaryColor,
+                    onPrimary: Colors.white,
+                    onSurface: const Color(0xFF1E293B),
+                  ),
           ),
           child: child!,
         );
@@ -227,7 +163,7 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
     if (picked != null) {
       setState(() {
         _tanggalSelesai = picked;
-        _tglSelesaiController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
+        _errorTanggal = null;
       });
     }
   }
@@ -235,7 +171,7 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
   // --- VALIDASI SEBELUM KONFIRMASI ---
   void _validasiDanBukaKonfirmasi(BuildContext context, String namaKaryawan) {
     if (_kategoriController.text.trim().isEmpty) {
-      _tampilkanSnackBar('Silakan pilih jenis cuti terlebih dahulu.');
+      _tampilkanSnackBar('Silakan isi "Cuti Karena Apa?" terlebih dahulu.');
       return;
     }
     if (_tanggalMulai == null) {
@@ -247,11 +183,11 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
       return;
     }
     if (_alasanController.text.trim().isEmpty) {
-      _tampilkanSnackBar('Silakan isi alasan pengajuan cuti.');
+      _tampilkanSnackBar('Silakan isi detail alasan pengajuan cuti.');
       return;
     }
 
-    // Ambil CutiBloc dari context saat ini
+    // Ambil BLoC cuti dari context saat ini untuk dibawa ke BottomSheet
     final cutiBloc = context.read<CutiBloc>();
 
     showModalBottomSheet(
@@ -259,7 +195,6 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (bottomSheetContext) {
-        // Teruskan instance CutiBloc ke dalam Modal Bottom Sheet
         return BlocProvider.value(
           value: cutiBloc,
           child: KonfirmasiCutiBottomSheet(
@@ -279,7 +214,7 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(pesan),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: const Color(0xFFEF4444),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -288,334 +223,458 @@ class _BuatCutiPageState extends State<BuatCutiPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
-    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
-    final Color headerBlue = isDark ? const Color(0xFF154B8C) : const Color(0xFF135CAE);
+    final Color headerBlue = isDark
+        ? const Color(0xFF154B8C)
+        : const Color(0xFF135CAE);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-
-    final String namaKaryawan = _getNamaKaryawan(context);
+    final Color primaryBlue = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF135CAE);
+    final profilState = context.watch<ProfilBloc>().state;
+    final namaKaryawan = profilState is ProfilLoaded
+        ? (profilState.user['nama'] as String? ?? 'Karyawan')
+        : 'Karyawan';
+    final double paddingTop = MediaQuery.of(context).padding.top;
+    final double headerBackgroundHeight = paddingTop + 260.h;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: bgApp,
-        bottomNavigationBar: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-          decoration: BoxDecoration(color: bgApp),
-          child: SafeArea(
-            child: SizedBox(
-              width: double.infinity,
-              height: 52.h,
-              child: ElevatedButton.icon(
-                onPressed: () => _validasiDanBukaKonfirmasi(context, namaKaryawan),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  elevation: 0,
-                ),
-                icon: Icon(
-                  Icons.send_outlined,
-                  color: Colors.white,
-                  size: 18.w,
-                ),
-                label: Text(
-                  'Ajukan Cuti',
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Stack(
+          children: [
+            // --- HEADER BACKGROUND ---
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: headerBackgroundHeight,
+                decoration: BoxDecoration(
+                  color: headerBlue,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(32.r),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Stack(
-            children: [
-              Container(
-                height: 310.h,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: headerBlue,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40.r),
-                    bottomRight: Radius.circular(40.r),
-                  ),
-                ),
-              ),
-              SafeArea(
+
+            // --- KONTEN UTAMA ---
+            Positioned.fill(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 24.w,
-                            ),
-                            onPressed: () => context.pop(),
-                          ),
-                          Text(
-                            'Pengajuan Cuti',
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24.w),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 12.h),
-                          Text(
-                            'Pengajuan Cuti',
-                            style: TextStyle(
-                              fontSize: 24.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          Text(
-                            'Lengkapi formulir berikut untuk mengajukan cuti.',
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: Colors.white.withValues(alpha: 0.8),
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
-                          Container(
-                            padding: EdgeInsets.all(16.w),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(10.w),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.badge_outlined,
-                                    color: Colors.white,
-                                    size: 20.w,
-                                  ),
-                                ),
-                                SizedBox(width: 16.w),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'PEMOHON CUTI',
-                                      style: TextStyle(
-                                        fontSize: 10.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white.withValues(alpha: 0.8),
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2.h),
-                                    Text(
-                                      namaKaryawan, // <- Nama Karyawan Dinamis
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 24.h),
+                    _buildHeaderContent(paddingTop, namaKaryawan),
+
+                    // --- FORM KONTINER ---
                     Container(
-                      margin: EdgeInsets.symmetric(horizontal: 24.w),
-                      padding: EdgeInsets.all(20.w),
+                      transform: Matrix4.translationValues(0, -30.h, 0),
+                      margin: EdgeInsets.symmetric(horizontal: 20.w),
+                      padding: EdgeInsets.all(24.w),
                       decoration: BoxDecoration(
                         color: cardBg,
-                        borderRadius: BorderRadius.circular(20.r),
+                        borderRadius: BorderRadius.circular(24.r),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                            blurRadius: 15.r,
-                            offset: Offset(0, 5.h),
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.3 : 0.04,
+                            ),
+                            blurRadius: 20.r,
+                            offset: Offset(0, 4.h),
                           ),
                         ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Field 1: Kategori Cuti (Pilihan Dialog)
-                          _buildInputField(
-                            label: 'Cuti Karena Apa?',
-                            isRequired: true,
-                            hintText: 'Pilih jenis cuti',
-                            controller: _kategoriController,
-                            readOnly: true,
-                            suffixIcon: Icons.arrow_drop_down_circle_outlined,
-                            isDark: isDark,
-                            onTap: () => _tampilkanPilihanCuti(context, isDark),
-                          ),
-                          SizedBox(height: 20.h),
-
-                          // Field 2 & 3: Tanggal Mulai dan Selesai
+                          // --- FIELD 1: CUTI KARENA APA (Bebas Input Max 30 Char) ---
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: _buildInputField(
-                                  label: 'Tanggal Mulai Cuti',
-                                  isRequired: true,
-                                  hintText: 'Pilih tanggal',
-                                  controller: _tglMulaiController,
-                                  readOnly: true,
-                                  suffixIcon: Icons.calendar_month_outlined,
-                                  isDark: isDark,
-                                  onTap: () => _pilihTanggalMulai(context),
-                                ),
+                              _buildLabel(
+                                'Cuti Karena Apa?',
+                                isRequired: true,
+                                isDark: isDark,
                               ),
-                              SizedBox(width: 16.w),
-                              Expanded(
-                                child: _buildInputField(
-                                  label: 'Tanggal Selesai',
-                                  isRequired: true,
-                                  hintText: 'Pilih tanggal',
-                                  controller: _tglSelesaiController,
-                                  readOnly: true,
-                                  suffixIcon: Icons.calendar_today_outlined,
-                                  isDark: isDark,
-                                  onTap: () => _pilihTanggalSelesai(context),
+                              Text(
+                                '$_kategoriLength / 30',
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 20.h),
+                          SizedBox(height: 8.h),
+                          _buildTextInput(
+                            controller: _kategoriController,
+                            hintText: 'Misal: Menikah, Acara Keluarga...',
+                            maxLength: 30,
+                            maxLines: 1,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 24.h),
 
-                          // Field 4: Alasan Cuti (Dengan Dynamic Character Counter)
-                          _buildInputField(
-                            label: 'Alasan Cuti',
-                            isRequired: true,
-                            hintText: 'Tuliskan alasan pengajuan cuti Anda secara rinci...',
+                          // --- FIELD 2 & 3: TANGGAL ---
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildLabel(
+                                      'Tanggal Mulai',
+                                      isRequired: true,
+                                      isDark: isDark,
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    _buildDateField(
+                                      _formatTanggal(_tanggalMulai),
+                                      onTap: _pilihTanggalMulai,
+                                      isDisabled: false,
+                                      isDark: isDark,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 16.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildLabel(
+                                      'Tanggal Selesai',
+                                      isRequired: true,
+                                      isDark: isDark,
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    _buildDateField(
+                                      _formatTanggal(_tanggalSelesai),
+                                      onTap: _pilihTanggalSelesai,
+                                      isDisabled: _tanggalMulai == null, // Terkunci sebelum tgl mulai diisi
+                                      isDark: isDark,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_errorTanggal != null)
+                            Padding(
+                              padding: EdgeInsets.only(top: 8.h),
+                              child: Text(
+                                _errorTanggal!,
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: const Color(0xFFEF4444),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          SizedBox(height: 24.h),
+
+                          // --- FIELD 4: ALASAN DETAIL CUTI (Max 500 Char) ---
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildLabel(
+                                'Alasan Cuti',
+                                isRequired: true,
+                                isDark: isDark,
+                              ),
+                              Text(
+                                '$_alasanLength / 500',
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8.h),
+                          _buildTextInput(
                             controller: _alasanController,
+                            hintText:
+                                'Tuliskan detail alasan pengajuan cuti Anda...',
+                            maxLength: 500,
                             maxLines: 4,
-                            trailingLabel: '${_alasanController.text.length} / 500',
                             isDark: isDark,
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 40.h),
+
+                    // --- TOMBOL AJUKAN CUTI ---
+                    Container(
+                      margin: EdgeInsets.only(top: 10.h, bottom: 40.h),
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      width: double.infinity,
+                      height: 55.h,
+                      child: ElevatedButton.icon(
+                        onPressed: () =>
+                            _validasiDanBukaKonfirmasi(context, namaKaryawan),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          elevation: 0,
+                        ),
+                        icon: Icon(
+                          Icons.send_outlined,
+                          color: Colors.white,
+                          size: 20.w,
+                        ),
+                        label: Text(
+                          'Ajukan Cuti',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInputField({
-    required String label,
-    required bool isRequired,
-    required String hintText,
-    required bool isDark,
-    TextEditingController? controller,
-    bool readOnly = false,
-    IconData? suffixIcon,
-    int maxLines = 1,
-    VoidCallback? onTap,
-    String? trailingLabel,
-  }) {
-    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color fieldBg = isDark ? const Color(0xFF121212) : const Color(0xFFEFF6FF);
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.transparent;
-    final Color iconColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+  // --- HELPER WIDGETS ---
+  // (Konsisten 100% dengan UI Izin Page)
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.bold,
-                    color: textPrimary,
+  Widget _buildHeaderContent(double paddingTop, String namaKaryawan) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: paddingTop + 16.h,
+        left: 24.w,
+        right: 24.w,
+        bottom: 60.h,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => context.pop(),
+                child: Container(
+                  color: Colors.transparent,
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 24.w,
                   ),
                 ),
-                if (isRequired) ...[
-                  SizedBox(width: 4.w),
-                  Text(
-                    '*',
-                    style: TextStyle(
-                      color: const Color(0xFFE11D48),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
+              ),
+              SizedBox(width: 16.w),
+              Text(
+                'Pengajuan Cuti',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 28.h),
+          Text(
+            'Pengajuan Cuti',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Lengkapi formulir berikut untuk mengajukan cuti.',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 13.sp,
+            ),
+          ),
+          SizedBox(height: 24.h),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
                   ),
-                ],
+                  child: Icon(
+                    Icons.badge_outlined,
+                    color: Colors.white,
+                    size: 20.w,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PEMOHON CUTI',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      namaKaryawan,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-            if (trailingLabel != null)
-              Text(
-                trailingLabel,
-                style: TextStyle(fontSize: 11.sp, color: textSecondary),
-              ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabel(
+    String text, {
+    required bool isRequired,
+    required bool isDark,
+  }) {
+    return RichText(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w700,
+          color: isDark ? Colors.white : const Color(0xFF1E293B),
         ),
-        SizedBox(height: 8.h),
-        Container(
+        children: isRequired
+            ? [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(
+                    color: const Color(0xFFEF4444),
+                    fontSize: 13.sp,
+                  ),
+                ),
+              ]
+            : [],
+      ),
+    );
+  }
+
+  Widget _buildTextInput({
+    required TextEditingController controller,
+    required String hintText,
+    required int maxLength,
+    required bool isDark,
+    int maxLines = 1,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF121212) : const Color(0xFFF4F7FA),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark ? const Color(0xFF333333) : Colors.transparent,
+        ),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLength: maxLength,
+        maxLines: maxLines,
+        style: TextStyle(
+          fontSize: 14.sp,
+          color: isDark ? Colors.white : const Color(0xFF1E293B),
+        ),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            fontSize: 14.sp,
+            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+          ),
+          contentPadding: EdgeInsets.all(16.w),
+          border: InputBorder.none,
+          counterText: '', // Sembunyikan counter bawaan TextField, gunakan counter custom
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateField(
+    String value, {
+    required VoidCallback onTap,
+    required bool isDisabled,
+    required bool isDark,
+  }) {
+    final Color disabledBg = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF8FAFC);
+    final Color enabledBg = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF4F7FA);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isDisabled ? null : onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: fieldBg,
+            color: isDisabled ? disabledBg : enabledBg,
             borderRadius: BorderRadius.circular(12.r),
-            border: isDark ? Border.all(color: borderColor) : null,
+            border: isDark && !isDisabled
+                ? Border.all(color: const Color(0xFF333333))
+                : null,
           ),
-          child: TextField(
-            controller: controller,
-            readOnly: readOnly,
-            onTap: onTap,
-            maxLines: maxLines,
-            style: TextStyle(fontSize: 14.sp, color: textPrimary),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(color: textSecondary),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(16.w),
-              suffixIcon: suffixIcon != null
-                  ? Icon(suffixIcon, color: iconColor, size: 20.w)
-                  : null,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: isDisabled
+                      ? const Color(0xFF94A3B8)
+                      : (isDark ? Colors.white : const Color(0xFF1E293B)),
+                  fontWeight: isDisabled ? FontWeight.normal : FontWeight.w500,
+                ),
+              ),
+              Icon(
+                Icons.calendar_today_outlined,
+                color: isDisabled
+                    ? const Color(0xFF94A3B8)
+                    : (isDark
+                          ? const Color(0xFF60A5FA)
+                          : const Color(0xFF135CAE)),
+                size: 18.w,
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

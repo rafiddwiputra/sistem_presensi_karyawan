@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/konfirmasi_izin_bottom_sheet.dart';
 
@@ -12,6 +13,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../bloc/izin_bloc.dart';
+
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
 
 class BuatIzinPage extends StatefulWidget {
   const BuatIzinPage({super.key});
@@ -236,6 +240,12 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
         ? const Color(0xFF333333)
         : const Color(0xFFE2E8F0);
 
+    // Ambil nama karyawan dari ProfilBloc (menggantikan hardcode sebelumnya)
+    final profilState = context.watch<ProfilBloc>().state;
+    final namaKaryawan = profilState is ProfilLoaded
+        ? (profilState.user['nama'] as String? ?? 'Karyawan')
+        : 'Karyawan';
+
     final double paddingTop = MediaQuery.of(context).padding.top;
     final double headerBackgroundHeight = paddingTop + 260.h;
 
@@ -265,7 +275,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
-                    _buildHeaderContent(paddingTop),
+                    _buildHeaderContent(paddingTop, namaKaryawan),
 
                     Container(
                       transform: Matrix4.translationValues(0, -30.h, 0),
@@ -576,7 +586,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
     );
   }
 
-  Widget _buildHeaderContent(double paddingTop) {
+  Widget _buildHeaderContent(double paddingTop, String namaKaryawan) {
     return Padding(
       padding: EdgeInsets.only(
         top: paddingTop + 16.h,
@@ -590,7 +600,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () => context.pop(),
                 child: Container(
                   color: Colors.transparent,
                   child: Icon(
@@ -664,7 +674,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                     ),
                     SizedBox(height: 2.h),
                     Text(
-                      'Rafid Dwi Putra Andino',
+                      namaKaryawan,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14.sp,

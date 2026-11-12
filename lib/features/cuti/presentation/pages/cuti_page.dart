@@ -1,104 +1,85 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-// ============================================================
-// MODEL DATA CUTI
-// ============================================================
+import '../bloc/cuti_bloc.dart';
+import '../bloc/cuti_event.dart';
+import '../bloc/cuti_state.dart';
 
-enum _CutiStatus {
-  pending,
-  approved,
-  rejected,
-  unknown,
-}
-
-class _CutiHistory {
-  final String date;
-  final String duration;
-  final String submittedDate;
-  final String reason;
-  final _CutiStatus status;
-
-  const _CutiHistory({
-    required this.date,
-    required this.duration,
-    required this.submittedDate,
-    required this.reason,
-    required this.status,
-  });
-}
-
-// ============================================================
-// MOCK DATA SEMENTARA
-// ============================================================
-
-const List<_CutiHistory> _mockCutiHistory = [
-  _CutiHistory(
-    date: '20 – 22 Okt 2026',
-    duration: '3 Hari Kerja',
-    submittedDate: 'Diajukan 15 Okt 2026',
-    reason: 'Keperluan keluarga di luar kota',
-    status: _CutiStatus.pending,
-  ),
-  _CutiHistory(
-    date: '12 – 14 Agu 2026',
-    duration: '3 Hari Kerja',
-    submittedDate: 'Diajukan 1 Agu 2026',
-    reason: 'Acara pernikahan saudara kandung',
-    status: _CutiStatus.approved,
-  ),
-  _CutiHistory(
-    date: '02 – 03 Jul 2026',
-    duration: '2 Hari Kerja',
-    submittedDate: 'Diajukan 25 Jun 2026',
-    reason: 'Urusan administrasi kependudukan',
-    status: _CutiStatus.approved,
-  ),
-  _CutiHistory(
-    date: '10 – 11 Mei 2026',
-    duration: '2 Hari Kerja',
-    submittedDate: 'Diajukan 8 Mei 2026',
-    reason: 'Pemeriksaan medis lanjutan',
-    status: _CutiStatus.rejected,
-  ),
-];
-
-// ============================================================
-// CUTI PAGE
-// ============================================================
-
-class CutiPage extends StatelessWidget {
+class CutiPage extends StatefulWidget {
   const CutiPage({super.key});
 
   @override
+  State<CutiPage> createState() => _CutiPageState();
+}
+
+class _CutiPageState extends State<CutiPage> {
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting('id_ID', null);
+
+    context.read<CutiBloc>().add(FetchRiwayatCuti());
+  }
+
+  String _formatRangeTanggal(String startStr, String endStr) {
+    try {
+      final start = DateTime.parse(startStr);
+      final end = DateTime.parse(endStr);
+
+      final startDay = DateFormat('dd', 'id_ID').format(start);
+      final endFormat = DateFormat('dd MMM yyyy', 'id_ID').format(end);
+
+      if (start.month == end.month && start.year == end.year) {
+        if (start.day == end.day) return endFormat;
+        return '$startDay – $endFormat';
+      }
+
+      final startBulan = DateFormat('dd MMM', 'id_ID').format(start);
+      return '$startBulan – $endFormat';
+    } catch (e) {
+      return '$startStr - $endStr';
+    }
+  }
+
+  String _hitungDurasi(String startStr, String endStr) {
+    try {
+      final start = DateTime.parse(startStr);
+      final end = DateTime.parse(endStr);
+      final difference = end.difference(start).inDays + 1;
+      return '$difference Hari';
+    } catch (e) {
+      return '-';
+    }
+  }
+
+  String _formatSubmittedDate(String submittedStr) {
+    try {
+      final date = DateTime.parse(submittedStr);
+      return 'Diajukan ${DateFormat('dd MMM yyyy', 'id_ID').format(date)}';
+    } catch (e) {
+      return 'Diajukan -';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final bool isDark =
-        Theme.of(context).brightness == Brightness.dark;
-
-    final Color bgApp =
-        Theme.of(context).scaffoldBackgroundColor;
-
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
     final Color primaryBlue = isDark
         ? const Color(0xFF3B82F6)
         : const Color(0xFF135CAE);
-
     final Color headerBlue = isDark
         ? const Color(0xFF154B8C)
         : const Color(0xFF135CAE);
-
-    final Color textPrimary = isDark
-        ? Colors.white
-        : const Color(0xFF1E293B);
-
+    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
     final Color textSecondary = isDark
         ? const Color(0xFF94A3B8)
         : const Color(0xFF64748B);
-
-    final Color cardBg = isDark
-        ? const Color(0xFF1E1E1E)
-        : Colors.white;
+    final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
       backgroundColor: headerBlue,
@@ -106,27 +87,17 @@ class CutiPage extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            // ==================================================
-            // APP BAR
-            // ==================================================
-
             Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 20.w,
-                vertical: 16.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    tooltip: 'Kembali',
-                    icon: Icon(
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Icon(
                       Icons.arrow_back,
                       color: Colors.white,
                       size: 24.sp,
                     ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
                   SizedBox(width: 16.w),
                   Text(
@@ -141,10 +112,6 @@ class CutiPage extends StatelessWidget {
               ),
             ),
 
-            // ==================================================
-            // KONTEN UTAMA
-            // ==================================================
-
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -157,9 +124,8 @@ class CutiPage extends StatelessWidget {
                 ),
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    // TODO:
-                    // Hubungkan dengan CutiBloc untuk mengambil
-                    // ulang riwayat cuti dari backend API.
+                    context.read<CutiBloc>().add(FetchRiwayatCuti());
+                    await Future.delayed(const Duration(seconds: 1));
                   },
                   color: primaryBlue,
                   child: SingleChildScrollView(
@@ -170,16 +136,11 @@ class CutiPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ======================================
-                        // KARTU AJUKAN CUTI
-                        // ======================================
-
                         Container(
                           padding: EdgeInsets.all(20.w),
                           decoration: BoxDecoration(
                             color: cardBg,
-                            borderRadius:
-                            BorderRadius.circular(20.r),
+                            borderRadius: BorderRadius.circular(20.r),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(
@@ -200,8 +161,7 @@ class CutiPage extends StatelessWidget {
                                       color: isDark
                                           ? const Color(0xFF1E3A8A)
                                           : const Color(0xFFE0E7FF),
-                                      borderRadius:
-                                      BorderRadius.circular(12.r),
+                                      borderRadius: BorderRadius.circular(12.r),
                                     ),
                                     child: Icon(
                                       Icons.calendar_today_outlined,
@@ -215,7 +175,7 @@ class CutiPage extends StatelessWidget {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Rencanakan Cuti Anda',
@@ -249,8 +209,7 @@ class CutiPage extends StatelessWidget {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryBlue,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(12.r),
+                                      borderRadius: BorderRadius.circular(12.r),
                                     ),
                                     elevation: 0,
                                   ),
@@ -272,13 +231,9 @@ class CutiPage extends StatelessWidget {
                             ],
                           ),
                         ),
-
                         SizedBox(height: 32.h),
 
-                        // ======================================
-                        // HEADER RIWAYAT
-                        // ======================================
-
+                        // --- HEADER RIWAYAT ---
                         Text(
                           'RIWAYAT PENGAJUAN CUTI',
                           style: TextStyle(
@@ -288,45 +243,79 @@ class CutiPage extends StatelessWidget {
                             letterSpacing: 0.5,
                           ),
                         ),
-
                         SizedBox(height: 16.h),
 
-                        // ======================================
-                        // DAFTAR RIWAYAT CUTI
-                        // ======================================
-
-                        if (_mockCutiHistory.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: 40.h,
-                              ),
-                              child: Text(
-                                'Belum ada riwayat pengajuan cuti.',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: textSecondary,
+                        BlocBuilder<CutiBloc, CutiState>(
+                          builder: (context, state) {
+                            // MENGGUNAKAN ENUM state.status, BUKAN state is ...
+                            if (state.status == CutiStatus.loading) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20.w),
+                                  child: CircularProgressIndicator(
+                                    color: primaryBlue,
+                                  ),
                                 ),
-                              ),
-                            ),
-                          )
-                        else
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics:
-                            const NeverScrollableScrollPhysics(),
-                            itemCount: _mockCutiHistory.length,
-                            separatorBuilder: (context, index) =>
-                                SizedBox(height: 16.h),
-                            itemBuilder: (context, index) {
-                              final item = _mockCutiHistory[index];
-
-                              return _buildHistoryCard(
-                                item: item,
-                                isDark: isDark,
                               );
-                            },
-                          ),
+                            } else if (state.status == CutiStatus.error) {
+                              // MENGGUNAKAN errorMessage
+                              return Center(
+                                child: Text(
+                                  state.errorMessage ?? 'Terjadi kesalahan',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              );
+                            } else if (state.status == CutiStatus.loaded) {
+                              final data = state.riwayatCuti;
+
+                              if (data.isEmpty) {
+                                return Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 40.h,
+                                    ),
+                                    child: Text(
+                                      'Belum ada riwayat pengajuan cuti.',
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        color: textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: data.length,
+                                separatorBuilder: (context, index) =>
+                                    SizedBox(height: 16.h),
+                                itemBuilder: (context, index) {
+                                  final item = data[index];
+                                  return _buildHistoryCard(
+                                    date: _formatRangeTanggal(
+                                      item.startDate,
+                                      item.endDate,
+                                    ),
+                                    duration: _hitungDurasi(
+                                      item.startDate,
+                                      item.endDate,
+                                    ),
+                                    submittedDate: _formatSubmittedDate(
+                                      item.submittedAt,
+                                    ),
+                                    reason: item.purpose ?? 'Tidak ada alasan',
+                                    status: item.statusLabel, // Hapus validasi ?? 'Pending' karena non-nullable
+                                    isDark: isDark,
+                                  );
+                                },
+                              );
+                            }
+                            // Default / Initial State
+                            return const SizedBox.shrink();
+                          },
+                        ),
 
                         SizedBox(height: 24.h),
                       ],
@@ -341,92 +330,54 @@ class CutiPage extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // HELPER WIDGET: KARTU RIWAYAT CUTI
-  // ============================================================
-
+  // Helper Widget untuk Kartu Riwayat
   Widget _buildHistoryCard({
-    required _CutiHistory item,
+    required String date,
+    required String duration,
+    required String submittedDate,
+    required String reason,
+    required String status,
     required bool isDark,
   }) {
-    final Color cardBg = isDark
-        ? const Color(0xFF1E1E1E)
-        : Colors.white;
+    final bool isApproved = status.toLowerCase() == 'disetujui';
+    final bool isPending =
+        status.toLowerCase() == 'pending' || status.toLowerCase() == 'menunggu';
 
-    final Color textPrimary = isDark
-        ? Colors.white
-        : const Color(0xFF1E293B);
+    Color badgeBgColor;
+    Color badgeTextColor;
+    IconData badgeIcon;
 
+    if (isApproved) {
+      badgeBgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+      badgeTextColor = isDark
+          ? const Color(0xFF34D399)
+          : const Color(0xFF059669);
+      badgeIcon = Icons.check_circle;
+    } else if (isPending) {
+      badgeBgColor = isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7);
+      badgeTextColor = isDark
+          ? const Color(0xFFFBBF24)
+          : const Color(0xFFD97706);
+      badgeIcon = Icons.schedule;
+    } else {
+      badgeBgColor = isDark ? const Color(0xFF450A0A) : const Color(0xFFFFE4E6);
+      badgeTextColor = isDark
+          ? const Color(0xFFFCA5A5)
+          : const Color(0xFFE11D48);
+      badgeIcon = Icons.cancel;
+    }
+
+    final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
     final Color textSecondary = isDark
         ? const Color(0xFF94A3B8)
         : const Color(0xFF64748B);
-
     final Color borderColor = isDark
         ? const Color(0xFF333333)
         : const Color(0xFFF1F5F9);
-
     final Color reasonBgColor = isDark
         ? const Color(0xFF121212)
         : const Color(0xFFF8FAFC);
-
-    // ================================================
-    // KONFIGURASI STATUS CUTI
-    // ================================================
-
-    late final Color badgeBgColor;
-    late final Color badgeTextColor;
-    late final IconData badgeIcon;
-    late final String statusLabel;
-
-    switch (item.status) {
-      case _CutiStatus.approved:
-        badgeBgColor = isDark
-            ? const Color(0xFF064E3B)
-            : const Color(0xFFD1FAE5);
-
-        badgeTextColor = isDark
-            ? const Color(0xFF34D399)
-            : const Color(0xFF059669);
-
-        badgeIcon = Icons.check_circle;
-        statusLabel = 'Disetujui';
-
-      case _CutiStatus.pending:
-        badgeBgColor = isDark
-            ? const Color(0xFF451A03)
-            : const Color(0xFFFEF3C7);
-
-        badgeTextColor = isDark
-            ? const Color(0xFFFBBF24)
-            : const Color(0xFFD97706);
-
-        badgeIcon = Icons.schedule;
-        statusLabel = 'Pending';
-
-      case _CutiStatus.rejected:
-        badgeBgColor = isDark
-            ? const Color(0xFF450A0A)
-            : const Color(0xFFFFE4E6);
-
-        badgeTextColor = isDark
-            ? const Color(0xFFFCA5A5)
-            : const Color(0xFFE11D48);
-
-        badgeIcon = Icons.cancel;
-        statusLabel = 'Ditolak';
-
-      case _CutiStatus.unknown:
-        badgeBgColor = isDark
-            ? const Color(0xFF334155)
-            : const Color(0xFFE2E8F0);
-
-        badgeTextColor = isDark
-            ? const Color(0xFFCBD5E1)
-            : const Color(0xFF475569);
-
-        badgeIcon = Icons.info_outline;
-        statusLabel = 'Status tidak diketahui';
-    }
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -436,9 +387,7 @@ class CutiPage extends StatelessWidget {
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(
-              alpha: isDark ? 0.2 : 0.02,
-            ),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
             blurRadius: 10.r,
             offset: Offset(0, 4.h),
           ),
@@ -447,151 +396,85 @@ class CutiPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ==========================================
-          // TANGGAL CUTI DAN STATUS
-          // ==========================================
-
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  item.date,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.bold,
-                    color: textPrimary,
-                  ),
+              Text(
+                date,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
                 ),
               ),
-              SizedBox(width: 8.w),
-              Flexible(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 6.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeBgColor,
-                    borderRadius: BorderRadius.circular(5.r),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        badgeIcon,
-                        color: badgeTextColor,
-                        size: 12.w,
-                      ),
-                      SizedBox(width: 4.w),
-                      Flexible(
-                        child: Text(
-                          statusLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.bold,
-                            color: badgeTextColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: badgeBgColor,
+                  borderRadius: BorderRadius.circular(5.r),
                 ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: 12.h),
-
-          // ==========================================
-          // DURASI DAN TANGGAL PENGAJUAN
-          // ==========================================
-
-          Row(
-            children: [
-              Expanded(
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.access_time,
-                      color: textSecondary,
-                      size: 14.w,
-                    ),
+                    Icon(badgeIcon, color: badgeTextColor, size: 12.w),
                     SizedBox(width: 4.w),
                     Text(
-                      'Durasi:',
+                      status,
                       style: TextStyle(
-                        fontSize: 12.sp,
-                        color: textSecondary,
-                      ),
-                    ),
-                    SizedBox(width: 4.w),
-                    Expanded(
-                      child: Text(
-                        item.duration,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: textPrimary,
-                        ),
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.bold,
+                        color: badgeTextColor,
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(width: 8.w),
-              Flexible(
-                child: Text(
-                  item.submittedDate,
-                  textAlign: TextAlign.end,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: textSecondary,
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: textSecondary, size: 14.w),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'Durasi: ',
+                    style: TextStyle(fontSize: 12.sp, color: textSecondary),
                   ),
-                ),
+                  Text(
+                    duration,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                submittedDate,
+                style: TextStyle(fontSize: 11.sp, color: textSecondary),
               ),
             ],
           ),
-
           SizedBox(height: 16.h),
-
-          // ==========================================
-          // ALASAN PENGAJUAN CUTI
-          // ==========================================
-
           Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: 12.w,
-              vertical: 10.h,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: reasonBgColor,
               borderRadius: BorderRadius.circular(8.r),
               border: isDark
-                  ? Border.all(
-                color: const Color(0xFF282828),
-              )
+                  ? Border.all(color: const Color(0xFF282828))
                   : null,
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.sort,
-                  color: textSecondary,
-                  size: 16.w,
-                ),
+                Icon(Icons.sort, color: textSecondary, size: 16.w),
                 SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
-                    item.reason,
+                    reason,
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: isDark
@@ -602,6 +485,7 @@ class CutiPage extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                Icon(Icons.chevron_right, color: textSecondary, size: 20.w),
               ],
             ),
           ),

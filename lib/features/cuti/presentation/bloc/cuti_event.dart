@@ -10,8 +10,11 @@ sealed class CutiEvent extends Equatable {
 class SubmitCuti extends CutiEvent {
   final String uuidPengajuan;
   final String jenisCuti;
-  final String tanggalMulai;
-  final String tanggalSelesai;
+
+  // PASTIKAN DUA BARIS INI MENGGUNAKAN DATETIME
+  final DateTime tanggalMulai;
+  final DateTime tanggalSelesai;
+
   final String keterangan;
 
   const SubmitCuti({
@@ -30,4 +33,8 @@ class SubmitCuti extends CutiEvent {
     tanggalSelesai,
     keterangan,
   ];
+}
+
+class FetchRiwayatCuti extends CutiEvent {
+  const FetchRiwayatCuti();
 }

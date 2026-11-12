@@ -16,7 +16,13 @@ class IzinBloc extends Bloc<IzinEvent, IzinState> {
   }
 
   Future<void> _onSubmitIzin(SubmitIzin event, Emitter<IzinState> emit) async {
-    emit(state.copyWith(status: IzinStatus.submitting, errorMessage: null, successMessage: null));
+    emit(
+      state.copyWith(
+        status: IzinStatus.submitting,
+        errorMessage: null,
+        successMessage: null,
+      ),
+    );
     try {
       final result = await repository.submitIzin(
         uuidPengajuan: event.uuidPengajuan,
@@ -27,31 +33,43 @@ class IzinBloc extends Bloc<IzinEvent, IzinState> {
         lampiran: event.lampiran,
       );
 
-      emit(state.copyWith(
-        status: IzinStatus.success,
-        successMessage: result.message,
-      ));
+      emit(
+        state.copyWith(
+          status: IzinStatus.success,
+          successMessage: result.message,
+        ),
+      );
     } on AppException catch (e) {
       if (kDebugMode) debugPrint('IzinBloc Error (AppException): ${e.message}');
       emit(state.copyWith(status: IzinStatus.error, errorMessage: e.message));
     } catch (e) {
       if (kDebugMode) debugPrint('IzinBloc Error (Unknown): $e');
-      emit(state.copyWith(status: IzinStatus.error, errorMessage: 'Gagal mengirim pengajuan izin.'));
+      emit(
+        state.copyWith(
+          status: IzinStatus.error,
+          errorMessage: 'Gagal mengirim pengajuan izin.',
+        ),
+      );
     }
   }
 
-  Future<void> _onFetchIzinHistory(FetchIzinHistory event, Emitter<IzinState> emit) async {
+  Future<void> _onFetchIzinHistory(
+    FetchIzinHistory event,
+    Emitter<IzinState> emit,
+  ) async {
     emit(state.copyWith(isLoadingHistory: true, errorMessage: null));
     try {
       final history = await repository.getIzinHistory();
-      emit(state.copyWith(
-        isLoadingHistory: false,
-        historyList: history,
-      ));
+      emit(state.copyWith(isLoadingHistory: false, historyList: history));
     } on AppException catch (e) {
       emit(state.copyWith(isLoadingHistory: false, errorMessage: e.message));
     } catch (e) {
-      emit(state.copyWith(isLoadingHistory: false, errorMessage: 'Gagal memuat riwayat izin.'));
+      emit(
+        state.copyWith(
+          isLoadingHistory: false,
+          errorMessage: 'Gagal memuat riwayat izin.',
+        ),
+      );
     }
   }
 }

@@ -37,6 +37,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sistem_presensi_karyawan/core/di/injection.dart'; // Untuk memanggil sl
 import 'package:sistem_presensi_karyawan/features/cuti/presentation/bloc/cuti_bloc.dart';
 
+import '../../features/lembur/presentation/bloc/lembur_bloc.dart';
+import '../../features/presensi/presentation/bloc/riwayat_bloc.dart';
+import '../../features/presensi/presentation/bloc/riwayat_event.dart';
+import '../../features/presensi/presentation/pages/rekap_presensi_page.dart';
+
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
@@ -78,6 +83,11 @@ final GoRouter appRouter = GoRouter(
       path: '/presensi',
       name: 'presensi',
       builder: (context, state) => const PresensiPage(),
+    ),
+    GoRoute(
+      path: '/rekap-presensi',
+      name: 'rekap-presensi',
+      builder: (context, state) => const RekapPresensiPage(),
     ),
     GoRoute(
       path: '/presensi-berhasil',
@@ -123,13 +133,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/cuti',
       name: 'cuti',
-      builder: (context, state) => const CutiPage(),
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<CutiBloc>(),
+          child: const CutiPage(),
+        );
+      },
     ),
     GoRoute(
       path: '/buat-cuti',
       name: 'buat-cuti',
       builder: (context, state) {
-        // PENAMBAHAN ENTERPRISE: Suntikkan Factory CutiBloc secara lokal di rute ini
         return BlocProvider(
           create: (context) => sl<CutiBloc>(),
           child: const BuatCutiPage(),
@@ -140,7 +154,6 @@ final GoRouter appRouter = GoRouter(
       path: '/cuti-berhasil',
       name: 'cuti-berhasil',
       builder: (context, state) {
-        // PENAMBAHAN ENTERPRISE: Menangkap data dari Bottom Sheet konfirmasi
         final args = state.extra as Map<String, dynamic>? ?? {};
 
         return CutiBerhasilPage(
@@ -155,12 +168,22 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/lembur',
       name: 'lembur',
-      builder: (context, state) => const LemburPage(),
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<LemburBloc>(), // WAJIB ADA INI
+          child: const LemburPage(),
+        );
+      },
     ),
     GoRoute(
       path: '/buat-lembur',
       name: 'buat-lembur',
-      builder: (context, state) => const BuatLemburPage(),
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<LemburBloc>(), // WAJIB ADA INI
+          child: const BuatLemburPage(),
+        );
+      },
     ),
     GoRoute(
       path: '/lembur-berhasil',
@@ -192,12 +215,15 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/beranda',
-              name: 'beranda',
-              builder: (context, state) => const BerandaPage(),
+              builder: (context, state) => BlocProvider(
+                create: (_) => sl<RiwayatBloc>()..add(LoadRiwayatRequested(DateTime.now())),
+                child: const BerandaPage(),
+              ),
             ),
           ],
         ),
         StatefulShellBranch(
+
           routes: [
             GoRoute(
               path: '/riwayat',

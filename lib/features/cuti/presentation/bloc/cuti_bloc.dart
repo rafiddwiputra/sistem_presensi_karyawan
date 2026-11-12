@@ -11,12 +11,36 @@ class CutiBloc extends Bloc<CutiEvent, CutiState> {
 
   CutiBloc({required this.repository}) : super(const CutiState()) {
     on<SubmitCuti>(_onSubmitCuti);
+    on<FetchRiwayatCuti>(_onFetchRiwayatCuti);
+  }
+
+  Future<void> _onFetchRiwayatCuti(FetchRiwayatCuti event, Emitter<CutiState> emit) async {
+    emit(state.copyWith(status: CutiStatus.loading, errorMessage: null));
+
+    try {
+      final data = await repository.getRiwayatCuti();
+      emit(state.copyWith(
+        status: CutiStatus.loaded,
+        riwayatCuti: data,
+      ));
+    } on AppException catch (e) {
+      if (kDebugMode) {
+        debugPrint('CutiBloc Fetch Error (AppException): ${e.message}');
+      }
+      emit(state.copyWith(status: CutiStatus.error, errorMessage: e.message));
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('CutiBloc Fetch Error (Unknown): $e');
+      }
+      emit(state.copyWith(status: CutiStatus.error, errorMessage: 'Gagal mengambil data riwayat cuti.'));
+    }
   }
 
   Future<void> _onSubmitCuti(SubmitCuti event, Emitter<CutiState> emit) async {
     emit(state.copyWith(status: CutiStatus.submitting, errorMessage: null, successMessage: null));
 
     try {
+      // Mengirimkan event.tanggalMulai (DateTime) ke repository yang juga meminta DateTime
       final successMessage = await repository.submitCuti(
         uuidPengajuan: event.uuidPengajuan,
         jenisCuti: event.jenisCuti,

@@ -28,15 +28,27 @@ class CutiBerhasilPage extends StatelessWidget {
     // 2. Definisi Warna Dinamis
     final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1D4ED8);
-    final Color borderGrey = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color primaryBlue = isDark
+        ? const Color(0xFF3B82F6)
+        : const Color(0xFF1D4ED8);
+    final Color borderGrey = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     // 3. Konversi Tanggal dan Durasi
     final int durasiHari = tanggalSelesai.difference(tanggalMulai).inDays + 1;
-    final String labelMulai = DateFormat('dd MMM', 'id_ID').format(tanggalMulai);
-    final String labelSelesai = DateFormat('dd MMM yyyy', 'id_ID').format(tanggalSelesai);
+    final String labelMulai = DateFormat(
+      'dd MMM',
+      'id_ID',
+    ).format(tanggalMulai);
+    final String labelSelesai = DateFormat(
+      'dd MMM yyyy',
+      'id_ID',
+    ).format(tanggalSelesai);
     final String rentangWaktu = '$labelMulai - $labelSelesai';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -49,7 +61,10 @@ class CutiBerhasilPage extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24.w,
+                    vertical: 32.h,
+                  ),
                   child: Column(
                     children: [
                       // --- 1. ILUSTRASI SUKSES (Ceklis Hijau & Confetti) ---
@@ -90,7 +105,9 @@ class CutiBerhasilPage extends StatelessWidget {
                           border: isDark ? Border.all(color: borderGrey) : null,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.2 : 0.02,
+                              ),
                               blurRadius: 10.r,
                               offset: Offset(0, 4.h),
                             ),
@@ -117,12 +134,16 @@ class CutiBerhasilPage extends StatelessWidget {
                                 Container(
                                   padding: EdgeInsets.all(10.w),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
+                                    color: isDark
+                                        ? const Color(0xFF451A03)
+                                        : const Color(0xFFFEF3C7),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.access_time_filled,
-                                    color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                                    color: isDark
+                                        ? const Color(0xFFFBBF24)
+                                        : const Color(0xFFD97706),
                                     size: 20.w,
                                   ),
                                 ),
@@ -152,7 +173,9 @@ class CutiBerhasilPage extends StatelessWidget {
                           border: isDark ? Border.all(color: borderGrey) : null,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.2 : 0.02,
+                              ),
                               blurRadius: 10.r,
                               offset: Offset(0, 4.h),
                             ),
@@ -164,7 +187,11 @@ class CutiBerhasilPage extends StatelessWidget {
                             // Header Kartu Ringkasan
                             Row(
                               children: [
-                                Icon(Icons.description_outlined, color: primaryBlue, size: 18.w),
+                                Icon(
+                                  Icons.description_outlined,
+                                  color: primaryBlue,
+                                  size: 18.w,
+                                ),
                                 SizedBox(width: 8.w),
                                 Text(
                                   'RINGKASAN PENGAJUAN',
@@ -201,9 +228,14 @@ class CutiBerhasilPage extends StatelessWidget {
                             _buildInfoRow(
                               'Cuti Karena?',
                               customValue: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w,
+                                  vertical: 4.h,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9),
+                                  color: isDark
+                                      ? const Color(0xFF333333)
+                                      : const Color(0xFFF1F5F9),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: Text(
@@ -260,7 +292,9 @@ class CutiBerhasilPage extends StatelessWidget {
                               width: double.infinity,
                               padding: EdgeInsets.all(12.w),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+                                color: isDark
+                                    ? const Color(0xFF121212)
+                                    : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(12.r),
                               ),
                               child: Text(
@@ -293,7 +327,8 @@ class CutiBerhasilPage extends StatelessWidget {
                       context.go('/beranda');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryBlue, // Konsisten dengan tema aplikasi
+                      backgroundColor:
+                          primaryBlue, // Konsisten dengan tema aplikasi
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r),
                       ),
@@ -341,7 +376,9 @@ class CutiBerhasilPage extends StatelessWidget {
             width: 100.w,
             height: 100.w,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5).withValues(alpha: 0.5),
+              color: isDark
+                  ? const Color(0xFF064E3B)
+                  : const Color(0xFFD1FAE5).withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
           ),
@@ -353,7 +390,9 @@ class CutiBerhasilPage extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? Colors.black.withValues(alpha: 0.3) : const Color(0xFF10B981).withValues(alpha: 0.3),
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : const Color(0xFF10B981).withValues(alpha: 0.3),
                   blurRadius: 20.r,
                   offset: Offset(0, 8.h),
                 ),
@@ -364,17 +403,26 @@ class CutiBerhasilPage extends StatelessWidget {
           Positioned(
             top: 10.h,
             left: 10.w,
-            child: _buildDot(isDark ? const Color(0xFF34D399) : const Color(0xFF6EE7B7), 8.w),
+            child: _buildDot(
+              isDark ? const Color(0xFF34D399) : const Color(0xFF6EE7B7),
+              8.w,
+            ),
           ),
           Positioned(
             top: 20.h,
             right: 10.w,
-            child: _buildDot(isDark ? const Color(0xFF60A5FA) : const Color(0xFF93C5FD), 6.w),
+            child: _buildDot(
+              isDark ? const Color(0xFF60A5FA) : const Color(0xFF93C5FD),
+              6.w,
+            ),
           ),
           Positioned(
             bottom: 10.h,
             left: 25.w,
-            child: _buildDot(isDark ? const Color(0xFFFBBF24) : const Color(0xFFFCD34D), 6.w),
+            child: _buildDot(
+              isDark ? const Color(0xFFFBBF24) : const Color(0xFFFCD34D),
+              6.w,
+            ),
           ),
         ],
       ),
@@ -390,10 +438,10 @@ class CutiBerhasilPage extends StatelessWidget {
   }
 
   Widget _buildInfoRow(
-      String label, {
-        required Widget customValue,
-        required bool isDark,
-      }) {
+    String label, {
+    required Widget customValue,
+    required bool isDark,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

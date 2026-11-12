@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 
+import '../../features/lembur/presentation/bloc/lembur_bloc.dart';
+import '../../features/lembur/repositories/lembur_repositories.dart';
 import '../network/api_client.dart';
 import '../services/secure_storage_service.dart';
 import '../../features/auth/repositories/auth_repository.dart';
@@ -11,11 +13,9 @@ import '../../features/presensi/presentation/bloc/riwayat_bloc.dart';
 import '../../features/presensi/repositories/presensi_repository.dart';
 import '../../features/presensi/presentation/bloc/presensi_bloc.dart';
 
-// --- IZIN ---
 import '../../features/izin/repositories/izin_repository.dart';
 import '../../features/izin/presentation/bloc/izin_bloc.dart';
 
-// --- TAMBAHKAN IMPORT CUTI DI SINI ---
 import '../../features/cuti/repositories/cuti_repository.dart';
 import '../../features/cuti/presentation/bloc/cuti_bloc.dart';
 
@@ -25,57 +25,60 @@ Future<void> setupInjection() async {
   sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService());
 
   sl.registerLazySingleton<ApiClient>(
-        () => ApiClient(sl<SecureStorageService>()),
+    () => ApiClient(sl<SecureStorageService>()),
   );
 
   sl.registerLazySingleton<AuthRepository>(
-        () => AuthRepository(sl<ApiClient>(), sl<SecureStorageService>()),
+    () => AuthRepository(sl<ApiClient>(), sl<SecureStorageService>()),
   );
 
   sl.registerLazySingleton<ProfilRepository>(
-        () => ProfilRepository(sl<ApiClient>(), sl<SecureStorageService>()),
+    () => ProfilRepository(sl<ApiClient>(), sl<SecureStorageService>()),
   );
 
   sl.registerLazySingleton(
-        () => AuthBloc(authRepository: sl(), profilBloc: sl()),
+    () => AuthBloc(authRepository: sl(), profilBloc: sl()),
   );
 
   sl.registerLazySingleton<ProfilBloc>(
-        () => ProfilBloc(repository: sl<ProfilRepository>()),
+    () => ProfilBloc(repository: sl<ProfilRepository>()),
   );
 
-  // --- Riwayat Presensi ---
   sl.registerLazySingleton<RiwayatRepository>(
-        () => RiwayatRepository(sl<ApiClient>()),
+    () => RiwayatRepository(sl<ApiClient>()),
   );
 
   sl.registerFactory<RiwayatBloc>(
-        () => RiwayatBloc(repository: sl<RiwayatRepository>()),
+    () => RiwayatBloc(repository: sl<RiwayatRepository>()),
   );
 
-  // --- Presensi ---
   sl.registerLazySingleton<PresensiRepository>(
-        () => PresensiRepository(sl<ApiClient>()),
+    () => PresensiRepository(sl<ApiClient>()),
   );
 
   sl.registerFactory(() => PresensiBloc(repository: sl()));
 
-  // --- IZIN ---
   sl.registerLazySingleton<IzinRepository>(
-        () => IzinRepository(sl<ApiClient>()),
+    () => IzinRepository(sl<ApiClient>()),
   );
 
   sl.registerFactory<IzinBloc>(
-        () => IzinBloc(repository: sl<IzinRepository>()),
+    () => IzinBloc(repository: sl<IzinRepository>()),
   );
 
-  // --- TAMBAHKAN REGISTRASI CUTI DI SINI ---
   sl.registerLazySingleton<CutiRepository>(
-        () => CutiRepository(sl<ApiClient>()),
+    () => CutiRepository(sl<ApiClient>()),
   );
 
-  // Gunakan Factory agar setiap kali form Cuti dibuka, BLoC mendapatkan state initial yang bersih
   sl.registerFactory<CutiBloc>(
-        () => CutiBloc(repository: sl<CutiRepository>()),
+    () => CutiBloc(repository: sl<CutiRepository>()),
+  );
+
+  sl.registerLazySingleton<LemburRepository>(
+        () => LemburRepository(sl<ApiClient>()),
+  );
+
+  sl.registerFactory<LemburBloc>(
+        () => LemburBloc(repository: sl<LemburRepository>()),
   );
 }

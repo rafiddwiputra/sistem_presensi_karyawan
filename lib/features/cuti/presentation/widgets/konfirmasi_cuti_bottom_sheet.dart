@@ -4,17 +4,20 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Import BLoC Cuti
 import '../bloc/cuti_bloc.dart';
 import '../bloc/cuti_event.dart';
 import '../bloc/cuti_state.dart';
 
+// UBAH MENJADI StatelessWidget
 class KonfirmasiCutiBottomSheet extends StatelessWidget {
   final String uuidPengajuan;
-  final String namaKaryawan; // Dibutuhkan untuk diteruskan ke CutiBerhasilPage
+  final String namaKaryawan;
   final String jenisCuti;
+
+  // Sudah menjadi DateTime
   final DateTime tanggalMulai;
   final DateTime tanggalSelesai;
+
   final String keterangan;
 
   const KonfirmasiCutiBottomSheet({
@@ -29,7 +32,6 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Deteksi Mode Gelap & Warna Tema (dipertahankan dari kodemu)
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
@@ -39,14 +41,13 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
     final Color bgSheet = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color cardBg = isDark ? const Color(0xFF121212) : Colors.white;
 
-    // 2. Format Waktu untuk Ditampilkan
+    // Kalkulasi Data secara langsung karena di StatelessWidget bisa langsung pakai nama variabel
     final durasiHari = tanggalSelesai.difference(tanggalMulai).inDays + 1;
     final String labelTglMulai = DateFormat('dd MMM yyyy', 'id_ID').format(tanggalMulai);
     final String labelHariMulai = DateFormat('EEEE', 'id_ID').format(tanggalMulai);
     final String labelTglSelesai = DateFormat('dd MMM yyyy', 'id_ID').format(tanggalSelesai);
     final String labelHariSelesai = DateFormat('EEEE', 'id_ID').format(tanggalSelesai);
 
-    // 3. Format Waktu Murni untuk Backend (yyyy-MM-dd)
     final String formatApiMulai = DateFormat('yyyy-MM-dd').format(tanggalMulai);
     final String formatApiSelesai = DateFormat('yyyy-MM-dd').format(tanggalSelesai);
 
@@ -75,7 +76,6 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // --- 1. DRAG HANDLE & TOMBOL CLOSE ---
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -187,7 +187,7 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                             borderRadius: BorderRadius.circular(5.r),
                           ),
                           child: Text(
-                            '$durasiHari Hari Kerja', // <- Durasi Dinamis
+                            '$durasiHari Hari Kerja',
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
@@ -210,7 +210,7 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
-                            jenisCuti, // <- Jenis Cuti Dinamis
+                            jenisCuti,
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.bold,
@@ -258,7 +258,7 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        '“$keterangan”', // <- Keterangan Dinamis
+                        '“$keterangan”',
                         style: TextStyle(
                           fontSize: 13.sp,
                           color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
@@ -272,14 +272,12 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
               ),
               SizedBox(height: 32.h),
 
-              // --- 3. BLOC CONSUMER (Tombol Kirim) ---
               SizedBox(
                 width: double.infinity,
                 height: 52.h,
                 child: BlocConsumer<CutiBloc, CutiState>(
                   listener: (context, state) {
                     if (state.status == CutiStatus.success) {
-                      // Jika sukses, tutup BottomSheet dan arahkan ke Halaman Berhasil
                       context.pop();
                       context.pushReplacement('/cuti-berhasil', extra: {
                         'namaKaryawan': namaKaryawan,
@@ -289,20 +287,47 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                         'tanggalSelesai': tanggalSelesai,
                       });
                     } else if (state.status == CutiStatus.error) {
-                      // Menampilkan pesan error backend via SnackBar tanpa menutup form
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(state.errorMessage ?? 'Terjadi kesalahan.'),
-                          backgroundColor: Colors.red,
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (ctx) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                          icon: Icon(Icons.warning_amber_rounded, color: const Color(0xFFEF4444), size: 48.w),
+                          title: Text(
+                            'Pengajuan Gagal',
+                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                            textAlign: TextAlign.center,
+                          ),
+                          content: Text(
+                            state.errorMessage ?? 'Terjadi kesalahan pada server. Silakan coba lagi.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13.sp, color: textSecondary, height: 1.5),
+                          ),
+                          actionsAlignment: MainAxisAlignment.center,
+                          actions: [
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44.h,
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFEF4444),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                                  elevation: 0,
+                                ),
+                                child: Text('Mengerti', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
                   },
                   builder: (context, state) {
-                    // Animasi Loading
                     if (state.status == CutiStatus.submitting) {
                       return ElevatedButton(
-                        onPressed: null, // Disabled saat loading
+                        onPressed: null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryBlue,
                           shape: RoundedRectangleBorder(
@@ -321,20 +346,20 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                       );
                     }
 
-                    // Tampilan Normal
                     return ElevatedButton.icon(
                       onPressed: () {
-                        // Memicu trigger pengiriman data ke Backend
                         context.read<CutiBloc>().add(
                           SubmitCuti(
                             uuidPengajuan: uuidPengajuan,
                             jenisCuti: jenisCuti,
-                            tanggalMulai: formatApiMulai,
-                            tanggalSelesai: formatApiSelesai,
+                            tanggalMulai: tanggalMulai,
+                            tanggalSelesai: tanggalSelesai,
+
                             keterangan: keterangan,
                           ),
                         );
                       },
+
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryBlue,
                         shape: RoundedRectangleBorder(
@@ -359,13 +384,13 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
                   },
                 ),
               ),
-
               SizedBox(height: 12.h),
+
               SizedBox(
                 width: double.infinity,
                 height: 52.h,
                 child: OutlinedButton(
-                  onPressed: () => context.pop(), // Kembali untuk mengedit
+                  onPressed: () => context.pop(),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
                       color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
@@ -391,8 +416,7 @@ class KonfirmasiCutiBottomSheet extends StatelessWidget {
     );
   }
 
-  // --- WIDGET HELPER DIPERTAHANKAN ---
-
+  // --- WIDGET HELPER ---
   TextStyle _labelStyle(bool isDark) {
     return TextStyle(
       fontSize: 10.sp,

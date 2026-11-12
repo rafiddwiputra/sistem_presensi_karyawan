@@ -27,7 +27,8 @@ class ApiClient {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://swim-surge-ecommerce-doors.trycloudflare.com/api/v1/mobile',
+    defaultValue:
+        'https://manufacture-postcard-diameter-stock.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {

@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sistem_presensi_karyawan/features/lembur/presentation/widgets/konfirmasi_lembur_bottom_sheet.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../profil/presentation/bloc/profil_bloc.dart';
+import '../../../profil/presentation/bloc/profil_state.dart';
+import '../bloc/lembur_bloc.dart';
+
+import '../widgets/konfirmasi_lembur_bottom_sheet.dart';
 
 class BuatLemburPage extends StatefulWidget {
   const BuatLemburPage({super.key});
@@ -12,18 +20,14 @@ class BuatLemburPage extends StatefulWidget {
 }
 
 class _BuatLemburPageState extends State<BuatLemburPage> {
-  final TextEditingController _tglLemburController = TextEditingController(
-    text: '24 Okt 2026',
-  );
-  final TextEditingController _jamMulaiController = TextEditingController(
-    text: '18:00',
-  );
-  final TextEditingController _jamSelesaiController = TextEditingController(
-    text: '21:00',
-  );
-  final TextEditingController _alasanController = TextEditingController(
-    text: 'Penyelesaian design high fedelity mobile app.',
-  );
+  final TextEditingController _tglLemburController = TextEditingController();
+  final TextEditingController _jamMulaiController = TextEditingController();
+  final TextEditingController _jamSelesaiController = TextEditingController();
+  final TextEditingController _alasanController = TextEditingController();
+
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedJamMulai;
+  TimeOfDay? _selectedJamSelesai;
 
   @override
   void dispose() {
@@ -36,29 +40,19 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
 
   Future<void> _pilihTanggal(BuildContext context) async {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color primaryColor = isDark
-        ? const Color(0xFF60A5FA)
-        : const Color(0xFF135CAE);
+    final Color primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
 
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
-                ? ColorScheme.dark(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: Colors.white,
-                  )
-                : ColorScheme.light(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: const Color(0xFF1E293B),
-                  ),
+                ? ColorScheme.dark(primary: primaryColor, onPrimary: Colors.white, onSurface: Colors.white)
+                : ColorScheme.light(primary: primaryColor, onPrimary: Colors.white, onSurface: const Color(0xFF1E293B)),
           ),
           child: child!,
         );
@@ -66,19 +60,15 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
     );
     if (picked != null) {
       setState(() {
-        _tglLemburController.text = "${picked.day} Okt 2026";
+        _selectedDate = picked;
+        _tglLemburController.text = DateFormat('dd MMM yyyy', 'id_ID').format(picked);
       });
     }
   }
 
-  Future<void> _pilihJam(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
+  Future<void> _pilihJam(BuildContext context, bool isJamMulai) async {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color primaryColor = isDark
-        ? const Color(0xFF60A5FA)
-        : const Color(0xFF135CAE);
+    final Color primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
 
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -87,49 +77,99 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
-                ? ColorScheme.dark(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: Colors.white,
-                    surface: const Color(0xFF1E1E1E),
-                  )
-                : ColorScheme.light(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: const Color(0xFF1E293B),
-                    surface: Colors.white,
-                  ),
+                ? ColorScheme.dark(primary: primaryColor, onPrimary: Colors.white, onSurface: Colors.white, surface: const Color(0xFF1E1E1E))
+                : ColorScheme.light(primary: primaryColor, onPrimary: Colors.white, onSurface: const Color(0xFF1E293B), surface: Colors.white),
           ),
           child: child!,
         );
       },
     );
+
     if (picked != null) {
       setState(() {
         final hours = picked.hour.toString().padLeft(2, '0');
         final minutes = picked.minute.toString().padLeft(2, '0');
-        controller.text = "$hours:$minutes";
+        final timeString = "$hours:$minutes";
+
+        if (isJamMulai) {
+          _selectedJamMulai = picked;
+          _jamMulaiController.text = timeString;
+        } else {
+          _selectedJamSelesai = picked;
+          _jamSelesaiController.text = timeString;
+        }
       });
     }
+  }
+
+  String _hitungDurasiLive() {
+    if (_selectedJamMulai == null || _selectedJamSelesai == null) return '0 Jam';
+    final start = _selectedJamMulai!;
+    final end = _selectedJamSelesai!;
+
+    int totalMinutes = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute);
+    if (totalMinutes <= 0) {
+      totalMinutes += 24 * 60;
+    }
+
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+
+    if (minutes == 0) return '$hours Jam';
+    if (hours == 0) return '$minutes Menit';
+    return '$hours Jam $minutes Menit';
+  }
+
+  void _ajukanLembur() {
+    if (_selectedDate == null || _selectedJamMulai == null || _selectedJamSelesai == null || _alasanController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Harap lengkapi semua form lembur.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final profilState = context.read<ProfilBloc>().state;
+    String namaKaryawanAktif = 'Karyawan';
+
+    if (profilState is ProfilLoaded) {
+      namaKaryawanAktif = profilState.user['name'] ?? profilState.user['nama'] ?? 'Karyawan';
+    }
+
+    final lemburBloc = context.read<LemburBloc>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => BlocProvider.value(
+        value: lemburBloc,
+        child: KonfirmasiLemburBottomSheet(
+          uuidPengajuan: const Uuid().v4(),
+          namaKaryawan: namaKaryawanAktif,
+          tanggalLembur: _selectedDate!,
+          jamMulai: _selectedJamMulai!,
+          jamSelesai: _selectedJamSelesai!,
+          alasanLembur: _alasanController.text,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
-    final Color primaryBlue = isDark
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF135CAE);
-    final Color headerBlue = isDark
-        ? const Color(0xFF154B8C)
-        : const Color(0xFF135CAE);
+    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
+    final Color headerBlue = isDark ? const Color(0xFF154B8C) : const Color(0xFF135CAE);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: bgApp,
-
         bottomNavigationBar: Container(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
           decoration: BoxDecoration(color: bgApp),
@@ -138,19 +178,10 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const KonfirmasiLemburBottomSheet(),
-                  );
-                },
+                onPressed: _ajukanLembur,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                   elevation: 0,
                 ),
                 child: Row(
@@ -158,11 +189,7 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                   children: [
                     Text(
                       'Ajukan Lembur',
-                      style: TextStyle(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     SizedBox(width: 8.w),
                     Icon(Icons.send_outlined, color: Colors.white, size: 18.w),
@@ -172,7 +199,6 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
             ),
           ),
         ),
-
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Stack(
@@ -182,44 +208,28 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: headerBlue,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40.r),
-                    bottomRight: Radius.circular(40.r),
-                  ),
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40.r), bottomRight: Radius.circular(40.r)),
                 ),
               ),
-
               SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 8.h,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 24.w,
-                            ),
+                            icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.w),
                             onPressed: () => context.pop(),
                           ),
                           Text(
                             'Pengajuan Lembur',
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
+                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: Colors.white),
                           ),
                         ],
                       ),
                     ),
-
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24.w),
                       child: Column(
@@ -228,44 +238,27 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                           SizedBox(height: 12.h),
                           Text(
                             'Pengajuan Lembur',
-                            style: TextStyle(
-                              fontSize: 24.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                            style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           SizedBox(height: 8.h),
                           Text(
                             'Lengkapi formulir berikut untuk mengajukan Lembur.',
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: Colors.white.withValues(alpha: 0.8),
-                            ),
+                            style: TextStyle(fontSize: 13.sp, color: Colors.white.withValues(alpha: 0.8)),
                           ),
                           SizedBox(height: 24.h),
-
                           Container(
                             padding: EdgeInsets.all(16.w),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(16.r),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                             ),
                             child: Row(
                               children: [
                                 Container(
                                   padding: EdgeInsets.all(10.w),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.badge_outlined,
-                                    color: Colors.white,
-                                    size: 20.w,
-                                  ),
+                                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+                                  child: Icon(Icons.badge_outlined, color: Colors.white, size: 20.w),
                                 ),
                                 SizedBox(width: 16.w),
                                 Column(
@@ -273,23 +266,26 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                                   children: [
                                     Text(
                                       'PEMOHON LEMBUR',
-                                      style: TextStyle(
-                                        fontSize: 10.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                        letterSpacing: 0.5,
-                                      ),
+                                      style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.8), letterSpacing: 0.5),
                                     ),
                                     SizedBox(height: 2.h),
-                                    Text(
-                                      'Rafid Dwi Putra Andino',
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
+                                    BlocBuilder<ProfilBloc, ProfilState>(
+                                      builder: (context, state) {
+                                        String namaPemohon = 'Karyawan';
+
+                                        if (state is ProfilLoaded) {
+                                          namaPemohon = state.user['name'] ?? state.user['nama'] ?? 'Karyawan';
+                                        }
+
+                                        return Text(
+                                          namaPemohon,
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
@@ -299,9 +295,7 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                         ],
                       ),
                     ),
-
                     SizedBox(height: 24.h),
-
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 24.w),
                       padding: EdgeInsets.all(20.w),
@@ -309,13 +303,7 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                         color: cardBg,
                         borderRadius: BorderRadius.circular(20.r),
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(
-                              alpha: isDark ? 0.3 : 0.05,
-                            ),
-                            blurRadius: 15.r,
-                            offset: Offset(0, 5.h),
-                          ),
+                          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05), blurRadius: 15.r, offset: Offset(0, 5.h)),
                         ],
                       ),
                       child: Column(
@@ -332,7 +320,6 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                             onTap: () => _pilihTanggal(context),
                           ),
                           SizedBox(height: 20.h),
-
                           Row(
                             children: [
                               Expanded(
@@ -344,8 +331,7 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                                   readOnly: true,
                                   suffixIcon: Icons.access_time,
                                   isDark: isDark,
-                                  onTap: () =>
-                                      _pilihJam(context, _jamMulaiController),
+                                  onTap: () => _pilihJam(context, true),
                                 ),
                               ),
                               SizedBox(width: 16.w),
@@ -358,69 +344,41 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
                                   readOnly: true,
                                   suffixIcon: Icons.access_time,
                                   isDark: isDark,
-                                  onTap: () =>
-                                      _pilihJam(context, _jamSelesaiController),
+                                  onTap: () => _pilihJam(context, false),
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(height: 16.h),
-
                           Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16.w,
-                              vertical: 14.h,
-                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E3A8A)
-                                        .withValues(alpha: 0.3)
-                                  : const Color(0xFFEFF6FF),
+                              color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEFF6FF),
                               borderRadius: BorderRadius.circular(12.r),
                             ),
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.nights_stay_outlined,
-                                  color: isDark
-                                      ? const Color(0xFF60A5FA)
-                                      : primaryBlue,
-                                  size: 20.w,
-                                ),
+                                Icon(Icons.nights_stay_outlined, color: isDark ? const Color(0xFF60A5FA) : primaryBlue, size: 20.w),
                                 SizedBox(width: 8.w),
                                 Text(
                                   'Durasi Lembur',
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? const Color(0xFF60A5FA)
-                                        : primaryBlue,
-                                  ),
+                                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF60A5FA) : primaryBlue),
                                 ),
                                 const Spacer(),
                                 Text(
-                                  '4 Jam',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? const Color(0xFF60A5FA)
-                                        : primaryBlue,
-                                  ),
+                                  _hitungDurasiLive(),
+                                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF60A5FA) : primaryBlue),
                                 ),
                               ],
                             ),
                           ),
                           SizedBox(height: 20.h),
-
                           _buildInputField(
                             label: 'Alasan Lembur',
                             isRequired: true,
                             hintText: 'Masukkan alasan lembur...',
                             controller: _alasanController,
                             maxLines: 4,
-                            trailingLabel: '23 / 30',
                             isDark: isDark,
                           ),
                         ],
@@ -447,56 +405,25 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
     IconData? suffixIcon,
     int maxLines = 1,
     VoidCallback? onTap,
-    String? trailingLabel,
   }) {
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
-    final Color fieldBg = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFEFF6FF);
-    final Color borderColor = isDark
-        ? const Color(0xFF333333)
-        : Colors.transparent;
-    final Color iconColor = isDark
-        ? const Color(0xFF60A5FA)
-        : const Color(0xFF135CAE);
+    final Color fieldBg = isDark ? const Color(0xFF121212) : const Color(0xFFEFF6FF);
+    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.transparent;
+    final Color iconColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.bold,
-                    color: textPrimary,
-                  ),
-                ),
-                if (isRequired) ...[
-                  SizedBox(width: 4.w),
-                  Text(
-                    '*',
-                    style: TextStyle(
-                      color: const Color(0xFFE11D48),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              label,
+              style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: textPrimary),
             ),
-            if (trailingLabel != null)
-              Text(
-                trailingLabel,
-                style: TextStyle(fontSize: 11.sp, color: textSecondary),
-              ),
+            if (isRequired) ...[
+              SizedBox(width: 4.w),
+              Text('*', style: TextStyle(color: const Color(0xFFE11D48), fontSize: 13.sp, fontWeight: FontWeight.bold)),
+            ],
           ],
         ),
         SizedBox(height: 8.h),
@@ -517,9 +444,7 @@ class _BuatLemburPageState extends State<BuatLemburPage> {
               hintStyle: TextStyle(color: textPrimary.withValues(alpha: 0.7)),
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16.w),
-              suffixIcon: suffixIcon != null
-                  ? Icon(suffixIcon, color: iconColor, size: 20.w)
-                  : null,
+              suffixIcon: suffixIcon != null ? Icon(suffixIcon, color: iconColor, size: 20.w) : null,
             ),
           ),
         ),

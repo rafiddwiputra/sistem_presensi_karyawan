@@ -1,27 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import '../bloc/lembur_bloc.dart';
+import '../bloc/lembur_event.dart';
+import '../bloc/lembur_state.dart';
 
-class LemburPage extends StatelessWidget {
+class LemburPage extends StatefulWidget {
   const LemburPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // 1. Deteksi Mode Gelap
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+  State<LemburPage> createState() => _LemburPageState();
+}
 
-    // 2. Definisi Warna Dinamis
+class _LemburPageState extends State<LemburPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<LemburBloc>().add(FetchRiwayatLembur());
+  }
+
+  String _hitungDurasi(String jamMulai, String jamSelesai) {
+    if (jamMulai.isEmpty || jamSelesai.isEmpty) return '-';
+    try {
+      final format = DateFormat('HH:mm');
+      final start = format.parse(jamMulai);
+      var end = format.parse(jamSelesai);
+
+      if (end.isBefore(start)) {
+        end = end.add(const Duration(days: 1));
+      }
+
+      final diff = end.difference(start);
+      final hours = diff.inHours;
+      final minutes = diff.inMinutes % 60;
+
+      if (minutes == 0) return '$hours Jam';
+      if (hours == 0) return '$minutes Menit';
+      return '$hours Jam $minutes Menit';
+    } catch (e) {
+      return '-';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
-    final Color primaryBlue = isDark
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF135CAE);
-    final Color headerBlue = isDark
-        ? const Color(0xFF154B8C)
-        : const Color(0xFF135CAE);
+    final Color primaryBlue = isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
+    final Color headerBlue = isDark ? const Color(0xFF154B8C) : const Color(0xFF135CAE);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
+    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
@@ -36,11 +67,7 @@ class LemburPage extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 24.sp,
-                    ),
+                    child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
                   ),
                   SizedBox(width: 16.w),
                   Text(
@@ -77,9 +104,7 @@ class LemburPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20.r),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(
-                                alpha: isDark ? 0.2 : 0.03,
-                              ),
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                               blurRadius: 15.r,
                               offset: Offset(0, 5.h),
                             ),
@@ -92,24 +117,19 @@ class LemburPage extends StatelessWidget {
                                 Container(
                                   padding: EdgeInsets.all(12.w),
                                   decoration: BoxDecoration(
-                                    color: isDark
-                                        ? const Color(0xFF1E3A8A)
-                                        : const Color(0xFFE0E7FF),
+                                    color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0E7FF),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.timer_outlined,
-                                    color: isDark
-                                        ? const Color(0xFF60A5FA)
-                                        : primaryBlue,
+                                    color: isDark ? const Color(0xFF60A5FA) : primaryBlue,
                                     size: 24.w,
                                   ),
                                 ),
                                 SizedBox(width: 16.w),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Rencanakan Lembur Anda',
@@ -122,10 +142,7 @@ class LemburPage extends StatelessWidget {
                                       SizedBox(height: 4.h),
                                       Text(
                                         'Ingin merencanakan untuk Lembur?',
-                                        style: TextStyle(
-                                          fontSize: 13.sp,
-                                          color: textSecondary,
-                                        ),
+                                        style: TextStyle(fontSize: 13.sp, color: textSecondary),
                                       ),
                                     ],
                                   ),
@@ -147,11 +164,7 @@ class LemburPage extends StatelessWidget {
                                   ),
                                   elevation: 0,
                                 ),
-                                icon: Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                  size: 20.w,
-                                ),
+                                icon: Icon(Icons.add, color: Colors.white, size: 20.w),
                                 label: Text(
                                   'Ajukan Lembur',
                                   style: TextStyle(
@@ -167,7 +180,6 @@ class LemburPage extends StatelessWidget {
                       ),
                       SizedBox(height: 32.h),
 
-                      // --- JUDUL SEKSI RIWAYAT ---
                       Text(
                         'RIWAYAT PENGAJUAN LEMBUR',
                         style: TextStyle(
@@ -179,32 +191,68 @@ class LemburPage extends StatelessWidget {
                       ),
                       SizedBox(height: 16.h),
 
-                      // --- DAFTAR RIWAYAT KARTU ---
-                      _buildHistoryCard(
-                        date: 'Jumat, 24 Okt 2026',
-                        timeRange: '04:00 – 05:00 WIB',
-                        duration: '1 Jam',
-                        description: 'Penyelesaian deployment modul e-presensi dan bug fixing integrasi API sprint 4.',
-                        status: 'Menunggu',
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 16.h),
-                      _buildHistoryCard(
-                        date: 'Selasa, 20 Okt 2026',
-                        timeRange: '04:00 – 20:00 WIB',
-                        duration: '4 Jam',
-                        description: 'Support maintenance server rutin bulanan dan monitoring backup database.',
-                        status: 'Disetujui',
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 16.h),
-                      _buildHistoryCard(
-                        date: 'Kamis, 15 Okt 2026',
-                        timeRange: '04:00 – 21:00 WIB',
-                        duration: '5 Jam',
-                        description: 'Mempersiapkan materi presentasi dan demo sprint review kepada klien.',
-                        status: 'Disetujui',
-                        isDark: isDark,
+                      BlocBuilder<LemburBloc, LemburState>(
+                        builder: (context, state) {
+                          if (state.status == LemburStatus.loading) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (state.status == LemburStatus.error) {
+                            return Center(
+                              child: Text(
+                                state.errorMessage ?? 'Gagal memuat data',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          } else if (state.status == LemburStatus.loaded || state.status == LemburStatus.success) {
+                            if (state.riwayatLembur.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 20.h),
+                                  child: Text(
+                                    'Belum ada riwayat pengajuan lembur.',
+                                    style: TextStyle(color: textSecondary, fontSize: 13.sp),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: state.riwayatLembur.length,
+                              separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                              itemBuilder: (context, index) {
+                                final lembur = state.riwayatLembur[index];
+
+                                String tglFormat = lembur.tanggalLembur;
+                                if (tglFormat.isNotEmpty) {
+                                  try {
+                                    final parsed = DateFormat('yyyy-MM-dd').parse(lembur.tanggalLembur);
+                                    tglFormat = DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(parsed);
+                                  } catch (_) {}
+                                } else {
+                                  tglFormat = '-';
+                                }
+
+                                String timeRangeText = '- WIB';
+                                if (lembur.jamMulai.isNotEmpty && lembur.jamSelesai.isNotEmpty) {
+                                  timeRangeText = '${lembur.jamMulai} – ${lembur.jamSelesai} WIB';
+                                } else if (lembur.jamMulai.isNotEmpty) {
+                                  timeRangeText = '${lembur.jamMulai} WIB';
+                                }
+
+                                return _buildHistoryCard(
+                                  date: tglFormat,
+                                  timeRange: timeRangeText,
+                                  duration: _hitungDurasi(lembur.jamMulai, lembur.jamSelesai),
+                                  description: lembur.alasanLembur.isNotEmpty ? lembur.alasanLembur : '-',
+                                  status: lembur.statusLabel,
+                                  isDark: isDark,
+                                );
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
                       ),
                     ],
                   ),
@@ -225,42 +273,36 @@ class LemburPage extends StatelessWidget {
     required String status,
     required bool isDark,
   }) {
-    final bool isApproved = status == 'Disetujui';
 
-    final Color badgeBgColor = isApproved
-        ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5))
-        : (isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7));
+    final bool isApproved = status.toLowerCase() == 'disetujui';
+    final bool isPending = status.toLowerCase() == 'menunggu konfirmasi' || status.toLowerCase() == 'pending';
+    final bool isRejected = status.toLowerCase() == 'ditolak';
 
-    final Color badgeTextColor = isApproved
-        ? (isDark ? const Color(0xFF34D399) : const Color(0xFF059669))
-        : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706));
+    Color badgeBgColor;
+    Color badgeTextColor;
+
+    if (isApproved) {
+      badgeBgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+      badgeTextColor = isDark ? const Color(0xFF34D399) : const Color(0xFF059669);
+    } else if (isRejected) {
+      badgeBgColor = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2);
+      badgeTextColor = isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
+    } else {
+      badgeBgColor = isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7);
+      badgeTextColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+    }
 
     final Color badgeDotColor = badgeTextColor;
 
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
-    final Color borderColor = isDark
-        ? const Color(0xFF333333)
-        : const Color(0xFFF1F5F9);
-    final Color iconColor = isDark
-        ? const Color(0xFF60A5FA)
-        : const Color(0xFF135CAE);
-
-    final Color timeRangeBg = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF8FAFC);
-    final Color durationBg = isDark
-        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-        : const Color(0xFFDBEAFE);
-    final Color durationText = isDark
-        ? const Color(0xFF60A5FA)
-        : const Color(0xFF1D4ED8);
-    final Color descriptionText = isDark
-        ? const Color(0xFFCBD5E1)
-        : const Color(0xFF475569);
+    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9);
+    final Color iconColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    final Color timeRangeBg = isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
+    final Color durationBg = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFDBEAFE);
+    final Color durationText = isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8);
+    final Color descriptionText = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -284,11 +326,7 @@ class LemburPage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 16.w,
-                    color: iconColor,
-                  ),
+                  Icon(Icons.calendar_today_outlined, size: 16.w, color: iconColor),
                   SizedBox(width: 8.w),
                   Text(
                     date,
@@ -305,14 +343,6 @@ class LemburPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: badgeBgColor,
                   borderRadius: BorderRadius.circular(5.r),
-                  border: isDark
-                      ? Border.all(
-                          color: isApproved
-                              ? const Color(0xFF047857)
-                              : const Color(0xFF92400E),
-                          width: 1.w,
-                        )
-                      : null,
                 ),
                 child: Row(
                   children: [
@@ -332,8 +362,6 @@ class LemburPage extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-
-          // Baris 2: Waktu Lembur & Durasi
           Row(
             children: [
               Container(
@@ -341,9 +369,7 @@ class LemburPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: timeRangeBg,
                   borderRadius: BorderRadius.circular(5.r),
-                  border: isDark
-                      ? Border.all(color: const Color(0xFF282828))
-                      : null,
+                  border: isDark ? Border.all(color: const Color(0xFF282828)) : null,
                 ),
                 child: Row(
                   children: [
@@ -362,9 +388,7 @@ class LemburPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: durationBg,
                   borderRadius: BorderRadius.circular(5.r),
-                  border: isDark
-                      ? Border.all(color: const Color(0xFF1E3A8A))
-                      : null,
+                  border: isDark ? Border.all(color: const Color(0xFF1E3A8A)) : null,
                 ),
                 child: Text(
                   duration,
@@ -378,8 +402,6 @@ class LemburPage extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-
-          // Baris 3: Deskripsi & Ikon Chevron
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

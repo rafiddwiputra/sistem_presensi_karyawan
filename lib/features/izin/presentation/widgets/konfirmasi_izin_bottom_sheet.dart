@@ -30,7 +30,8 @@ class KonfirmasiIzinBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<KonfirmasiIzinBottomSheet> createState() => _KonfirmasiIzinBottomSheetState();
+  State<KonfirmasiIzinBottomSheet> createState() =>
+      _KonfirmasiIzinBottomSheetState();
 }
 
 class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
@@ -48,19 +49,36 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
     // --- 1. Deklarasi UI dan Tema ---
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color primaryBlue = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color primaryBlue = isDark
+        ? const Color(0xFF60A5FA)
+        : const Color(0xFF135CAE);
     final Color bgSheet = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color bgGrey = isDark ? const Color(0xFF121212) : const Color(0xFFF4F7FA);
-    final Color borderGrey = isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final Color bgGrey = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF4F7FA);
+    final Color borderGrey = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFE2E8F0);
     final Color cardBg = isDark ? const Color(0xFF121212) : Colors.white;
 
     // --- 2. Perhitungan Dinamis ---
-    final int durasiHari = widget.tanggalSelesai.difference(widget.tanggalMulai).inDays + 1;
-    final String labelTglMulai = DateFormat('dd MMM yyyy').format(widget.tanggalMulai);
-    final String hariTglMulai = DateFormat('EEEE', 'id_ID').format(widget.tanggalMulai);
-    final String labelTglSelesai = DateFormat('dd MMM yyyy').format(widget.tanggalSelesai);
-    final String hariTglSelesai = DateFormat('EEEE', 'id_ID').format(widget.tanggalSelesai);
+    final int durasiHari =
+        widget.tanggalSelesai.difference(widget.tanggalMulai).inDays + 1;
+    final String labelTglMulai = DateFormat('dd MMM yyyy')
+        .format(widget.tanggalMulai);
+    final String hariTglMulai = DateFormat(
+      'EEEE',
+      'id_ID',
+    ).format(widget.tanggalMulai);
+    final String labelTglSelesai = DateFormat('dd MMM yyyy')
+        .format(widget.tanggalSelesai);
+    final String hariTglSelesai = DateFormat(
+      'EEEE',
+      'id_ID',
+    ).format(widget.tanggalSelesai);
 
     String namaFile = '';
     String sizeFile = '';
@@ -84,14 +102,17 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
             context.pop();
           }
 
-          context.pushReplacement('/izin-berhasil', extra: {
-            'namaKaryawan': namaKaryawan,
-            'jenisIzin': widget.jenisIzin,
-            'keterangan': widget.keterangan,
-            'tanggalMulai': widget.tanggalMulai,
-            'tanggalSelesai': widget.tanggalSelesai,
-            'namaLampiran': widget.lampiran?.path.split('/').last,
-          });
+          context.pushReplacement(
+            '/izin-berhasil',
+            extra: {
+              'namaKaryawan': namaKaryawan,
+              'jenisIzin': widget.jenisIzin,
+              'keterangan': widget.keterangan,
+              'tanggalMulai': widget.tanggalMulai,
+              'tanggalSelesai': widget.tanggalSelesai,
+              'namaLampiran': widget.lampiran?.path.split('/').last,
+            },
+          );
         }
 
         if (state.status == IzinStatus.error) {
@@ -99,18 +120,33 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
             context: context,
             barrierDismissible: false,
             builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
               backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              icon: Icon(Icons.warning_amber_rounded, color: const Color(0xFFEF4444), size: 48.w),
+              icon: Icon(
+                Icons.warning_amber_rounded,
+                color: const Color(0xFFEF4444),
+                size: 48.w,
+              ),
               title: Text(
                 'Pengajuan Gagal',
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
                 textAlign: TextAlign.center,
               ),
               content: Text(
-                state.errorMessage ?? 'Terjadi kesalahan pada server. Silakan coba lagi.',
+                state.errorMessage ??
+                    'Terjadi kesalahan pada server. Silakan coba lagi.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13.sp, color: textSecondary, height: 1.5),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: textSecondary,
+                  height: 1.5,
+                ),
               ),
               actionsAlignment: MainAxisAlignment.center,
               actions: [
@@ -121,10 +157,19 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                     onPressed: () => Navigator.of(ctx).pop(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEF4444),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                       elevation: 0,
                     ),
-                    child: Text('Mengerti', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Text(
+                      'Mengerti',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -157,14 +202,20 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                         width: 40.w,
                         height: 4.h,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                          color: isDark
+                              ? const Color(0xFF475569)
+                              : const Color(0xFFCBD5E1),
                           borderRadius: BorderRadius.circular(4.r),
                         ),
                       ),
                       Align(
                         alignment: Alignment.centerRight,
                         child: IconButton(
-                          icon: Icon(Icons.close, color: textSecondary, size: 24.w),
+                          icon: Icon(
+                            Icons.close,
+                            color: textSecondary,
+                            size: 24.w,
+                          ),
                           onPressed: isSubmitting ? null : () => context.pop(),
                         ),
                       ),
@@ -187,21 +238,38 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                                 width: 56.w,
                                 height: 56.w,
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFEFF6FF),
+                                  color: isDark
+                                      ? const Color(0xFF1E3A8A)
+                                            .withValues(alpha: 0.5)
+                                      : const Color(0xFFEFF6FF),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Icons.assignment_turned_in_outlined, color: primaryBlue, size: 28.w),
+                                child: Icon(
+                                  Icons.assignment_turned_in_outlined,
+                                  color: primaryBlue,
+                                  size: 28.w,
+                                ),
                               ),
                               Positioned(
                                 top: 0,
                                 right: 0,
                                 child: Container(
                                   padding: EdgeInsets.all(2.w),
-                                  decoration: BoxDecoration(color: bgSheet, shape: BoxShape.circle),
+                                  decoration: BoxDecoration(
+                                    color: bgSheet,
+                                    shape: BoxShape.circle,
+                                  ),
                                   child: Container(
                                     padding: EdgeInsets.all(4.w),
-                                    decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
-                                    child: Icon(Icons.check, color: Colors.white, size: 10.w),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF10B981),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 10.w,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -211,13 +279,21 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                         SizedBox(height: 16.h),
                         Text(
                           'Konfirmasi Pengajuan Izin',
-                          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary,
+                          ),
                         ),
                         SizedBox(height: 8.h),
                         Text(
                           'Periksa kembali data pengajuan Anda sebelum\ndikirim ke Admin.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13.sp, color: textSecondary, height: 1.5),
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: textSecondary,
+                            height: 1.5,
+                          ),
                         ),
                         SizedBox(height: 24.h),
                         Container(
@@ -227,7 +303,13 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                             borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(color: borderGrey),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02), blurRadius: 10.r, offset: Offset(0, 4.h)),
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.02,
+                                ),
+                                blurRadius: 10.r,
+                                offset: Offset(0, 4.h),
+                              ),
                             ],
                           ),
                           child: Column(
@@ -235,22 +317,39 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.receipt_long_outlined, color: primaryBlue, size: 18.w),
+                                  Icon(
+                                    Icons.receipt_long_outlined,
+                                    color: primaryBlue,
+                                    size: 18.w,
+                                  ),
                                   SizedBox(width: 8.w),
                                   Text(
                                     'Ringkasan Pengajuan',
-                                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: textPrimary,
+                                    ),
                                   ),
                                   const Spacer(),
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10.w,
+                                      vertical: 4.h,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0E7FF),
+                                      color: isDark
+                                          ? const Color(0xFF1E3A8A)
+                                          : const Color(0xFFE0E7FF),
                                       borderRadius: BorderRadius.circular(5.r),
                                     ),
                                     child: Text(
                                       '$durasiHari Hari',
-                                      style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: primaryBlue),
+                                      style: TextStyle(
+                                        fontSize: 11.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: primaryBlue,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -291,7 +390,10 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                               SizedBox(height: 16.h),
                               Text(
                                 'Alasan / Catatan Izin',
-                                style: TextStyle(fontSize: 11.sp, color: textSecondary),
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: textSecondary,
+                                ),
                               ),
                               SizedBox(height: 6.h),
                               Container(
@@ -303,7 +405,11 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                                 ),
                                 child: Text(
                                   '"${widget.keterangan}"',
-                                  style: TextStyle(fontSize: 13.sp, fontStyle: FontStyle.italic, color: textPrimary),
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontStyle: FontStyle.italic,
+                                    color: textPrimary,
+                                  ),
                                 ),
                               ),
                             ],
@@ -318,31 +424,54 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                               borderRadius: BorderRadius.circular(20.r),
                               border: Border.all(color: borderGrey),
                               boxShadow: [
-                                BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02), blurRadius: 10.r, offset: Offset(0, 4.h)),
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.2 : 0.02,
+                                  ),
+                                  blurRadius: 10.r,
+                                  offset: Offset(0, 4.h),
+                                ),
                               ],
                             ),
                             child: Column(
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.attach_file, color: primaryBlue, size: 18.w),
+                                    Icon(
+                                      Icons.attach_file,
+                                      color: primaryBlue,
+                                      size: 18.w,
+                                    ),
                                     SizedBox(width: 8.w),
                                     Text(
                                       'Lampiran Bukti Izin',
-                                      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: textPrimary,
+                                      ),
                                     ),
                                     const Spacer(),
                                     Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.w,
+                                        vertical: 4.h,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
-                                        borderRadius: BorderRadius.circular(12.r),
+                                        color: isDark
+                                            ? const Color(0xFF064E3B)
+                                            : const Color(0xFFD1FAE5),
+                                        borderRadius: BorderRadius.circular(
+                                          12.r,
+                                        ),
                                       ),
                                       child: Row(
                                         children: [
                                           Icon(
                                             Icons.check_circle,
-                                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                                            color: isDark
+                                                ? const Color(0xFF34D399)
+                                                : const Color(0xFF059669),
                                             size: 12.w,
                                           ),
                                           SizedBox(width: 4.w),
@@ -351,7 +480,9 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                                             style: TextStyle(
                                               fontSize: 10.sp,
                                               fontWeight: FontWeight.bold,
-                                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                                              color: isDark
+                                                  ? const Color(0xFF34D399)
+                                                  : const Color(0xFF059669),
                                             ),
                                           ),
                                         ],
@@ -371,28 +502,49 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                                       Container(
                                         padding: EdgeInsets.all(8.w),
                                         decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF4C0519) : const Color(0xFFFFE4E6),
-                                          borderRadius: BorderRadius.circular(8.r),
+                                          color: isDark
+                                              ? const Color(0xFF4C0519)
+                                              : const Color(0xFFFFE4E6),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
                                         ),
                                         child: Icon(
-                                          namaFile.toLowerCase().endsWith('.pdf') ? Icons.picture_as_pdf : Icons.image,
-                                          color: isDark ? const Color(0xFFFDA4AF) : const Color(0xFFE11D48),
+                                          namaFile.toLowerCase().endsWith(
+                                                '.pdf',
+                                              )
+                                              ? Icons.picture_as_pdf
+                                              : Icons.image,
+                                          color: isDark
+                                              ? const Color(0xFFFDA4AF)
+                                              : const Color(0xFFE11D48),
                                           size: 24.w,
                                         ),
                                       ),
                                       SizedBox(width: 12.w),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               namaFile,
-                                              style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: textPrimary),
+                                              style: TextStyle(
+                                                fontSize: 13.sp,
+                                                fontWeight: FontWeight.bold,
+                                                color: textPrimary,
+                                              ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             SizedBox(height: 2.h),
-                                            Text(sizeFile, style: TextStyle(fontSize: 11.sp, color: textSecondary)),
+                                            Text(
+                                              sizeFile,
+                                              style: TextStyle(
+                                                fontSize: 11.sp,
+                                                color: textSecondary,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -400,10 +552,16 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                                       Container(
                                         padding: EdgeInsets.all(4.w),
                                         decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF0F766E) : const Color(0xFF0D9488),
+                                          color: isDark
+                                              ? const Color(0xFF0F766E)
+                                              : const Color(0xFF0D9488),
                                           shape: BoxShape.circle,
                                         ),
-                                        child: Icon(Icons.check, color: Colors.white, size: 16.w),
+                                        child: Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                          size: 16.w,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -419,34 +577,58 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                             onPressed: isSubmitting
                                 ? null
                                 : () {
-                              final String formattedMulai = DateFormat('yyyy-MM-dd').format(widget.tanggalMulai);
-                              final String formattedSelesai = DateFormat('yyyy-MM-dd').format(widget.tanggalSelesai);
+                                    final String formattedMulai = DateFormat(
+                                      'yyyy-MM-dd',
+                                    ).format(widget.tanggalMulai);
+                                    final String formattedSelesai = DateFormat(
+                                      'yyyy-MM-dd',
+                                    ).format(widget.tanggalSelesai);
 
-                              context.read<IzinBloc>().add(
-                                SubmitIzin(
-                                  uuidPengajuan: _uuidPengajuan,
-                                  jenisIzin: widget.jenisIzin,
-                                  tanggalMulai: formattedMulai,
-                                  tanggalSelesai: formattedSelesai,
-                                  keterangan: widget.keterangan,
-                                  lampiran: widget.lampiran,
-                                ),
-                              );
-                            },
+                                    context.read<IzinBloc>().add(
+                                      SubmitIzin(
+                                        uuidPengajuan: _uuidPengajuan,
+                                        jenisIzin: widget.jenisIzin,
+                                        tanggalMulai: formattedMulai,
+                                        tanggalSelesai: formattedSelesai,
+                                        keterangan: widget.keterangan,
+                                        lampiran: widget.lampiran,
+                                      ),
+                                    );
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryBlue,
-                              disabledBackgroundColor: primaryBlue.withValues(alpha: 0.6),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                              disabledBackgroundColor: primaryBlue.withValues(
+                                alpha: 0.6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
                               elevation: 0,
                             ),
-                            icon: isSubmitting ? const SizedBox.shrink() : Icon(Icons.send_outlined, color: Colors.white, size: 18.w),
+                            icon: isSubmitting
+                                ? const SizedBox.shrink()
+                                : Icon(
+                                    Icons.send_outlined,
+                                    color: Colors.white,
+                                    size: 18.w,
+                                  ),
                             label: isSubmitting
                                 ? SizedBox(
-                              width: 24.w,
-                              height: 24.w,
-                              child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                            )
-                                : Text('Konfirmasi & Kirim Izin', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    width: 24.w,
+                                    height: 24.w,
+                                    child: const CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : Text(
+                                    'Konfirmasi & Kirim Izin',
+                                    style: TextStyle(
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                         SizedBox(height: 12.h),
@@ -454,11 +636,22 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                           width: double.infinity,
                           height: 52.h,
                           child: TextButton(
-                            onPressed: isSubmitting ? null : () => context.pop(),
+                            onPressed: isSubmitting
+                                ? null
+                                : () => context.pop(),
                             style: TextButton.styleFrom(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
                             ),
-                            child: Text('Periksa Kembali', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: textSecondary)),
+                            child: Text(
+                              'Periksa Kembali',
+                              style: TextStyle(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.bold,
+                                color: textSecondary,
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(height: 32.h),
@@ -484,8 +677,12 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
     required bool isDark,
   }) {
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color iconBg = isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color iconBg = isDark
+        ? const Color(0xFF282828)
+        : const Color(0xFFF1F5F9);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -500,7 +697,10 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 11.sp, color: textSecondary)),
+              Text(
+                label,
+                style: TextStyle(fontSize: 11.sp, color: textSecondary),
+              ),
               SizedBox(height: 2.h),
               Row(
                 children: [
@@ -533,8 +733,12 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
     required bool isDark,
   }) {
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color primaryBlue = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    final Color textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color primaryBlue = isDark
+        ? const Color(0xFF60A5FA)
+        : const Color(0xFF135CAE);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,7 +748,10 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(fontSize: 10.sp, color: textSecondary)),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10.sp, color: textSecondary),
+            ),
             SizedBox(height: 2.h),
             Text(
               date,
@@ -554,7 +761,10 @@ class _KonfirmasiIzinBottomSheetState extends State<KonfirmasiIzinBottomSheet> {
                 color: textPrimary,
               ),
             ),
-            Text(day, style: TextStyle(fontSize: 11.sp, color: textSecondary)),
+            Text(
+              day,
+              style: TextStyle(fontSize: 11.sp, color: textSecondary),
+            ),
           ],
         ),
       ],

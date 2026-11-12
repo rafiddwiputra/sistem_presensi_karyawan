@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,7 +15,6 @@ class PresensiPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Daftarkan BLoC dan langsung tembak event LoadPresensiData saat halaman dibuka
     return BlocProvider(
       create: (context) => sl<PresensiBloc>()..add(LoadPresensiData()),
       child: const PresensiView(),
@@ -40,6 +38,23 @@ class _PresensiViewState extends State<PresensiView> {
     } catch (e) {
       return rawDate;
     }
+  }
+
+  // UPDATE: Memperbaiki pemotongan string jika backend mengirimkan "YYYY-MM-DD HH:mm:ss"
+  String _formatJamWIB(String? time) {
+    if (time == null || time.isEmpty) return '--:-- WIB';
+
+    // Jika formatnya panjang (ada spasi), kita ambil jamnya saja di belakang
+    String timeOnly = time;
+    if (time.contains(' ')) {
+      timeOnly = time.split(' ').last;
+    }
+
+    final parts = timeOnly.split(':');
+    if (parts.length >= 2) {
+      return '${parts[0]}:${parts[1]} WIB';
+    }
+    return '$timeOnly WIB';
   }
 
   @override
@@ -76,7 +91,6 @@ class _PresensiViewState extends State<PresensiView> {
           ),
         ),
       ),
-
       body: BlocConsumer<PresensiBloc, PresensiState>(
         listener: (context, state) {
           if (state.status == PresensiStatus.error &&
@@ -111,6 +125,43 @@ class _PresensiViewState extends State<PresensiView> {
           final isDalamRadius = state.isDalamRadius;
           final isCheckingLokasi =
               state.status == PresensiStatus.locationChecking;
+
+          // ==========================================
+          // UPDATE: LOGIKA TOMBOL PRESENSI YANG BARU
+          // ==========================================
+          final bool isSudahMasuk = data?.presensi.waktuMasuk != null;
+          final bool isModePulang = data?.aksiBerikutnya == 'Pulang';
+          final bool isSelesai = data?.presensiSelesai == true;
+
+          bool isTombolAktif = false;
+          String teksTombol = 'Memuat...';
+          IconData? iconTombol;
+
+          if (isSelesai) {
+            // Skenario 1: Sudah absen pulang
+            isTombolAktif = false;
+            teksTombol = 'Presensi Selesai';
+            iconTombol = Icons.check_circle_outline;
+          } else if (!isSudahMasuk) {
+            // Skenario 2: Belum absen masuk sama sekali
+            isTombolAktif = true;
+            teksTombol = 'Masuk Kerja';
+            iconTombol = null; // Tidak pakai icon
+          } else if (isSudahMasuk && isModePulang) {
+            // Skenario 3: Sudah masuk, dan backend sudah buka jadwal pulang
+            isTombolAktif = true;
+            teksTombol = 'Pulang Kerja';
+            iconTombol = Icons.logout_outlined;
+          } else if (isSudahMasuk && !isModePulang) {
+            // Skenario 4: Sudah masuk, TAPI backend belum kasih akses pulang (karena belum masuk tengah jam)
+            isTombolAktif = false;
+            teksTombol = 'Belum Waktu Pulang';
+            iconTombol = Icons.lock_clock_outlined;
+          }
+
+          // Tombol hanya bisa di-klik jika status aktif + dalam radius + GPS tidak loading
+          bool canPress = isTombolAktif && isDalamRadius && !isCheckingLokasi;
+          // ==========================================
 
           return Stack(
             children: [
@@ -200,7 +251,6 @@ class _PresensiViewState extends State<PresensiView> {
                   ],
                 ),
               ),
-
               Positioned(
                 top: 16.h,
                 right: 16.w,
@@ -235,7 +285,6 @@ class _PresensiViewState extends State<PresensiView> {
                   ],
                 ),
               ),
-
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
@@ -274,21 +323,18 @@ class _PresensiViewState extends State<PresensiView> {
                         ),
                       ),
                       SizedBox(height: 24.h),
-
                       isCheckingLokasi
                           ? const Center(child: CircularProgressIndicator())
                           : (isDalamRadius
-                                ? _buildDalamRadiusCard(
-                                    isDark,
-                                    state.jarakMeter,
-                                  )
-                                : _buildLuarRadiusCard(
-                                    isDark,
-                                    state.jarakMeter,
-                                  )),
-
+                          ? _buildDalamRadiusCard(
+                        isDark,
+                        state.jarakMeter,
+                      )
+                          : _buildLuarRadiusCard(
+                        isDark,
+                        state.jarakMeter,
+                      )),
                       SizedBox(height: 16.h),
-
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 16.w,
@@ -325,7 +371,7 @@ class _PresensiViewState extends State<PresensiView> {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         FittedBox(
                                           fit: BoxFit.scaleDown,
@@ -385,13 +431,13 @@ class _PresensiViewState extends State<PresensiView> {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         FittedBox(
                                           fit: BoxFit.scaleDown,
                                           alignment: Alignment.centerLeft,
                                           child: Text(
-                                            'Jadwal Masuk',
+                                            'Waktu Presensi',
                                             style: TextStyle(
                                               fontSize: 12.sp,
                                               color: textSecondary,
@@ -403,7 +449,7 @@ class _PresensiViewState extends State<PresensiView> {
                                           fit: BoxFit.scaleDown,
                                           alignment: Alignment.centerLeft,
                                           child: Text(
-                                            data?.jadwal.jamMasuk ?? '--:--',
+                                            '${DateFormat('HH:mm').format(DateTime.now())} WIB',
                                             style: TextStyle(
                                               fontSize: 14.sp,
                                               fontWeight: FontWeight.bold,
@@ -420,8 +466,72 @@ class _PresensiViewState extends State<PresensiView> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 24.h),
 
+                      // --- CARD PRESENSI MASUK HARI INI ---
+                      if (data?.presensi.waktuMasuk != null)
+                        Container(
+                          margin: EdgeInsets.only(top: 12.h),
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9),
+                              width: 1.5.w,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(10.w),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                                child: Icon(
+                                  Icons.login_rounded,
+                                  color: const Color(0xFF10B981),
+                                  size: 20.w,
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Presensi Masuk Hari Ini',
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  RichText(
+                                    text: TextSpan(
+                                      text: 'Jam Masuk: ',
+                                      style: TextStyle(
+                                        fontSize: 13.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                        fontFamily: 'Inter',
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: _formatJamWIB(data!.presensi.waktuMasuk!),
+                                          style: const TextStyle(
+                                            color: Color(0xFF3B82F6),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      SizedBox(height: 16.h),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -468,77 +578,51 @@ class _PresensiViewState extends State<PresensiView> {
                       ),
                       SizedBox(height: 32.h),
 
+                      // Tombol Master Presensi
                       SizedBox(
                         width: double.infinity,
                         height: 55.h,
-                        child:
-                            (isDalamRadius &&
-                                !isCheckingLokasi &&
-                                data != null &&
-                                !data.presensiSelesai)
-                            ? ElevatedButton(
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (_) => BlocProvider.value(
-                                      value: context.read<PresensiBloc>(),
-                                      child:
-                                          const KonfirmasiPresensiBottomSheet(),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: headerBlue,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  data.aksiBerikutnya == 'Pulang'
-                                      ? 'Pulang Kerja'
-                                      : 'Masuk Kerja',
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              )
-                            : ElevatedButton.icon(
-                                onPressed: null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isDark
-                                      ? const Color(0xFF333333)
-                                      : const Color(0xFFE2E8F0),
-                                  disabledBackgroundColor: isDark
-                                      ? const Color(0xFF333333)
-                                      : const Color(0xFFE2E8F0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                icon: Icon(
-                                  Icons.lock_outline,
-                                  color: const Color(0xFF94A3B8),
-                                  size: 20.w,
-                                ),
-                                label: Text(
-                                  (data?.presensiSelesai == true)
-                                      ? 'Presensi Selesai'
-                                      : (data?.aksiBerikutnya == 'Pulang'
-                                            ? 'Sudah Presensi Masuk'
-                                            : 'Belum Waktunya Presensi'),
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                ),
+                        child: ElevatedButton.icon(
+                          onPressed: canPress
+                              ? () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<PresensiBloc>(),
+                                child: const KonfirmasiPresensiBottomSheet(),
                               ),
+                            );
+                          }
+                              : null, // Kalau canPress = false, tombol jadi terkunci (disabled)
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: headerBlue,
+                            disabledBackgroundColor: isDark
+                                ? const Color(0xFF333333)
+                                : const Color(0xFFE2E8F0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: iconTombol != null
+                              ? Icon(
+                            // Jika tombol sedang disable tapi dia di luar radius, icon diganti gembok agar intuitif
+                            (!canPress && isTombolAktif) ? Icons.lock_outline : iconTombol,
+                            color: canPress ? Colors.white : const Color(0xFF94A3B8),
+                            size: 20.w,
+                          )
+                              : const SizedBox.shrink(),
+                          label: Text(
+                            (!canPress && isTombolAktif) ? 'Di Luar Radius Kantor' : teksTombol,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: canPress ? Colors.white : const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
