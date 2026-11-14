@@ -1,46 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:sistem_presensi_karyawan/features/auth/presentation/pages/splash_page.dart';
-
-import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/main_wrapper.dart';
+import 'package:sistem_presensi_karyawan/core/di/injection.dart';
 
 import 'package:sistem_presensi_karyawan/features/auth/presentation/pages/login_page.dart';
+import 'package:sistem_presensi_karyawan/features/auth/presentation/pages/splash_page.dart';
+
 import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/beranda_page.dart';
+import 'package:sistem_presensi_karyawan/features/beranda/presentation/pages/main_wrapper.dart';
+
+import 'package:sistem_presensi_karyawan/features/presensi/presentation/bloc/riwayat_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/presensi/presentation/bloc/riwayat_event.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/karyawan/presensi_page.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/presensi_berhasil_page.dart';
-import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/riwayat_presensi_page.dart'; // Sesuaikan path jika berbeda
+import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/rekap_presensi_page.dart';
+import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/riwayat_presensi_page.dart';
 
-import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/izin_page.dart';
 import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/buat_izin_page.dart';
 import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/izin_berhasil_page.dart';
+import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/izin_page.dart';
 
-import 'package:sistem_presensi_karyawan/features/cuti/presentation/pages/cuti_page.dart';
+import 'package:sistem_presensi_karyawan/features/cuti/presentation/bloc/cuti_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/cuti/presentation/pages/buat_cuti.dart';
 import 'package:sistem_presensi_karyawan/features/cuti/presentation/pages/cuti_berhasil_page.dart';
+import 'package:sistem_presensi_karyawan/features/cuti/presentation/pages/cuti_page.dart';
 
-import 'package:sistem_presensi_karyawan/features/lembur/presentation/pages/lembur_page.dart';
+import 'package:sistem_presensi_karyawan/features/lembur/presentation/bloc/lembur_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/lembur/presentation/pages/buat_lembur_page.dart';
-import 'package:sistem_presensi_karyawan/features/lembur/presentation/pages/lembur_berhasil_page.dart';
+import 'package:sistem_presensi_karyawan/features/lembur/presentation/pages/lembur_page.dart';
 
-import 'package:sistem_presensi_karyawan/features/reimbursement/presentation/pages/reimbursement_page.dart';
+import 'package:sistem_presensi_karyawan/features/reimbursement/presentation/bloc/reimbursement_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/reimbursement/presentation/pages/buat_reimbursement_page.dart';
 import 'package:sistem_presensi_karyawan/features/reimbursement/presentation/pages/reimbursement_berhasil_page.dart';
+import 'package:sistem_presensi_karyawan/features/reimbursement/presentation/pages/reimbursement_page.dart';
 
-import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/profil_page.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/edit_profil_page.dart';
-import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/ubah_password_page.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/notifikasi_page.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/pengaturan_page.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sistem_presensi_karyawan/core/di/injection.dart'; // Untuk memanggil sl
-import 'package:sistem_presensi_karyawan/features/cuti/presentation/bloc/cuti_bloc.dart';
-
-import '../../features/lembur/presentation/bloc/lembur_bloc.dart';
-import '../../features/presensi/presentation/bloc/riwayat_bloc.dart';
-import '../../features/presensi/presentation/bloc/riwayat_event.dart';
-import '../../features/presensi/presentation/pages/rekap_presensi_page.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/profil_page.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/ubah_password_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -53,7 +52,6 @@ final GoRouter appRouter = GoRouter(
       name: 'splash',
       builder: (context, state) => const SplashPage(),
     ),
-
     GoRoute(
       path: '/login',
       name: 'login',
@@ -121,12 +119,12 @@ final GoRouter appRouter = GoRouter(
         final args = state.extra as Map<String, dynamic>? ?? {};
 
         return IzinBerhasilPage(
-          namaKaryawan: args['namaKaryawan'] ?? 'Rafid Dwi Putra Andino',
-          jenisIzin: args['jenisIzin'] ?? 'Sakit',
-          keterangan: args['keterangan'] ?? '-',
-          tanggalMulai: args['tanggalMulai'] ?? DateTime.now(),
-          tanggalSelesai: args['tanggalSelesai'] ?? DateTime.now(),
-          namaLampiran: args['namaLampiran'],
+          namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
+          jenisIzin: args['jenisIzin'] as String? ?? 'Sakit',
+          keterangan: args['keterangan'] as String? ?? '-',
+          tanggalMulai: args['tanggalMulai'] as DateTime? ?? DateTime.now(),
+          tanggalSelesai: args['tanggalSelesai'] as DateTime? ?? DateTime.now(),
+          namaLampiran: args['namaLampiran'] as String?,
         );
       },
     ),
@@ -157,11 +155,11 @@ final GoRouter appRouter = GoRouter(
         final args = state.extra as Map<String, dynamic>? ?? {};
 
         return CutiBerhasilPage(
-          namaKaryawan: args['namaKaryawan'] ?? 'Rafid Dwi Putra Andino',
-          jenisCuti: args['jenisCuti'] ?? 'Cuti Tahunan',
-          keterangan: args['keterangan'] ?? '-',
-          tanggalMulai: args['tanggalMulai'] ?? DateTime.now(),
-          tanggalSelesai: args['tanggalSelesai'] ?? DateTime.now(),
+          namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
+          jenisCuti: args['jenisCuti'] as String? ?? 'Cuti Tahunan',
+          keterangan: args['keterangan'] as String? ?? '-',
+          tanggalMulai: args['tanggalMulai'] as DateTime? ?? DateTime.now(),
+          tanggalSelesai: args['tanggalSelesai'] as DateTime? ?? DateTime.now(),
         );
       },
     ),
@@ -170,7 +168,7 @@ final GoRouter appRouter = GoRouter(
       name: 'lembur',
       builder: (context, state) {
         return BlocProvider(
-          create: (context) => sl<LemburBloc>(), // WAJIB ADA INI
+          create: (context) => sl<LemburBloc>(),
           child: const LemburPage(),
         );
       },
@@ -180,32 +178,51 @@ final GoRouter appRouter = GoRouter(
       name: 'buat-lembur',
       builder: (context, state) {
         return BlocProvider(
-          create: (context) => sl<LemburBloc>(), // WAJIB ADA INI
+          create: (context) => sl<LemburBloc>(),
           child: const BuatLemburPage(),
         );
       },
     ),
     GoRoute(
-      path: '/lembur-berhasil',
-      name: 'lembur-berhasil',
-      builder: (context, state) => const LemburBerhasilPage(),
-    ),
-    GoRoute(
       path: '/reimbursement',
       name: 'reimbursement',
-      builder: (context, state) => const ReimbursementPage(),
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<ReimbursementBloc>(),
+          child: const ReimbursementPage(),
+        );
+      },
     ),
     GoRoute(
       path: '/buat-reimbursement',
       name: 'buat-reimbursement',
-      builder: (context, state) => const BuatReimbursementPage(),
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<ReimbursementBloc>(),
+          child: const BuatReimbursementPage(),
+        );
+      },
     ),
     GoRoute(
       path: '/reimbursement-berhasil',
       name: 'reimbursement-berhasil',
-      builder: (context, state) => const ReimbursementBerhasilPage(),
-    ),
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        final bloc = args['bloc'] as ReimbursementBloc?;
 
+        if (bloc != null) {
+          return BlocProvider.value(
+            value: bloc,
+            child: const ReimbursementBerhasilPage(),
+          );
+        }
+
+        return BlocProvider(
+          create: (context) => sl<ReimbursementBloc>(),
+          child: const ReimbursementBerhasilPage(),
+        );
+      },
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainWrapper(navigationShell: navigationShell);
@@ -216,14 +233,14 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/beranda',
               builder: (context, state) => BlocProvider(
-                create: (_) => sl<RiwayatBloc>()..add(LoadRiwayatRequested(DateTime.now())),
+                create: (_) =>
+                sl<RiwayatBloc>()..add(LoadRiwayatRequested(DateTime.now())),
                 child: const BerandaPage(),
               ),
             ),
           ],
         ),
         StatefulShellBranch(
-
           routes: [
             GoRoute(
               path: '/riwayat',
@@ -232,7 +249,6 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-
         StatefulShellBranch(
           routes: [
             GoRoute(

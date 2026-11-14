@@ -5,31 +5,46 @@ import 'package:sistem_presensi_karyawan/features/auth/repositories/auth_reposit
 import 'auth_event.dart';
 import 'auth_state.dart';
 
-// 1. Import ProfilBloc dan ProfilEvent agar AuthBloc bisa memanggilnya
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_event.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
-
-  // 2. Tambahkan ProfilBloc di constructor melalui Dependency Injection (GetIt / sl)
   final ProfilBloc profilBloc;
 
   AuthBloc({required this.authRepository, required this.profilBloc})
-    : super(AuthInitial()) {
+      : super(AuthInitial()) {
+    on<CheckAuthStatusRequested>(_onCheckAuthStatusRequested);
     on<LoginRequested>(_onLoginRequested);
     on<LogoutRequested>(_onLogoutRequested);
   }
 
+  Future<void> _onCheckAuthStatusRequested(
+      CheckAuthStatusRequested event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(AuthLoading());
+    try {
+      final savedUser = await authRepository.getSavedSession();
+      if (savedUser != null) {
+        profilBloc.add(LoadProfilRequested());
+        emit(AuthSuccess(savedUser));
+      } else {
+        emit(AuthUnauthenticated());
+      }
+    } catch (_) {
+      emit(AuthUnauthenticated());
+    }
+  }
+
   Future<void> _onLoginRequested(
-    LoginRequested event,
-    Emitter<AuthState> emit,
-  ) async {
+      LoginRequested event,
+      Emitter<AuthState> emit,
+      ) async {
     emit(AuthLoading());
     try {
       final user = await authRepository.login(event.email, event.password);
 
-      // 3. Picu ProfilBloc untuk langsung mendownload data profil karyawan
       profilBloc.add(LoadProfilRequested());
 
       emit(AuthSuccess(user));
@@ -42,9 +57,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogoutRequested(
-    LogoutRequested event,
-    Emitter<AuthState> emit,
-  ) async {
+      LogoutRequested event,
+      Emitter<AuthState> emit,
+      ) async {
     emit(AuthLoading());
     try {
       await authRepository.logout();

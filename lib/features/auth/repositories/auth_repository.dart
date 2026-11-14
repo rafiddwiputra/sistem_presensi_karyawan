@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sistem_presensi_karyawan/core/errors/app_exception.dart';
 import 'package:sistem_presensi_karyawan/core/network/api_client.dart';
@@ -51,6 +51,16 @@ class AuthRepository {
     } on DioException catch (e) {
       throw _apiClient.mapError(e);
     }
+  }
+
+  /// Mengecek apakah token sesi masih tersimpan di perangkat
+  Future<Map<String, dynamic>?> getSavedSession() async {
+    final token = await _storageService.getToken();
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+
+    return <String, dynamic>{};
   }
 
   Future<void> logout() async {

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -18,10 +22,30 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _navigateToNext() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
+    final authBloc = context.read<AuthBloc>();
+    authBloc.add(const CheckAuthStatusRequested());
+
+    // Tahan minimal 2 detik agar tampilan splash screen tetap terlihat
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+
+    AuthState currentState = authBloc.state;
+    if (currentState is AuthInitial || currentState is AuthLoading) {
+      currentState = await authBloc.stream.firstWhere(
+            (state) =>
+        state is AuthSuccess ||
+            state is AuthUnauthenticated ||
+            state is AuthError,
+      );
+    }
 
     if (!mounted) return;
-    context.go('/login');
+
+    if (currentState is AuthSuccess) {
+      context.go('/beranda');
+    } else {
+      context.go('/login');
+    }
   }
 
   @override
@@ -77,7 +101,6 @@ class _SplashPageState extends State<SplashPage> {
               ],
             ),
           ),
-
           Positioned(
             bottom: 48,
             left: 0,
