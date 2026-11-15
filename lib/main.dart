@@ -1,24 +1,36 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:sistem_presensi_karyawan/app/theme/app_theme.dart';
-import 'package:sistem_presensi_karyawan/core/routes/app_router.dart';
 import 'package:sistem_presensi_karyawan/app/theme/theme_notifier.dart';
 import 'package:sistem_presensi_karyawan/core/di/injection.dart';
-import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+import 'package:sistem_presensi_karyawan/core/routes/app_router.dart';
+import 'package:sistem_presensi_karyawan/core/services/fcm_service.dart';
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 
 void main() async {
   runZonedGuarded(
-    () async {
+        () async {
       WidgetsFlutterBinding.ensureInitialized();
+      await Firebase.initializeApp();
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
       await initializeDateFormatting('id_ID', null);
       await setupInjection();
+      await sl<FcmService>().initialize();
 
       runApp(
         MultiBlocProvider(
@@ -30,7 +42,7 @@ void main() async {
         ),
       );
     },
-    (error, stackTrace) {
+        (error, stackTrace) {
       if (kDebugMode) {
         debugPrint('Uncaught Enterprise Error: $error\n$stackTrace');
       }

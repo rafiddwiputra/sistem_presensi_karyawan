@@ -1,12 +1,15 @@
 import 'package:get_it/get_it.dart';
 
 import '../network/api_client.dart';
+import '../services/fcm_service.dart';
 import '../services/secure_storage_service.dart';
 
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/repositories/auth_repository.dart';
 
+import '../../features/profil/presentation/bloc/notifikasi_bloc.dart';
 import '../../features/profil/presentation/bloc/profil_bloc.dart';
+import '../../features/profil/repositories/notifikasi_repository.dart';
 import '../../features/profil/repositories/profil_repository.dart';
 
 import '../../features/presensi/presentation/bloc/presensi_bloc.dart';
@@ -42,6 +45,9 @@ Future<void> setupInjection() async {
   sl.registerLazySingleton<ProfilRepository>(
         () => ProfilRepository(sl<ApiClient>(), sl<SecureStorageService>()),
   );
+  sl.registerLazySingleton<NotifikasiRepository>(
+        () => NotifikasiRepository(sl<ApiClient>()),
+  );
   sl.registerLazySingleton<RiwayatRepository>(
         () => RiwayatRepository(sl<ApiClient>()),
   );
@@ -61,6 +67,11 @@ Future<void> setupInjection() async {
         () => ReimbursementRepository(sl<ApiClient>()),
   );
 
+  // Services
+  sl.registerLazySingleton<FcmService>(
+        () => FcmService(sl<NotifikasiRepository>()),
+  );
+
   // Global BLoCs (Singleton)
   sl.registerLazySingleton<ProfilBloc>(
         () => ProfilBloc(repository: sl<ProfilRepository>()),
@@ -69,10 +80,14 @@ Future<void> setupInjection() async {
         () => AuthBloc(
       authRepository: sl<AuthRepository>(),
       profilBloc: sl<ProfilBloc>(),
+      fcmService: sl<FcmService>(),
     ),
   );
 
   // Feature BLoCs (Factory)
+  sl.registerFactory<NotifikasiBloc>(
+        () => NotifikasiBloc(repository: sl<NotifikasiRepository>()),
+  );
   sl.registerFactory<RiwayatBloc>(
         () => RiwayatBloc(repository: sl<RiwayatRepository>()),
   );

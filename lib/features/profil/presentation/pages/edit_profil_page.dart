@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Pastikan import widget custom ini ada!
 import '../../../../core/widgets/authenticated_profile_image.dart';
+import '../../../../core/widgets/error_action_dialog.dart';
 import '../bloc/profil_bloc.dart';
 import '../bloc/profil_event.dart';
 import '../bloc/profil_state.dart';
@@ -38,7 +38,6 @@ class _EditProfilPageState extends State<EditProfilPage> {
       _emailController.text = currentState.user['email'] ?? '';
       _noTlpController.text = currentState.user['no_hp'] ?? '';
       _alamatController.text = currentState.user['alamat'] ?? '';
-      // Kunci yang benar adalah foto_url
       _currentImageUrl = currentState.user['foto_url'];
     }
   }
@@ -50,6 +49,29 @@ class _EditProfilPageState extends State<EditProfilPage> {
     _noTlpController.dispose();
     _alamatController.dispose();
     super.dispose();
+  }
+
+  void _submitProfil() {
+    context.read<ProfilBloc>().add(
+      UpdateProfilRequested(
+        nama: _namaController.text,
+        email: _emailController.text,
+        noHp: _noTlpController.text,
+        alamat: _alamatController.text,
+        image: _imageFile,
+      ),
+    );
+  }
+
+  String _formatErrorMessage(String rawMessage) {
+    final lower = rawMessage.toLowerCase();
+    if (lower.contains('koneksi') ||
+        lower.contains('server') ||
+        lower.contains('internet') ||
+        lower.contains('timeout')) {
+      return '$rawMessage. Perubahan profil Anda belum tersimpan, namun data yang telah diisi tetap aman. Periksa koneksi Anda lalu coba lagi.';
+    }
+    return rawMessage;
   }
 
   void _showImageSourceActionSheet(BuildContext context) {
@@ -214,7 +236,12 @@ class _EditProfilPageState extends State<EditProfilPage> {
           _showSnackBar('Profil berhasil diperbarui!', Colors.green);
           context.pop();
         } else if (state is ProfilError) {
-          _showSnackBar(state.message, Colors.red);
+          ErrorActionDialog.show(
+            context,
+            title: 'Gagal Menyimpan Perubahan',
+            message: _formatErrorMessage(state.message),
+            onRetry: _submitProfil,
+          );
         }
       },
       builder: (context, state) {
@@ -284,34 +311,33 @@ class _EditProfilPageState extends State<EditProfilPage> {
                               ),
                               child: Column(
                                 children: [
-                                  // --- Penempatan Stack yang benar ada di sini ---
                                   Stack(
                                     alignment: Alignment.bottomRight,
                                     children: [
                                       _imageFile != null
                                           ? Container(
-                                              width: 86.w,
-                                              height: 86.w,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: const Color(
-                                                    0xFFFCD34D,
-                                                  ),
-                                                  width: 4.w,
-                                                ),
-                                                image: DecorationImage(
-                                                  image: FileImage(_imageFile!),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            )
-                                          : AuthenticatedProfileImage(
-                                              imagePath: _currentImageUrl,
-                                              size: 86.w,
-                                              isDark: isDark,
-                                              borderWidth: 4.0,
+                                        width: 86.w,
+                                        height: 86.w,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: const Color(
+                                              0xFFFCD34D,
                                             ),
+                                            width: 4.w,
+                                          ),
+                                          image: DecorationImage(
+                                            image: FileImage(_imageFile!),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      )
+                                          : AuthenticatedProfileImage(
+                                        imagePath: _currentImageUrl,
+                                        size: 86.w,
+                                        isDark: isDark,
+                                        borderWidth: 4.0,
+                                      ),
                                       GestureDetector(
                                         onTap: () =>
                                             _showImageSourceActionSheet(
@@ -336,7 +362,6 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                       ),
                                     ],
                                   ),
-                                  // ------------------------------------------------
                                   SizedBox(height: 12.h),
                                   Text(
                                     _namaController.text.isNotEmpty
@@ -438,19 +463,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
                   width: double.infinity,
                   height: 52.h,
                   child: ElevatedButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            context.read<ProfilBloc>().add(
-                              UpdateProfilRequested(
-                                nama: _namaController.text,
-                                email: _emailController.text,
-                                noHp: _noTlpController.text,
-                                alamat: _alamatController.text,
-                                image: _imageFile,
-                              ),
-                            );
-                          },
+                    onPressed: isLoading ? null : _submitProfil,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: btnBlue,
                       shape: RoundedRectangleBorder(
@@ -460,32 +473,32 @@ class _EditProfilPageState extends State<EditProfilPage> {
                     ),
                     child: isLoading
                         ? SizedBox(
-                            height: 24.h,
-                            width: 24.h,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
+                      height: 24.h,
+                      width: 24.h,
+                      child: const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
                         : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.save_outlined,
-                                color: Colors.white,
-                                size: 20.sp,
-                              ),
-                              SizedBox(width: 8.w),
-                              Text(
-                                'Simpan Perubahan',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.save_outlined,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Simpan Perubahan',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(height: 12.h),
@@ -518,14 +531,14 @@ class _EditProfilPageState extends State<EditProfilPage> {
   }
 
   Widget _buildModernFormField(
-    String label,
-    TextEditingController controller, {
-    bool isEnabled = true,
-    bool isNumber = false,
-    bool isLast = false,
-    int maxLines = 1,
-    required bool isDark,
-  }) {
+      String label,
+      TextEditingController controller, {
+        bool isEnabled = true,
+        bool isNumber = false,
+        bool isLast = false,
+        int maxLines = 1,
+        required bool isDark,
+      }) {
     final Color inputBg = isDark
         ? const Color(0xFF1A1A1A)
         : const Color(0xFFF8FAFC);

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sistem_presensi_karyawan/core/errors/app_exception.dart';
+import 'package:sistem_presensi_karyawan/core/services/fcm_service.dart';
 import 'package:sistem_presensi_karyawan/features/auth/repositories/auth_repository.dart';
 
 import 'auth_event.dart';
@@ -11,9 +14,13 @@ import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profi
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   final ProfilBloc profilBloc;
+  final FcmService fcmService;
 
-  AuthBloc({required this.authRepository, required this.profilBloc})
-      : super(AuthInitial()) {
+  AuthBloc({
+    required this.authRepository,
+    required this.profilBloc,
+    required this.fcmService,
+  }) : super(AuthInitial()) {
     on<CheckAuthStatusRequested>(_onCheckAuthStatusRequested);
     on<LoginRequested>(_onLoginRequested);
     on<LogoutRequested>(_onLogoutRequested);
@@ -29,6 +36,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (savedUser != null) {
         profilBloc.add(LoadProfilRequested());
         emit(AuthSuccess(savedUser));
+        unawaited(fcmService.syncTokenWithBackend());
       } else {
         emit(AuthUnauthenticated());
       }
@@ -46,8 +54,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await authRepository.login(event.email, event.password);
 
       profilBloc.add(LoadProfilRequested());
-
       emit(AuthSuccess(user));
+      unawaited(fcmService.syncTokenWithBackend());
     } catch (e) {
       final errorMessage = e is AppException
           ? e.message
@@ -62,6 +70,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ) async {
     emit(AuthLoading());
     try {
+      await fcmService.unregisterTokenFromBackend();
       await authRepository.logout();
     } catch (e) {
       // Abaikan error API saat logout, paksa hapus sesi lokal

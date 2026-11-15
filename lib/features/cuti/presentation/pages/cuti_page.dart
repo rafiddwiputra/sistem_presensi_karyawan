@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/widgets/riwayat_state.dart';
 import '../bloc/cuti_bloc.dart';
 import '../bloc/cuti_event.dart';
 import '../bloc/cuti_state.dart';
@@ -21,7 +22,10 @@ class _CutiPageState extends State<CutiPage> {
   void initState() {
     super.initState();
     initializeDateFormatting('id_ID', null);
+    _loadRiwayat();
+  }
 
+  void _loadRiwayat() {
     context.read<CutiBloc>().add(FetchRiwayatCuti());
   }
 
@@ -69,16 +73,13 @@ class _CutiPageState extends State<CutiPage> {
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
-    final Color primaryBlue = isDark
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF135CAE);
-    final Color headerBlue = isDark
-        ? const Color(0xFF154B8C)
-        : const Color(0xFF135CAE);
+    final Color primaryBlue =
+    isDark ? const Color(0xFF3B82F6) : const Color(0xFF135CAE);
+    final Color headerBlue =
+    isDark ? const Color(0xFF154B8C) : const Color(0xFF135CAE);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
+    final Color textSecondary =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
@@ -123,10 +124,7 @@ class _CutiPageState extends State<CutiPage> {
                   ),
                 ),
                 child: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<CutiBloc>().add(FetchRiwayatCuti());
-                    await Future.delayed(const Duration(seconds: 1));
-                  },
+                  onRefresh: () async => _loadRiwayat(),
                   color: primaryBlue,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(
@@ -175,7 +173,7 @@ class _CutiPageState extends State<CutiPage> {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Rencanakan Cuti Anda',
@@ -203,8 +201,11 @@ class _CutiPageState extends State<CutiPage> {
                                 width: double.infinity,
                                 height: 52.h,
                                 child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    context.push('/buat-cuti');
+                                  onPressed: () async {
+                                    await context.push('/buat-cuti');
+                                    if (mounted) {
+                                      _loadRiwayat();
+                                    }
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryBlue,
@@ -247,41 +248,37 @@ class _CutiPageState extends State<CutiPage> {
 
                         BlocBuilder<CutiBloc, CutiState>(
                           builder: (context, state) {
-                            // MENGGUNAKAN ENUM state.status, BUKAN state is ...
-                            if (state.status == CutiStatus.loading) {
-                              return Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(20.w),
+                            if (state.status == CutiStatus.loading &&
+                                state.riwayatCuti.isEmpty) {
+                              return Padding(
+                                padding: EdgeInsets.symmetric(vertical: 48.h),
+                                child: Center(
                                   child: CircularProgressIndicator(
                                     color: primaryBlue,
                                   ),
                                 ),
                               );
-                            } else if (state.status == CutiStatus.error) {
-                              // MENGGUNAKAN errorMessage
-                              return Center(
-                                child: Text(
-                                  state.errorMessage ?? 'Terjadi kesalahan',
-                                  style: const TextStyle(color: Colors.red),
-                                ),
+                            }
+
+                            if (state.status == CutiStatus.error &&
+                                state.riwayatCuti.isEmpty) {
+                              return RiwayatErrorCard(
+                                message: state.errorMessage ??
+                                    'Gagal memuat riwayat pengajuan cuti',
+                                isDark: isDark,
+                                onRetry: _loadRiwayat,
                               );
-                            } else if (state.status == CutiStatus.loaded) {
+                            }
+
+                            if (state.status == CutiStatus.loaded ||
+                                state.riwayatCuti.isNotEmpty) {
                               final data = state.riwayatCuti;
 
                               if (data.isEmpty) {
-                                return Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 40.h,
-                                    ),
-                                    child: Text(
-                                      'Belum ada riwayat pengajuan cuti.',
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: textSecondary,
-                                      ),
-                                    ),
-                                  ),
+                                return RiwayatEmptyCard(
+                                  message: 'Belum ada riwayat pengajuan cuti',
+                                  icon: Icons.calendar_today_outlined,
+                                  isDark: isDark,
                                 );
                               }
 
@@ -306,13 +303,13 @@ class _CutiPageState extends State<CutiPage> {
                                       item.submittedAt,
                                     ),
                                     reason: item.purpose ?? 'Tidak ada alasan',
-                                    status: item.statusLabel, // Hapus validasi ?? 'Pending' karena non-nullable
+                                    status: item.statusLabel,
                                     isDark: isDark,
                                   );
                                 },
                               );
                             }
-                            // Default / Initial State
+
                             return const SizedBox.shrink();
                           },
                         ),
@@ -349,35 +346,29 @@ class _CutiPageState extends State<CutiPage> {
 
     if (isApproved) {
       badgeBgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
-      badgeTextColor = isDark
-          ? const Color(0xFF34D399)
-          : const Color(0xFF059669);
+      badgeTextColor =
+      isDark ? const Color(0xFF34D399) : const Color(0xFF059669);
       badgeIcon = Icons.check_circle;
     } else if (isPending) {
       badgeBgColor = isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7);
-      badgeTextColor = isDark
-          ? const Color(0xFFFBBF24)
-          : const Color(0xFFD97706);
+      badgeTextColor =
+      isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
       badgeIcon = Icons.schedule;
     } else {
       badgeBgColor = isDark ? const Color(0xFF450A0A) : const Color(0xFFFFE4E6);
-      badgeTextColor = isDark
-          ? const Color(0xFFFCA5A5)
-          : const Color(0xFFE11D48);
+      badgeTextColor =
+      isDark ? const Color(0xFFFCA5A5) : const Color(0xFFE11D48);
       badgeIcon = Icons.cancel;
     }
 
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
-    final Color borderColor = isDark
-        ? const Color(0xFF333333)
-        : const Color(0xFFF1F5F9);
-    final Color reasonBgColor = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF8FAFC);
+    final Color textSecondary =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color borderColor =
+    isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9);
+    final Color reasonBgColor =
+    isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
 
     return Container(
       padding: EdgeInsets.all(16.w),

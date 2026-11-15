@@ -1,21 +1,18 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:go_router/go_router.dart';
-
-import '../widgets/konfirmasi_izin_bottom_sheet.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
-
-import '../bloc/izin_bloc.dart';
-
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
+
+import '../bloc/izin_bloc.dart';
+import '../widgets/konfirmasi_izin_bottom_sheet.dart';
 
 class BuatIzinPage extends StatefulWidget {
   const BuatIzinPage({super.key});
@@ -56,6 +53,41 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
     super.dispose();
   }
 
+  void _showValidationSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.all(16.w),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+      );
+  }
+
   String _formatTanggal(DateTime? date) {
     if (date == null) return 'Pilih Tanggal';
     const bulan = [
@@ -91,15 +123,15 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? ColorScheme.dark(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: Colors.white,
-                  )
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.white,
+            )
                 : ColorScheme.light(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: const Color(0xFF1E293B),
-                  ),
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: const Color(0xFF1E293B),
+            ),
           ),
           child: child!,
         );
@@ -121,7 +153,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
   Future<void> _pilihTanggalSelesai() async {
     if (_tanggalMulai == null) {
       setState(
-        () => _errorTanggal = '* Silakan pilih Tanggal Mulai terlebih dahulu!',
+            () => _errorTanggal = '* Silakan pilih Tanggal Mulai terlebih dahulu!',
       );
       return;
     }
@@ -141,15 +173,15 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? ColorScheme.dark(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: Colors.white,
-                  )
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.white,
+            )
                 : ColorScheme.light(
-                    primary: primaryColor,
-                    onPrimary: Colors.white,
-                    onSurface: const Color(0xFF1E293B),
-                  ),
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: const Color(0xFF1E293B),
+            ),
           ),
           child: child!,
         );
@@ -179,11 +211,8 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
     } catch (e) {
       debugPrint("Error akses kamera: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal mengakses kamera. Periksa izin aplikasi.'),
-            backgroundColor: Color(0xFFEF4444),
-          ),
+        _showValidationSnackBar(
+          'Gagal mengakses kamera. Periksa izin aplikasi.',
         );
       }
     }
@@ -203,12 +232,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
 
         if (sizeInBytes > maxSizeInBytes) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Ukuran file maksimal 2 MB.'),
-                backgroundColor: Color(0xFFEF4444),
-              ),
-            );
+            _showValidationSnackBar('Ukuran file maksimal 2 MB.');
           }
           return;
         }
@@ -240,7 +264,6 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
         ? const Color(0xFF333333)
         : const Color(0xFFE2E8F0);
 
-    // Ambil nama karyawan dari ProfilBloc (menggantikan hardcode sebelumnya)
     final profilState = context.watch<ProfilBloc>().state;
     final namaKaryawan = profilState is ProfilLoaded
         ? (profilState.user['nama'] as String? ?? 'Karyawan')
@@ -250,7 +273,7 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
     final double headerBackgroundHeight = paddingTop + 260.h;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Stack(
@@ -448,18 +471,18 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                             decoration: BoxDecoration(
                               color: _lampiranFile != null
                                   ? (isDark
-                                        ? const Color(0xFF1E3A8A)
-                                              .withValues(alpha: 0.3)
-                                        : const Color(0xFFEFF6FF))
+                                  ? const Color(0xFF1E3A8A)
+                                  .withValues(alpha: 0.3)
+                                  : const Color(0xFFEFF6FF))
                                   : (isDark
-                                        ? const Color(0xFF121212)
-                                        : const Color(0xFFF8FAFC)),
+                                  ? const Color(0xFF121212)
+                                  : const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(12.r),
                               border: Border.all(
                                 color: _lampiranFile != null
                                     ? (isDark
-                                          ? const Color(0xFF1E3A8A)
-                                          : const Color(0xFFBFDBFE))
+                                    ? const Color(0xFF1E3A8A)
+                                    : const Color(0xFFBFDBFE))
                                     : borderColor,
                               ),
                             ),
@@ -472,8 +495,8 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                                   fontSize: 11.sp,
                                   color: _lampiranFile != null
                                       ? (isDark
-                                            ? const Color(0xFF60A5FA)
-                                            : const Color(0xFF1E40AF))
+                                      ? const Color(0xFF60A5FA)
+                                      : const Color(0xFF1E40AF))
                                       : textSecondary,
                                   fontWeight: _lampiranFile != null
                                       ? FontWeight.w600
@@ -497,32 +520,20 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                       child: ElevatedButton.icon(
                         onPressed: () {
                           // 1. Validasi Form Kosong
-                          if (_jenisIzinController.text.isEmpty ||
+                          if (_jenisIzinController.text.trim().isEmpty ||
                               _tanggalMulai == null ||
                               _tanggalSelesai == null ||
-                              _keteranganController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Harap lengkapi semua form yang bertanda bintang (*)',
-                                ),
-                                backgroundColor: Color(0xFFEF4444),
-                              ),
+                              _keteranganController.text.trim().isEmpty) {
+                            _showValidationSnackBar(
+                              'Harap lengkapi semua form yang bertanda bintang (*)',
                             );
                             return;
                           }
 
-                          // 2. Validasi Lampiran Wajib (Sesuai aturan Laravel)
-                          if (_jenisIzinController.text.toLowerCase() ==
-                                  'sakit' &&
-                              _lampiranFile == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Lampiran bukti wajib diunggah untuk izin Sakit.',
-                                ),
-                                backgroundColor: Color(0xFFEF4444),
-                              ),
+                          // 2. Validasi Lampiran Wajib
+                          if (_lampiranFile == null) {
+                            _showValidationSnackBar(
+                              'Lampiran bukti wajib diunggah.',
                             );
                             return;
                           }
@@ -534,7 +545,6 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                             backgroundColor: Colors.transparent,
                             builder: (bottomSheetContext) =>
                                 BlocProvider<IzinBloc>(
-                                  // Mengambil BLoC yang sudah kita daftarkan di injection.dart
                                   create: (context) =>
                                       GetIt.instance<IzinBloc>(),
                                   child: Padding(
@@ -544,10 +554,12 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                                           .bottom,
                                     ),
                                     child: KonfirmasiIzinBottomSheet(
-                                      jenisIzin: _jenisIzinController.text,
+                                      jenisIzin:
+                                      _jenisIzinController.text.trim(),
                                       tanggalMulai: _tanggalMulai!,
                                       tanggalSelesai: _tanggalSelesai!,
-                                      keterangan: _keteranganController.text,
+                                      keterangan:
+                                      _keteranganController.text.trim(),
                                       lampiran: _lampiranFile,
                                     ),
                                   ),
@@ -692,10 +704,10 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
   }
 
   Widget _buildLabel(
-    String text, {
-    required bool isRequired,
-    required bool isDark,
-  }) {
+      String text, {
+        required bool isRequired,
+        required bool isDark,
+      }) {
     return RichText(
       text: TextSpan(
         text: text,
@@ -706,14 +718,14 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
         ),
         children: isRequired
             ? [
-                TextSpan(
-                  text: ' *',
-                  style: TextStyle(
-                    color: const Color(0xFFEF4444),
-                    fontSize: 13.sp,
-                  ),
-                ),
-              ]
+          TextSpan(
+            text: ' *',
+            style: TextStyle(
+              color: const Color(0xFFEF4444),
+              fontSize: 13.sp,
+            ),
+          ),
+        ]
             : [],
       ),
     );
@@ -757,11 +769,11 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
   }
 
   Widget _buildDateField(
-    String value, {
-    required VoidCallback onTap,
-    required bool isDisabled,
-    required bool isDark,
-  }) {
+      String value, {
+        required VoidCallback onTap,
+        required bool isDisabled,
+        required bool isDark,
+      }) {
     final Color disabledBg = isDark
         ? const Color(0xFF282828)
         : const Color(0xFFF8FAFC);
@@ -801,8 +813,8 @@ class _BuatIzinPageState extends State<BuatIzinPage> {
                 color: isDisabled
                     ? const Color(0xFF94A3B8)
                     : (isDark
-                          ? const Color(0xFF60A5FA)
-                          : const Color(0xFF135CAE)),
+                    ? const Color(0xFF60A5FA)
+                    : const Color(0xFF135CAE)),
                 size: 18.w,
               ),
             ],

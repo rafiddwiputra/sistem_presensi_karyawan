@@ -14,7 +14,6 @@ import 'package:sistem_presensi_karyawan/features/presensi/presentation/bloc/riw
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/bloc/riwayat_event.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/karyawan/presensi_page.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/presensi_berhasil_page.dart';
-import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/rekap_presensi_page.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/pages/riwayat_presensi_page.dart';
 
 import 'package:sistem_presensi_karyawan/features/izin/presentation/pages/buat_izin_page.dart';
@@ -46,6 +45,29 @@ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
+  errorBuilder: (context, state) => Scaffold(
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            const Text(
+              'Halaman tidak ditemukan',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go('/beranda'),
+              child: const Text('Kembali ke Beranda'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
   routes: [
     GoRoute(
       path: '/splash',
@@ -82,10 +104,11 @@ final GoRouter appRouter = GoRouter(
       name: 'presensi',
       builder: (context, state) => const PresensiPage(),
     ),
+
     GoRoute(
       path: '/rekap-presensi',
       name: 'rekap-presensi',
-      builder: (context, state) => const RekapPresensiPage(),
+      builder: (context, state) => const RiwayatPresensiPage(),
     ),
     GoRoute(
       path: '/presensi-berhasil',
@@ -232,6 +255,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/beranda',
+              name: 'beranda',
               builder: (context, state) => BlocProvider(
                 create: (_) =>
                 sl<RiwayatBloc>()..add(LoadRiwayatRequested(DateTime.now())),

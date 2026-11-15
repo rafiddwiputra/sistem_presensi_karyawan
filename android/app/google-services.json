@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1017259654934",
+    "project_id": "sistem-presensi-8c357",
+    "storage_bucket": "sistem-presensi-8c357.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017259654934:android:3c6117bfdde9345f421a37",
+        "android_client_info": {
+          "package_name": "com.presensi.sistem_presensi_karyawan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-vPoRrJoabOZ7yqgyx_HgMwzAnshqPo0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
