@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../data/models/notifikasi_model.dart';
 import '../bloc/notifikasi_bloc.dart';
 import '../bloc/notifikasi_event.dart';
@@ -33,15 +36,42 @@ class NotifikasiView extends StatefulWidget {
 
 class _NotifikasiViewState extends State<NotifikasiView> {
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<void>? _fcmSubscription;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _fcmSubscription = sl<FcmService>().onNotificationReceived.listen((_) {
+      if (!mounted) return;
+      final currentState = context.read<NotifikasiBloc>().state;
+      String? kategori;
+      bool unreadOnly = false;
+
+      if (currentState is NotifikasiLoaded) {
+        kategori = currentState.selectedKategori;
+        unreadOnly = currentState.unreadOnly;
+      } else if (currentState is NotifikasiLoading) {
+        kategori = currentState.selectedKategori;
+        unreadOnly = currentState.unreadOnly;
+      } else if (currentState is NotifikasiError) {
+        kategori = currentState.selectedKategori;
+        unreadOnly = currentState.unreadOnly;
+      }
+
+      context.read<NotifikasiBloc>().add(
+        LoadNotifikasiRequested(
+          kategori: kategori,
+          unreadOnly: unreadOnly,
+          silent: true,
+        ),
+      );
+    });
   }
 
   @override
   void dispose() {
+    _fcmSubscription?.cancel();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -73,13 +103,11 @@ class _NotifikasiViewState extends State<NotifikasiView> {
     final metode = item.referensi['metode']?.toString().toLowerCase() ?? '';
     final statusRef = item.referensi['status']?.toString().toLowerCase() ?? '';
 
-    // 1. Kategori Presensi
     if (kategori == 'presensi' || tipe.contains('presensi')) {
-      final isBiometric =
-          metode == 'fingerprint' ||
-              metode == 'biometrik' ||
-              tipe.contains('fingerprint') ||
-              tipe.contains('biometrik');
+      final isBiometric = metode == 'fingerprint' ||
+          metode == 'biometrik' ||
+          tipe.contains('fingerprint') ||
+          tipe.contains('biometrik');
 
       return _NotificationVisualStyle(
         icon: Icons.check_circle,
@@ -104,15 +132,12 @@ class _NotifikasiViewState extends State<NotifikasiView> {
       );
     }
 
-    // 2. Kategori Pengajuan (Cuti, Izin, Lembur, Reimbursement)
-    final isRejected =
-        statusRef == 'ditolak' ||
-            statusRef == 'rejected' ||
-            tipe.contains('ditolak');
-    final isPending =
-        statusRef == 'menunggu' ||
-            statusRef == 'pending' ||
-            tipe.contains('menunggu');
+    final isRejected = statusRef == 'ditolak' ||
+        statusRef == 'rejected' ||
+        tipe.contains('ditolak');
+    final isPending = statusRef == 'menunggu' ||
+        statusRef == 'pending' ||
+        tipe.contains('menunggu');
 
     final IconData leadingIcon =
     (tipe.contains('lembur') || tipe.contains('reimbursement'))
@@ -296,7 +321,6 @@ class _NotifikasiViewState extends State<NotifikasiView> {
                         ],
                       ),
                       SizedBox(height: 14.h),
-                      // Filter Kategori sesuai ListNotificationsRequest ('presensi', 'pengajuan')
                       Row(
                         children: [
                           _buildFilterChip(

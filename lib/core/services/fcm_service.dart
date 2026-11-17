@@ -15,6 +15,13 @@ class FcmService {
   final FlutterLocalNotificationsPlugin _localNotifications =
   FlutterLocalNotificationsPlugin();
 
+  final StreamController<void> _notificationReceivedController =
+  StreamController<void>.broadcast();
+
+  /// Stream sinyal setiap kali notifikasi masuk saat aplikasi terbuka
+  Stream<void> get onNotificationReceived =>
+      _notificationReceivedController.stream;
+
   bool _isInitialized = false;
   bool _isUserLoggedIn = false;
   RemoteMessage? _pendingInitialMessage;
@@ -33,7 +40,6 @@ class FcmService {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    // 1. Minta izin notifikasi (wajib untuk Android 13+ dan iOS)
     await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -46,7 +52,6 @@ class FcmService {
       sound: true,
     );
 
-    // 2. Setup Local Notifications untuk tampilan pop-up saat aplikasi terbuka
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
     const initSettings = InitializationSettings(
@@ -64,33 +69,35 @@ class FcmService {
         AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_androidChannel);
 
-    // 3. Listener pesan masuk saat aplikasi di foreground
-    FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+    // 1. Pesan masuk saat aplikasi sedang dibuka (foreground)
+    FirebaseMessaging.onMessage.listen((message) async {
+      _notificationReceivedController.add(null);
+      await _showForegroundNotification(message);
+    });
 
-    // 4. Listener saat user mengetuk notifikasi dari background
-    FirebaseMessaging.onMessageOpenedApp.listen((_) => _navigateToNotifikasi());
+    // 2. User mengetuk notifikasi dari background
+    FirebaseMessaging.onMessageOpenedApp.listen((_) {
+      _notificationReceivedController.add(null);
+      _navigateToNotifikasi();
+    });
 
-    // 5. Listener saat FCM memperbarui token perangkat secara otomatis
+    // 3. Pembaruan otomatis FCM token
     _messaging.onTokenRefresh.listen((newToken) {
       if (_isUserLoggedIn && newToken.isNotEmpty) {
         unawaited(_sendTokenToBackend(newToken));
       }
     });
 
-    // 6. Simpan pesan awal jika aplikasi dibuka dari kondisi terminated
     _pendingInitialMessage = await _messaging.getInitialMessage();
   }
 
-  /// Dipanggil saat login berhasil atau sesi tersimpan tervalidasi di Splash
   Future<void> syncTokenWithBackend() async {
     _isUserLoggedIn = true;
     try {
       final token = await _messaging.getToken();
-      debugPrint('FCM_TOKEN: $token');
       if (token != null && token.isNotEmpty) {
         await _sendTokenToBackend(token);
       }
-
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Gagal sinkronisasi FCM token: $e');
@@ -104,7 +111,6 @@ class FcmService {
     }
   }
 
-  /// Dipanggil SEBELUM authRepository.logout() agar Sanctum token masih aktif
   Future<void> unregisterTokenFromBackend() async {
     _isUserLoggedIn = false;
     try {
@@ -182,6 +188,13 @@ class FcmService {
 
   void _navigateToNotifikasi() {
     if (!_isUserLoggedIn) return;
+    final currentPath =
+        appRouter.routerDelegate.currentConfiguration.uri.path;
+    if (currentPath == '/notifikasi') return;
     appRouter.push('/notifikasi');
+  }
+
+  void dispose() {
+    _notificationReceivedController.close();
   }
 }

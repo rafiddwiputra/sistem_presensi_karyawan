@@ -28,7 +28,7 @@ class ApiClient {
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue:
-        'https://universe-villas-ipaq-administration.trycloudflare.com/api/v1/mobile',
+        'https://doc-yacht-request-humanities.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {

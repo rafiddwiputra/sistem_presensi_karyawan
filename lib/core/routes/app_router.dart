@@ -40,11 +40,37 @@ import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/peng
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/profil_page.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/ubah_password_page.dart';
 
+import '../../features/lembur/presentation/pages/lembur_berhasil_page.dart';
+
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+/// Helper aman untuk membaca tanggal dari `state.extra`
+/// Mendukung objek [DateTime] maupun [String] ISO-8601 saat State Restoration.
+DateTime _parseExtraDateTime(dynamic value) {
+  if (value is DateTime) return value;
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value) ?? DateTime.now();
+  }
+  return DateTime.now();
+}
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
+  redirect: (context, state) {
+    final currentPath = state.uri.path;
+    const publicRoutes = {'/splash', '/login'};
+
+    // Jika rute publik, izinkan langsung
+    if (publicRoutes.contains(currentPath)) {
+      return null;
+    }
+
+    // Hook pengecekan sesi login terpusat:
+    // Hubungkan dengan pengecekan token storage / AuthBloc jika ingin memblokir
+    // akses deep link atau notifikasi FCM saat sesi sudah logout.
+    return null;
+  },
   errorBuilder: (context, state) => Scaffold(
     body: Center(
       child: Padding(
@@ -69,6 +95,7 @@ final GoRouter appRouter = GoRouter(
     ),
   ),
   routes: [
+    // --- AUTH & ONBOARDING ---
     GoRoute(
       path: '/splash',
       name: 'splash',
@@ -79,6 +106,8 @@ final GoRouter appRouter = GoRouter(
       name: 'login',
       builder: (context, state) => const LoginPage(),
     ),
+
+    // --- PROFIL & PENGATURAN ---
     GoRoute(
       path: '/edit-profil',
       name: 'edit-profil',
@@ -99,16 +128,17 @@ final GoRouter appRouter = GoRouter(
       name: 'pengaturan',
       builder: (context, state) => const PengaturanPage(),
     ),
+
+    // --- PRESENSI ---
     GoRoute(
       path: '/presensi',
       name: 'presensi',
       builder: (context, state) => const PresensiPage(),
     ),
-
     GoRoute(
       path: '/rekap-presensi',
       name: 'rekap-presensi',
-      builder: (context, state) => const RiwayatPresensiPage(),
+      redirect: (context, state) => '/riwayat',
     ),
     GoRoute(
       path: '/presensi-berhasil',
@@ -121,10 +151,12 @@ final GoRouter appRouter = GoRouter(
           lokasiKantor: args['lokasiKantor'] as String? ?? '-',
           jenisPresensi: args['jenisPresensi'] as String? ?? 'Masuk',
           jarakMeter: args['jarakMeter'] as String? ?? '0',
-          waktuPresensi: args['waktuPresensi'] as DateTime? ?? DateTime.now(),
+          waktuPresensi: _parseExtraDateTime(args['waktuPresensi']),
         );
       },
     ),
+
+    // --- IZIN ---
     GoRoute(
       path: '/izin',
       name: 'izin',
@@ -145,107 +177,120 @@ final GoRouter appRouter = GoRouter(
           namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
           jenisIzin: args['jenisIzin'] as String? ?? 'Sakit',
           keterangan: args['keterangan'] as String? ?? '-',
-          tanggalMulai: args['tanggalMulai'] as DateTime? ?? DateTime.now(),
-          tanggalSelesai: args['tanggalSelesai'] as DateTime? ?? DateTime.now(),
+          tanggalMulai: _parseExtraDateTime(args['tanggalMulai']),
+          tanggalSelesai: _parseExtraDateTime(args['tanggalSelesai']),
           namaLampiran: args['namaLampiran'] as String?,
         );
       },
     ),
-    GoRoute(
-      path: '/cuti',
-      name: 'cuti',
-      builder: (context, state) {
-        return BlocProvider(
-          create: (context) => sl<CutiBloc>(),
-          child: const CutiPage(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/buat-cuti',
-      name: 'buat-cuti',
-      builder: (context, state) {
-        return BlocProvider(
-          create: (context) => sl<CutiBloc>(),
-          child: const BuatCutiPage(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/cuti-berhasil',
-      name: 'cuti-berhasil',
-      builder: (context, state) {
-        final args = state.extra as Map<String, dynamic>? ?? {};
 
-        return CutiBerhasilPage(
-          namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
-          jenisCuti: args['jenisCuti'] as String? ?? 'Cuti Tahunan',
-          keterangan: args['keterangan'] as String? ?? '-',
-          tanggalMulai: args['tanggalMulai'] as DateTime? ?? DateTime.now(),
-          tanggalSelesai: args['tanggalSelesai'] as DateTime? ?? DateTime.now(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/lembur',
-      name: 'lembur',
-      builder: (context, state) {
-        return BlocProvider(
-          create: (context) => sl<LemburBloc>(),
-          child: const LemburPage(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/buat-lembur',
-      name: 'buat-lembur',
-      builder: (context, state) {
-        return BlocProvider(
-          create: (context) => sl<LemburBloc>(),
-          child: const BuatLemburPage(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/reimbursement',
-      name: 'reimbursement',
-      builder: (context, state) {
-        return BlocProvider(
-          create: (context) => sl<ReimbursementBloc>(),
-          child: const ReimbursementPage(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/buat-reimbursement',
-      name: 'buat-reimbursement',
-      builder: (context, state) {
-        return BlocProvider(
-          create: (context) => sl<ReimbursementBloc>(),
-          child: const BuatReimbursementPage(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/reimbursement-berhasil',
-      name: 'reimbursement-berhasil',
-      builder: (context, state) {
-        final args = state.extra as Map<String, dynamic>? ?? {};
-        final bloc = args['bloc'] as ReimbursementBloc?;
+    // --- CUTI (Berbagi 1 Instance CutiBloc) ---
+    ShellRoute(
+      builder: (context, state, child) => BlocProvider(
+        create: (_) => sl<CutiBloc>(),
+        child: child,
+      ),
+      routes: [
+        GoRoute(
+          path: '/cuti',
+          name: 'cuti',
+          builder: (context, state) => const CutiPage(),
+        ),
+        GoRoute(
+          path: '/buat-cuti',
+          name: 'buat-cuti',
+          builder: (context, state) => const BuatCutiPage(),
+        ),
+        GoRoute(
+          path: '/cuti-berhasil',
+          name: 'cuti-berhasil',
+          builder: (context, state) {
+            final args = state.extra as Map<String, dynamic>? ?? {};
 
-        if (bloc != null) {
-          return BlocProvider.value(
-            value: bloc,
-            child: const ReimbursementBerhasilPage(),
-          );
-        }
-
-        return BlocProvider(
-          create: (context) => sl<ReimbursementBloc>(),
-          child: const ReimbursementBerhasilPage(),
-        );
-      },
+            return CutiBerhasilPage(
+              namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
+              jenisCuti: args['jenisCuti'] as String? ?? 'Cuti Tahunan',
+              keterangan: args['keterangan'] as String? ?? '-',
+              tanggalMulai: _parseExtraDateTime(args['tanggalMulai']),
+              tanggalSelesai: _parseExtraDateTime(args['tanggalSelesai']),
+            );
+          },
+        ),
+      ],
     ),
+
+    ShellRoute(
+      builder: (context, state, child) => BlocProvider(
+        create: (_) => sl<LemburBloc>(),
+        child: child,
+      ),
+      routes: [
+        GoRoute(
+          path: '/lembur',
+          name: 'lembur',
+          builder: (context, state) => const LemburPage(),
+        ),
+        GoRoute(
+          path: '/buat-lembur',
+          name: 'buat-lembur',
+          builder: (context, state) => const BuatLemburPage(),
+        ),
+        GoRoute(
+          path: '/lembur-berhasil',
+          name: 'lembur-berhasil',
+          builder: (context, state) {
+            final args = state.extra as Map<String, dynamic>? ?? {};
+
+            return LemburBerhasilPage(
+              namaKaryawan: args['namaKaryawan'] as String? ?? 'Karyawan',
+              tanggalLembur: args['tanggalLembur'] as String? ?? '-',
+              waktuLembur: args['waktuLembur'] as String? ?? '-',
+              durasi: args['durasi'] as String? ?? '-',
+              alasanLembur: args['alasanLembur'] as String? ?? '-',
+            );
+          },
+        ),
+      ],
+    ),
+
+    // --- REIMBURSEMENT (Berbagi 1 Instance ReimbursementBloc & Aman dari Closed BLoC) ---
+    ShellRoute(
+      builder: (context, state, child) => BlocProvider(
+        create: (_) => sl<ReimbursementBloc>(),
+        child: child,
+      ),
+      routes: [
+        GoRoute(
+          path: '/reimbursement',
+          name: 'reimbursement',
+          builder: (context, state) => const ReimbursementPage(),
+        ),
+        GoRoute(
+          path: '/buat-reimbursement',
+          name: 'buat-reimbursement',
+          builder: (context, state) => const BuatReimbursementPage(),
+        ),
+        GoRoute(
+          path: '/reimbursement-berhasil',
+          name: 'reimbursement-berhasil',
+          builder: (context, state) {
+            final args = state.extra as Map<String, dynamic>? ?? {};
+            final bloc = args['bloc'] as ReimbursementBloc?;
+
+            if (bloc != null && !bloc.isClosed) {
+              return BlocProvider.value(
+                value: bloc,
+                child: const ReimbursementBerhasilPage(),
+              );
+            }
+
+            return const ReimbursementBerhasilPage();
+          },
+        ),
+      ],
+    ),
+
+    // --- MAIN BOTTOM NAVIGATION SHELL ---
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainWrapper(navigationShell: navigationShell);
@@ -277,7 +322,8 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/dummy-izin',
-              builder: (context, state) => const SizedBox(),
+              redirect: (context, state) => '/beranda',
+              builder: (context, state) => const SizedBox.shrink(),
             ),
           ],
         ),
