@@ -70,7 +70,7 @@ class _IzinView extends StatelessWidget {
       if (item.submittedAt.isEmpty) continue;
 
       try {
-        final DateTime date = DateTime.parse(item.submittedAt);
+        final DateTime date = DateTime.parse(item.submittedAt).toLocal();
         final String monthLabel = DateFormat('MMMM yyyy', 'id_ID').format(date);
 
         if (groupedData.containsKey(monthLabel)) {
@@ -103,8 +103,197 @@ class _IzinView extends StatelessWidget {
       }
       return '${DateFormat('dd MMM yyyy', 'id_ID').format(start)} - ${DateFormat('dd MMM yyyy', 'id_ID').format(end)}';
     } catch (e) {
-      return tglMulai.substring(0, 10);
+      return tglMulai.length >= 10 ? tglMulai.substring(0, 10) : tglMulai;
     }
+  }
+
+  String _formatSubmittedAt(String submittedAt, {bool fullMonth = false}) {
+    if (submittedAt.isEmpty) return '-';
+    final parsed = DateTime.tryParse(submittedAt);
+    if (parsed == null) return submittedAt;
+
+    final localDate = parsed.toLocal();
+    final pattern = fullMonth ? 'dd MMMM yyyy, HH:mm' : 'dd MMM yyyy, HH:mm';
+    return '${DateFormat(pattern, 'id_ID').format(localDate)} WIB';
+  }
+
+  void _showDetailBottomSheet(
+      BuildContext context, {
+        required IzinHistoryItem item,
+        required String title,
+        required String date,
+        required String duration,
+        required String submittedTime,
+        required bool isDark,
+      }) {
+    final Color sheetBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color textSecondary =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color boxBg =
+    isDark ? const Color(0xFF282828) : const Color(0xFFF8FAFC);
+
+    final String detailKeterangan = item.keterangan.isNotEmpty
+        ? item.keterangan
+        : (item.purpose.isNotEmpty
+        ? item.purpose
+        : 'Tidak ada keterangan tambahan.');
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: sheetBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 28.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: textSecondary.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              Text(
+                'Detail Pengajuan Izin',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              _buildDetailRow('Izin Karena', title, textSecondary, textPrimary),
+              SizedBox(height: 10.h),
+              _buildDetailRow(
+                'Tanggal Izin',
+                '$date ($duration)',
+                textSecondary,
+                textPrimary,
+              ),
+              SizedBox(height: 10.h),
+              _buildDetailRow(
+                'Diajukan Pada',
+                submittedTime,
+                textSecondary,
+                textPrimary,
+              ),
+              SizedBox(height: 10.h),
+              _buildDetailRow(
+                'Status',
+                item.statusLabel.isNotEmpty ? item.statusLabel : '-',
+                textSecondary,
+                textPrimary,
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Alasan Izin',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: textSecondary,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(14.w),
+                decoration: BoxDecoration(
+                  color: boxBg,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Text(
+                  detailKeterangan,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: textPrimary,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              if (item.catatanAdmin.isNotEmpty) ...[
+                SizedBox(height: 14.h),
+                Text(
+                  'Alasan Penolakan Admin',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? const Color(0xFFFCA5A5)
+                        : const Color(0xFFDC2626),
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(14.w),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF450A0A).withValues(alpha: 0.45)
+                        : const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF7F1D1D)
+                          : const Color(0xFFFECACA),
+                    ),
+                  ),
+                  child: Text(
+                    item.catatanAdmin,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: isDark
+                          ? const Color(0xFFFCA5A5)
+                          : const Color(0xFFB91C1C),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(
+      String label,
+      String value,
+      Color labelColor,
+      Color valueColor,
+      ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100.w,
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 12.sp, color: labelColor),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -339,22 +528,49 @@ class _IzinView extends StatelessWidget {
                                           ? item.purpose
                                           : 'Pengajuan Izin';
 
+                                      final String formattedDate =
+                                      _formatDateRange(
+                                        item.startDate,
+                                        item.endDate,
+                                      );
+
+                                      final String durationText =
+                                      _calculateDuration(
+                                        item.startDate,
+                                        item.endDate,
+                                      );
+
+                                      final String submittedCompact =
+                                      _formatSubmittedAt(item.submittedAt);
+
+                                      final String submittedFull =
+                                      _formatSubmittedAt(
+                                        item.submittedAt,
+                                        fullMonth: true,
+                                      );
+
                                       return _buildHistoryCard(
                                         title: displayTitle,
-                                        date: _formatDateRange(
-                                          item.startDate,
-                                          item.endDate,
-                                        ),
-                                        duration: _calculateDuration(
-                                          item.startDate,
-                                          item.endDate,
-                                        ),
+                                        date: formattedDate,
+                                        submittedAt: submittedCompact,
+                                        description: item.keterangan,
+                                        rejectionReason: item.catatanAdmin,
+                                        duration: durationText,
                                         type: item.jenisLabel.isNotEmpty
                                             ? item.jenisLabel
                                             : 'Izin',
                                         statusLabel: item.statusLabel,
                                         status: cardStatus,
                                         isDark: isDark,
+                                        onTap: () => _showDetailBottomSheet(
+                                          context,
+                                          item: item,
+                                          title: displayTitle,
+                                          date: formattedDate,
+                                          duration: durationText,
+                                          submittedTime: submittedFull,
+                                          isDark: isDark,
+                                        ),
                                       );
                                     }),
                                     SizedBox(height: 8.h),
@@ -393,11 +609,15 @@ class _IzinView extends StatelessWidget {
   Widget _buildHistoryCard({
     required String title,
     required String date,
+    required String submittedAt,
+    required String description,
+    required String rejectionReason,
     required String duration,
     required String type,
     required String statusLabel,
     required IzinCardStatus status,
     required bool isDark,
+    VoidCallback? onTap,
   }) {
     Color bgColor;
     Color borderColor;
@@ -434,106 +654,248 @@ class _IzinView extends StatelessWidget {
         iconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8);
     }
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-            blurRadius: 10.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9),
-              shape: BoxShape.circle,
+    final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color cardBorder =
+    isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE2E8F0);
+    final Color subtleSurface =
+    isDark ? const Color(0xFF252525) : const Color(0xFFF8FAFC);
+    final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color textSecondary =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color accentBlue =
+    isDark ? const Color(0xFF60A5FA) : const Color(0xFF1961B6);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 14.h),
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: cardBorder, width: 1.w),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.03),
+              blurRadius: 12.r,
+              offset: Offset(0, 3.h),
             ),
-            child: Icon(
-              Icons.mail_outline,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              size: 24.w,
-            ),
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- HEADER: IKON + JUDUL & JAM PENGAJUAN + BADGE STATUS ---
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 12.sp,
+                Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
                     color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.45)
+                        : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.event_note_rounded,
+                    color: accentBlue,
+                    size: 20.w,
                   ),
                 ),
-                SizedBox(height: 8.h),
-                Row(
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary,
+                        ),
+                      ),
+                      if (submittedAt != '-') ...[
+                        SizedBox(height: 3.h),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 12.sp,
+                              color: textSecondary,
+                            ),
+                            SizedBox(width: 4.w),
+                            Expanded(
+                              child: Text(
+                                'Diajukan $submittedAt',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Container(
+                  padding:
+                  EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(color: borderColor, width: 1.w),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(radius: 3.r, backgroundColor: iconColor),
+                      SizedBox(width: 5.w),
+                      Text(
+                        statusLabel,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 12.h),
+
+            // --- BODY: TANGGAL IZIN, DURASI & ALASAN IZIN ---
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: subtleSurface,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 13.sp,
+                        color: accentBlue,
+                      ),
+                      SizedBox(width: 6.w),
+                      Expanded(
+                        child: Text(
+                          date,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                            color: textPrimary,
+                          ),
+                        ),
+                      ),
+                      _buildTag(duration, isDark),
+                      SizedBox(width: 6.w),
+                      _buildTag(type, isDark),
+                    ],
+                  ),
+                  if (description.isNotEmpty) ...[
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      child: Divider(
+                        height: 1.h,
+                        color: cardBorder,
+                      ),
+                    ),
+                    Text(
+                      description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        height: 1.45,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // --- FOOTER: ALASAN PENOLAKAN (JIKA DITOLAK) ---
+            if (rejectionReason.isNotEmpty) ...[
+              SizedBox(height: 10.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 9.h),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF450A0A).withValues(alpha: 0.45)
+                      : const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF7F1D1D)
+                        : const Color(0xFFFECACA),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTag(duration, isDark),
-                    SizedBox(width: 8.w),
-                    _buildTag(type, isDark),
+                    Padding(
+                      padding: EdgeInsets.only(top: 1.h),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: 14.sp,
+                        color: isDark
+                            ? const Color(0xFFFCA5A5)
+                            : const Color(0xFFDC2626),
+                      ),
+                    ),
+                    SizedBox(width: 6.w),
+                    Expanded(
+                      child: Text(
+                        'Alasan ditolak: $rejectionReason',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          height: 1.4,
+                          color: isDark
+                              ? const Color(0xFFFCA5A5)
+                              : const Color(0xFFB91C1C),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: borderColor, width: 1.w),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(radius: 3.r, backgroundColor: iconColor),
-                SizedBox(width: 6.w),
-                Text(
-                  statusLabel,
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTag(String text, bool isDark) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF333333) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12.r),
+        color: isDark ? const Color(0xFF333333) : Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: isDark ? const Color(0xFF404040) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Text(
         text,

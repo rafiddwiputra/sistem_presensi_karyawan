@@ -7,8 +7,9 @@ import 'notifikasi_state.dart';
 class NotifikasiBloc extends Bloc<NotifikasiEvent, NotifikasiState> {
   final NotifikasiRepository _repository;
 
-  NotifikasiBloc({required this._repository})
-      : super(const NotifikasiInitial()) {
+  NotifikasiBloc({required NotifikasiRepository repository})
+      : _repository = repository,
+        super(const NotifikasiInitial()) {
     on<LoadNotifikasiRequested>(_onLoadRequested);
     on<LoadMoreNotifikasiRequested>(_onLoadMoreRequested);
     on<MarkNotifikasiReadRequested>(_onMarkReadRequested);
@@ -19,12 +20,17 @@ class NotifikasiBloc extends Bloc<NotifikasiEvent, NotifikasiState> {
       LoadNotifikasiRequested event,
       Emitter<NotifikasiState> emit,
       ) async {
-    emit(
-      NotifikasiLoading(
-        selectedKategori: event.kategori,
-        unreadOnly: event.unreadOnly,
-      ),
-    );
+    final bool shouldShowLoading =
+        !event.silent || state is! NotifikasiLoaded;
+
+    if (shouldShowLoading) {
+      emit(
+        NotifikasiLoading(
+          selectedKategori: event.kategori,
+          unreadOnly: event.unreadOnly,
+        ),
+      );
+    }
 
     try {
       final result = await _repository.getNotifications(
@@ -41,13 +47,15 @@ class NotifikasiBloc extends Bloc<NotifikasiEvent, NotifikasiState> {
         ),
       );
     } catch (e) {
-      emit(
-        NotifikasiError(
-          message: _extractErrorMessage(e),
-          selectedKategori: event.kategori,
-          unreadOnly: event.unreadOnly,
-        ),
-      );
+      if (shouldShowLoading) {
+        emit(
+          NotifikasiError(
+            message: _extractErrorMessage(e),
+            selectedKategori: event.kategori,
+            unreadOnly: event.unreadOnly,
+          ),
+        );
+      }
     }
   }
 

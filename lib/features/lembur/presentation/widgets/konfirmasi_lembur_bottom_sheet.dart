@@ -221,11 +221,24 @@ class KonfirmasiLemburBottomSheet extends StatelessWidget {
                 child: BlocConsumer<LemburBloc, LemburState>(
                   listener: (context, state) {
                     if (state.status == LemburStatus.success) {
+                      final router = GoRouter.of(context);
                       context.pop();
-                      context.pushReplacement('/lembur-berhasil');
+                      router.pushReplacement(
+                        '/lembur-berhasil',
+                        extra: {
+                          'namaKaryawan': namaKaryawan,
+                          'tanggalLembur': tglString,
+                          'waktuLembur': jamString,
+                          'durasi': durasi,
+                          'alasanLembur': alasanLembur,
+                        },
+                      );
                     } else if (state.status == LemburStatus.error) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.errorMessage ?? 'Gagal.'), backgroundColor: Colors.red),
+                        SnackBar(
+                          content: Text(state.errorMessage ?? 'Gagal.'),
+                          backgroundColor: Colors.red,
+                        ),
                       );
                     }
                   },

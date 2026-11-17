@@ -5,10 +5,12 @@ abstract class NotifikasiEvent {
 class LoadNotifikasiRequested extends NotifikasiEvent {
   final String? kategori;
   final bool unreadOnly;
+  final bool silent;
 
   const LoadNotifikasiRequested({
     this.kategori,
     this.unreadOnly = false,
+    this.silent = false,
   });
 }
 

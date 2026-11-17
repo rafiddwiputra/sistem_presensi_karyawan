@@ -4,14 +4,25 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 class LemburBerhasilPage extends StatelessWidget {
-  const LemburBerhasilPage({super.key});
+  final String namaKaryawan;
+  final String tanggalLembur;
+  final String waktuLembur;
+  final String durasi;
+  final String alasanLembur;
+
+  const LemburBerhasilPage({
+    super.key,
+    this.namaKaryawan = 'Karyawan',
+    this.tanggalLembur = '-',
+    this.waktuLembur = '-',
+    this.durasi = '-',
+    this.alasanLembur = '-',
+  });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Deteksi Mode Gelap
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 2. Definisi Warna Dinamis
     final Color bgApp = Theme.of(context).scaffoldBackgroundColor;
     final Color primaryBlue = isDark
         ? const Color(0xFF3B82F6)
@@ -29,7 +40,6 @@ class LemburBerhasilPage extends StatelessWidget {
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: bgApp,
-
         bottomNavigationBar: Container(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
           decoration: BoxDecoration(color: bgApp),
@@ -61,7 +71,6 @@ class LemburBerhasilPage extends StatelessWidget {
             ),
           ),
         ),
-
         body: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -69,11 +78,8 @@ class LemburBerhasilPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // --- 1. ILUSTRASI SUKSES ---
                 _buildSuccessIllustration(isDark),
                 SizedBox(height: 20.h),
-
-                // --- 2. TEKS JUDUL & SUBJUDUL ---
                 Text(
                   'Pengajuan Lembur Berhasil',
                   style: TextStyle(
@@ -88,8 +94,6 @@ class LemburBerhasilPage extends StatelessWidget {
                   style: TextStyle(fontSize: 14.sp, color: textSecondary),
                 ),
                 SizedBox(height: 32.h),
-
-                // --- 3. KARTU STATUS PENGAJUAN ---
                 Container(
                   padding: EdgeInsets.all(20.w),
                   decoration: BoxDecoration(
@@ -149,8 +153,6 @@ class LemburBerhasilPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20.h),
-
-                // --- 4. KARTU RINGKASAN PENGAJUAN ---
                 Container(
                   padding: EdgeInsets.all(20.w),
                   decoration: BoxDecoration(
@@ -170,7 +172,6 @@ class LemburBerhasilPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Ringkasan
                       Row(
                         children: [
                           Icon(
@@ -192,12 +193,12 @@ class LemburBerhasilPage extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF1E3A8A)
-                                        .withValues(alpha: 0.3)
+                                  .withValues(alpha: 0.3)
                                   : const Color(0xFFDBEAFE),
                               borderRadius: BorderRadius.circular(20.r),
                             ),
                             child: Text(
-                              '4 Jam',
+                              durasi,
                               style: TextStyle(
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.bold,
@@ -210,19 +211,9 @@ class LemburBerhasilPage extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: 24.h),
-
-                      _buildDetailRow(
-                        'Pemohon Lembur',
-                        'Rafid Dwi Putra Andino',
-                        isDark,
-                      ),
-                      _buildDetailRow('Tanggal Lembur', '24 Okt 2026', isDark),
-                      _buildDetailRow(
-                        'Waktu Lembur',
-                        '18:00 – 21:30 WIB',
-                        isDark,
-                      ),
-
+                      _buildDetailRow('Pemohon Lembur', namaKaryawan, isDark),
+                      _buildDetailRow('Tanggal Lembur', tanggalLembur, isDark),
+                      _buildDetailRow('Waktu Lembur', waktuLembur, isDark),
                       SizedBox(height: 8.h),
                       Text(
                         'Alasan lembur:',
@@ -244,7 +235,7 @@ class LemburBerhasilPage extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          '“Deployment Project Laravel & Konfigurasi Server”',
+                          '“$alasanLembur”',
                           style: TextStyle(
                             fontSize: 13.sp,
                             color: isDark
@@ -267,13 +258,11 @@ class LemburBerhasilPage extends StatelessWidget {
     );
   }
 
-  // --- HELPER WIDGETS ---
-
   TextStyle _labelStyle(bool isDark) {
     return TextStyle(
       fontSize: 11.sp,
       fontWeight: FontWeight.bold,
-      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
+      color: const Color(0xFF94A3B8),
       letterSpacing: 0.5,
     );
   }
@@ -356,7 +345,7 @@ class LemburBerhasilPage extends StatelessWidget {
             right: 30.w,
             child: Icon(
               Icons.circle,
-              color: isDark ? const Color(0xFF34D399) : const Color(0xFF34D399),
+              color: const Color(0xFF34D399),
               size: 8.w,
             ),
           ),
@@ -365,7 +354,7 @@ class LemburBerhasilPage extends StatelessWidget {
             left: 30.w,
             child: Icon(
               Icons.circle,
-              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF60A5FA),
+              color: const Color(0xFF60A5FA),
               size: 10.w,
             ),
           ),
@@ -374,7 +363,7 @@ class LemburBerhasilPage extends StatelessWidget {
             right: 40.w,
             child: Icon(
               Icons.circle,
-              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF6EE7B7),
+              color: const Color(0xFF6EE7B7),
               size: 6.w,
             ),
           ),
@@ -383,7 +372,7 @@ class LemburBerhasilPage extends StatelessWidget {
             left: 20.w,
             child: Icon(
               Icons.circle,
-              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF38BDF8),
+              color: const Color(0xFF38BDF8),
               size: 8.w,
             ),
           ),
