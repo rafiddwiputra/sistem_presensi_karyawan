@@ -53,7 +53,11 @@ class FcmService {
     );
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings();
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
     const initSettings = InitializationSettings(
       android: androidInit,
       iOS: iosInit,
@@ -91,10 +95,27 @@ class FcmService {
     _pendingInitialMessage = await _messaging.getInitialMessage();
   }
 
+  Future<String?> _getFcmTokenSafely() async {
+    if (Platform.isIOS) {
+      String? apnsToken = await _messaging.getAPNSToken();
+      if (apnsToken == null) {
+        await Future<void>.delayed(const Duration(seconds: 2));
+        apnsToken = await _messaging.getAPNSToken();
+      }
+      if (apnsToken == null) {
+        if (kDebugMode) {
+          debugPrint('APNs token iOS belum tersedia, menunggu onTokenRefresh.');
+        }
+        return null;
+      }
+    }
+    return await _messaging.getToken();
+  }
+
   Future<void> syncTokenWithBackend() async {
     _isUserLoggedIn = true;
     try {
-      final token = await _messaging.getToken();
+      final token = await _getFcmTokenSafely();
       if (token != null && token.isNotEmpty) {
         await _sendTokenToBackend(token);
       }
@@ -114,7 +135,7 @@ class FcmService {
   Future<void> unregisterTokenFromBackend() async {
     _isUserLoggedIn = false;
     try {
-      final token = await _messaging.getToken();
+      final token = await _getFcmTokenSafely();
       if (token != null && token.isNotEmpty) {
         await _notifikasiRepository.deleteDeviceToken(token: token);
       }
@@ -156,6 +177,12 @@ class FcmService {
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
+    // Di iOS, payload dengan blok `notification` sudah otomatis ditampilkan oleh sistem
+    // lewat `setForegroundNotificationPresentationOptions`. Lewati local notification agar tidak ganda.
+    if (Platform.isIOS && message.notification != null) {
+      return;
+    }
+
     final notification = message.notification;
     final title =
         notification?.title ?? message.data['judul']?.toString() ?? 'Notifikasi';

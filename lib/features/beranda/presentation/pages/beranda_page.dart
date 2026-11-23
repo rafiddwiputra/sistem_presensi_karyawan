@@ -10,6 +10,7 @@ import 'package:sistem_presensi_karyawan/features/presensi/presentation/bloc/riw
 import 'package:sistem_presensi_karyawan/features/presensi/presentation/bloc/riwayat_state.dart';
 import 'package:sistem_presensi_karyawan/features/presensi/repositories/presensi_repository.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_event.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_state.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -31,7 +32,7 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
   bool _hasUnreadNotifications = false;
   bool _isLoadingAttendance = false;
   TodayAttendanceModel? _todayAttendance;
-  String? _todayApprovedLeaveType; // 'Izin' atau 'Cuti' jika aktif hari ini
+  String? _todayApprovedLeaveType;
 
   int _izinCount = 0;
   int _cutiCount = 0;
@@ -68,6 +69,9 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
   }
 
   Future<void> _refreshBerandaData() async {
+    if (mounted) {
+      context.read<ProfilBloc>().add(LoadProfilRequested());
+    }
     await Future.wait([
       _loadTodayAttendance(),
       _checkUnreadNotifications(),
@@ -124,7 +128,6 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
         final String status =
         (item['status']?.toString() ?? '').trim().toLowerCase();
 
-        // 1. Cek apakah ada Izin / Cuti yang sudah disetujui untuk tanggal hari ini
         if ((jenis == 'izin' || jenis == 'cuti') &&
             (status == 'disetujui' || status == 'approved')) {
           final DateTime? startDate = _parseDateOnly(
@@ -143,7 +146,6 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
           }
         }
 
-        // 2. Hitung ringkasan 4 kartu menu bulan ini (status aktif: disetujui & menunggu)
         if (status == 'ditolak' || status == 'rejected' || status == 'batal') {
           continue;
         }
@@ -299,35 +301,6 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
     }
 
     return clean;
-  }
-
-  String _getFormattedDate() {
-    final now = DateTime.now();
-    final List<String> months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
-    final List<String> days = [
-      'Senin',
-      'Selasa',
-      'Rabu',
-      'Kamis',
-      'Jumat',
-      'Sabtu',
-      'Minggu',
-    ];
-
-    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
   @override
@@ -620,40 +593,11 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
 
                   SizedBox(height: 18.h),
 
-                  // --- CAPSULE TANGGAL & SHIFT ---
+                  // --- CAPSULE TANGGAL & JAM REAL-TIME (CENTER) ---
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 7.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.calendar_today_rounded,
-                            size: 13.w,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            _getFormattedDate(),
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.95),
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: const Center(
+                      child: _RealTimeDateCapsule(),
                     ),
                   ),
 
@@ -952,12 +896,10 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
 
                         SizedBox(height: 18.h),
 
-                        // 2. KARTU REKAP PRESENSI BULANAN
                         _buildRekapPresensiCard(context, isDark),
 
                         SizedBox(height: 24.h),
 
-                        // 3. SECTION HEADER LAYANAN MANDIRI
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -975,7 +917,7 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
                                 ),
                                 SizedBox(height: 2.h),
                                 Text(
-                                  'Pengajuan administrasi & klaim bulan ini',
+                                  'Pengajuan administrasi',
                                   style: TextStyle(
                                     fontSize: 12.sp,
                                     color: textSecondary,
@@ -986,16 +928,16 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
                           ],
                         ),
 
-                        SizedBox(height: 14.h),
+                        SizedBox(height: 12.h),
 
-                        // 4. GRID MENU 2x2 ENTERPRISE (ANGKA DINAMIS BULAN INI)
                         GridView.count(
+                          padding: EdgeInsets.zero,
                           crossAxisCount: 2,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisSpacing: 14.w,
                           mainAxisSpacing: 14.h,
-                          childAspectRatio: 1.02,
+                          childAspectRatio: 1.08,
                           children: [
                             MenuCard(
                               title: 'IZIN',
@@ -1295,6 +1237,133 @@ class _BerandaPageState extends State<BerandaPage> with WidgetsBindingObserver {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RealTimeDateCapsule extends StatefulWidget {
+  const _RealTimeDateCapsule();
+
+  @override
+  State<_RealTimeDateCapsule> createState() => _RealTimeDateCapsuleState();
+}
+
+class _RealTimeDateCapsuleState extends State<_RealTimeDateCapsule> {
+  late DateTime _now;
+  Timer? _timer;
+
+  static const List<String> _months = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+
+  static const List<String> _days = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _now = DateTime.now();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _formattedDate() {
+    return '${_days[_now.weekday - 1]}, ${_now.day} ${_months[_now.month - 1]} ${_now.year}';
+  }
+
+  String _formattedTime() {
+    final hh = _now.hour.toString().padLeft(2, '0');
+    final mm = _now.minute.toString().padLeft(2, '0');
+    final ss = _now.second.toString().padLeft(2, '0');
+    return '$hh:$mm:$ss';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 14.w,
+        vertical: 7.h,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+        ),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 13.w,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
+            SizedBox(width: 7.w),
+            Text(
+              _formattedDate(),
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.95),
+              ),
+            ),
+            Container(
+              width: 1.w,
+              height: 13.h,
+              margin: EdgeInsets.symmetric(horizontal: 10.w),
+              color: Colors.white.withValues(alpha: 0.24),
+            ),
+            Icon(
+              Icons.access_time_rounded,
+              size: 13.w,
+              color: const Color(0xFFFDE68A),
+            ),
+            SizedBox(width: 5.w),
+            Text(
+              _formattedTime(),
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFFFDE68A),
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

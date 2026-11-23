@@ -29,10 +29,28 @@ class ProfilRepository {
 
   Future<void> saveProfilLocal(dynamic data) async {
     try {
-      final jsonString = jsonEncode(data);
+      dynamic payload = data;
+      if (data is Map) {
+        final existing = await getProfilLocal();
+        if (existing is Map) {
+          payload = <String, dynamic>{
+            ...Map<String, dynamic>.from(existing),
+            ...Map<String, dynamic>.from(data),
+          };
+        }
+      }
+      final jsonString = jsonEncode(payload);
       await _storageService.write(_profilCacheKey, jsonString);
     } catch (e) {
       if (kDebugMode) debugPrint('Gagal menyimpan cache profil: $e');
+    }
+  }
+
+  Future<void> clearProfilLocal() async {
+    try {
+      await _storageService.delete(_profilCacheKey);
+    } catch (e) {
+      if (kDebugMode) debugPrint('Gagal menghapus cache profil: $e');
     }
   }
 
@@ -70,7 +88,7 @@ class ProfilRepository {
     File? image,
   }) async {
     try {
-      Map<String, dynamic> dataMap = {
+      final Map<String, dynamic> dataMap = {
         "nama": nama,
         "email": email,
         "no_hp": noHp,
@@ -78,12 +96,20 @@ class ProfilRepository {
         "_method": "PATCH",
       };
 
-      FormData formData = FormData.fromMap(dataMap);
+      final FormData formData = FormData.fromMap(dataMap);
       final response = await _apiClient.dio.post('/me', data: formData);
 
+      if (response.data != null && response.data is Map<String, dynamic>) {
+        final updatedData =
+            response.data['user'] ?? response.data['data'] ?? response.data;
+        if (updatedData is Map<String, dynamic>) {
+          await saveProfilLocal(updatedData);
+        }
+      }
+
       if (image != null) {
-        String fileName = image.path.split('/').last;
-        FormData photoFormData = FormData.fromMap({
+        final String fileName = image.path.split('/').last;
+        final FormData photoFormData = FormData.fromMap({
           "foto": await MultipartFile.fromFile(image.path, filename: fileName),
         });
 
@@ -92,22 +118,14 @@ class ProfilRepository {
           data: photoFormData,
         );
 
-        if (photoResponse.data != null) {
-          final updatedData =
-              photoResponse.data['user'] ??
+        if (photoResponse.data != null &&
+            photoResponse.data is Map<String, dynamic>) {
+          final updatedPhotoData = photoResponse.data['user'] ??
               photoResponse.data['data'] ??
               photoResponse.data;
-          if (updatedData is Map<String, dynamic>) {
-            await saveProfilLocal(updatedData);
-            return updatedData;
-          }
-        }
-      } else {
-        if (response.data != null && response.data is Map<String, dynamic>) {
-          final updatedData =
-              response.data['user'] ?? response.data['data'] ?? response.data;
-          if (updatedData is Map<String, dynamic>) {
-            await saveProfilLocal(updatedData);
+          if (updatedPhotoData is Map<String, dynamic>) {
+            await saveProfilLocal(updatedPhotoData);
+            return updatedPhotoData;
           }
         }
       }

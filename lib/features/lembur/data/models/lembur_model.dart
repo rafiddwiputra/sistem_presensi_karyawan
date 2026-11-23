@@ -33,11 +33,13 @@ class LemburModel {
   factory LemburModel.fromJson(Map<String, dynamic> json) {
     debugPrint('LEMBUR_JSON_ITEM: $json');
 
-    final detail = json['detail'] is Map<String, dynamic>
-        ? json['detail'] as Map<String, dynamic>
-        : (json['lembur'] is Map<String, dynamic>
-        ? json['lembur'] as Map<String, dynamic>
-        : const <String, dynamic>{});
+    final detail = json['detail'] is Map
+        ? Map<String, dynamic>.from(json['detail'] as Map)
+        : (json['lembur'] is Map
+        ? Map<String, dynamic>.from(json['lembur'] as Map)
+        : (json['overtime'] is Map
+        ? Map<String, dynamic>.from(json['overtime'] as Map)
+        : const <String, dynamic>{}));
 
     String readString(List<String> keys, {bool ignoreZero = false}) {
       for (final key in keys) {
@@ -91,21 +93,28 @@ class LemburModel {
       'start_time',
       'jam_mulai',
       'waktu_mulai',
+      'overtime_start',
+      'jam_lembur_mulai',
       'time_start',
       'mulai',
       'jam_awal',
+      'start',
+      'from',
     ]);
 
     String selesai = readString([
       'end_time',
       'jam_selesai',
       'waktu_selesai',
+      'overtime_end',
+      'jam_lembur_selesai',
       'time_end',
       'selesai',
       'jam_akhir',
+      'end',
+      'to',
     ]);
 
-    // Cadangan jika backend mengirim format gabungan seperti "17:00 - 19:00"
     if (mulai.isEmpty || selesai.isEmpty) {
       final range = readString(['jam', 'waktu', 'jam_lembur', 'waktu_lembur']);
       if (range.contains('-')) {

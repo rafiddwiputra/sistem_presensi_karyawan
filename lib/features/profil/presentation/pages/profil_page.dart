@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 // --- IMPORT PROFIL ---
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
@@ -17,6 +17,89 @@ import '../../../../core/widgets/authenticated_profile_image.dart';
 
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});
+
+  String _extractEmployeeId(Map<String, dynamic> user) {
+    final karyawan = user['karyawan'] is Map
+        ? Map<String, dynamic>.from(user['karyawan'] as Map)
+        : const <String, dynamic>{};
+
+    // 1. Prioritaskan kode_karyawan resmi dari backend (contoh: EMP-001)
+    final candidates = [
+      user['kode_karyawan'],
+      karyawan['kode_karyawan'],
+      user['employee_code'],
+      user['employee_id'],
+      user['nip'],
+      user['nik'],
+      user['kode'],
+      user['no_karyawan'],
+    ];
+
+    for (final candidate in candidates) {
+      if (candidate != null && candidate.toString().trim().isNotEmpty) {
+        return 'ID: ${candidate.toString().trim()}';
+      }
+    }
+
+    // 2. Fallback format EMP-00X jika baru karyawan_id (angka) yang tersedia di cache
+    final rawKaryawanId = user['karyawan_id'] ?? karyawan['id'];
+    if (rawKaryawanId != null && rawKaryawanId.toString().trim().isNotEmpty) {
+      final paddedId = rawKaryawanId.toString().trim().padLeft(3, '0');
+      return 'ID: EMP-$paddedId';
+    }
+
+    // 3. Fallback terakhir ke users.id
+    final rawId = user['id'];
+    if (rawId != null && rawId.toString().trim().isNotEmpty) {
+      return 'ID: #$rawId';
+    }
+
+    return 'ID: -';
+  }
+
+  String _extractJabatan(Map<String, dynamic> user) {
+    String? pickFromMap(Map<String, dynamic> map) {
+      final rawJabatan = map['jabatan'];
+      if (rawJabatan is String && rawJabatan.trim().isNotEmpty) {
+        return rawJabatan.trim();
+      }
+      if (rawJabatan is Map) {
+        final nested = rawJabatan['nama'] ??
+            rawJabatan['nama_jabatan'] ??
+            rawJabatan['title'] ??
+            rawJabatan['label'];
+        if (nested != null && nested.toString().trim().isNotEmpty) {
+          return nested.toString().trim();
+        }
+      }
+
+      final directCandidates = [
+        map['nama_jabatan'],
+        map['jabatan_nama'],
+        map['posisi'],
+        map['position'],
+        map['role_label'],
+      ];
+
+      for (final candidate in directCandidates) {
+        if (candidate is String && candidate.trim().isNotEmpty) {
+          return candidate.trim();
+        }
+      }
+      return null;
+    }
+
+    final topLevel = pickFromMap(user);
+    if (topLevel != null) return topLevel;
+
+    final karyawan = user['karyawan'];
+    if (karyawan is Map) {
+      final fromKaryawan = pickFromMap(Map<String, dynamic>.from(karyawan));
+      if (fromKaryawan != null) return fromKaryawan;
+    }
+
+    return 'Karyawan';
+  }
 
   void _showLogoutDialog(BuildContext context, bool isDark) {
     showDialog(
@@ -76,7 +159,6 @@ class ProfilPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-
                 context.read<AuthBloc>().add(LogoutRequested());
               },
               style: ElevatedButton.styleFrom(
@@ -105,17 +187,14 @@ class ProfilPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF8FAFC);
-    final Color headerBg = isDark
-        ? const Color(0xFF154B8C)
-        : const Color(0xFF1E61B6);
+    final Color bgApp =
+    isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
+    final Color headerBg =
+    isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
+    final Color textSecondary =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final Color shadowColor = Colors.black.withValues(
       alpha: isDark ? 0.3 : 0.03,
     );
@@ -163,11 +242,22 @@ class ProfilPage extends StatelessWidget {
                   BlocBuilder<ProfilBloc, ProfilState>(
                     builder: (context, state) {
                       String namaLengkap = 'Karyawan';
+                      String jabatan = 'Karyawan';
+                      String employeeIdText = 'ID: -';
+                      bool isActive = true;
                       String? fotoProfilUrl;
 
-                      if (state is ProfilLoaded) {
-                        namaLengkap = state.user['nama'] ?? 'Karyawan';
-                        fotoProfilUrl = state.user['foto_url'];
+                      if (state is ProfilLoaded && state.user is Map) {
+                        final userMap = Map<String, dynamic>.from(state.user);
+                        namaLengkap =
+                            (userMap['nama']?.toString() ?? 'Karyawan').trim();
+                        jabatan = _extractJabatan(userMap);
+                        fotoProfilUrl = userMap['foto_url']?.toString();
+                        employeeIdText = _extractEmployeeId(userMap);
+
+                        if (userMap['is_active'] is bool) {
+                          isActive = userMap['is_active'] as bool;
+                        }
                       }
 
                       return Container(
@@ -206,11 +296,12 @@ class ProfilPage extends StatelessWidget {
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              'Full Stack Dev & Database Administrator',
+                              jabatan,
                               style: TextStyle(
                                 fontSize: 13.sp,
                                 color: textSecondary,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                             SizedBox(height: 20.h),
                             Row(
@@ -224,17 +315,17 @@ class ProfilPage extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: isDark
                                         ? const Color(0xFF1E3A8A)
-                                              .withValues(alpha: 0.3)
+                                        .withValues(alpha: 0.3)
                                         : const Color(0xFFEFF6FF),
                                     borderRadius: BorderRadius.circular(8.r),
                                     border: isDark
                                         ? Border.all(
-                                            color: const Color(0xFF1E40AF),
-                                          )
+                                      color: const Color(0xFF1E40AF),
+                                    )
                                         : null,
                                   ),
                                   child: Text(
-                                    'ID: FK-002',
+                                    employeeIdText,
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w600,
@@ -251,25 +342,36 @@ class ProfilPage extends StatelessWidget {
                                     vertical: 8.h,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: isDark
+                                    color: isActive
+                                        ? (isDark
                                         ? const Color(0xFF064E3B)
-                                              .withValues(alpha: 0.3)
-                                        : const Color(0xFFECFDF5),
+                                        .withValues(alpha: 0.3)
+                                        : const Color(0xFFECFDF5))
+                                        : (isDark
+                                        ? const Color(0xFF450A0A)
+                                        .withValues(alpha: 0.3)
+                                        : const Color(0xFFFEF2F2)),
                                     borderRadius: BorderRadius.circular(8.r),
                                     border: isDark
                                         ? Border.all(
-                                            color: const Color(0xFF047857),
-                                          )
+                                      color: isActive
+                                          ? const Color(0xFF047857)
+                                          : const Color(0xFF7F1D1D),
+                                    )
                                         : null,
                                   ),
                                   child: Text(
-                                    'Intern Aktif',
+                                    isActive ? 'Aktif' : 'Nonaktif',
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark
+                                      color: isActive
+                                          ? (isDark
                                           ? const Color(0xFF34D399)
-                                          : const Color(0xFF047857),
+                                          : const Color(0xFF047857))
+                                          : (isDark
+                                          ? const Color(0xFFF87171)
+                                          : const Color(0xFFDC2626)),
                                     ),
                                   ),
                                 ),
@@ -343,7 +445,7 @@ class ProfilPage extends StatelessWidget {
                           title: 'Riwayat Presensi',
                           subtitle: 'Lihat log kehadiran',
                           isDark: isDark,
-                          onTap: () {},
+                          onTap: () => context.push('/riwayat-presensi'),
                         ),
                         _buildMenuItem(
                           icon: Icons.notifications_none_outlined,

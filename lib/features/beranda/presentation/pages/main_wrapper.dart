@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class _OffsetNotchedShape extends NotchedShape {
   final NotchedShape shape;
@@ -23,6 +26,8 @@ class MainWrapper extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   void _onTap(BuildContext context, int index) {
+    HapticFeedback.selectionClick();
+
     if (index == 2) {
       context.push('/izin');
       return;
@@ -37,158 +42,236 @@ class MainWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF8FAFC);
+    final Color bgApp =
+    isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
     final Color navBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color primaryColor = isDark
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF1E61B6);
-    final Color inactiveColor = isDark
-        ? const Color(0xFF64748B)
-        : const Color(0xFF94A3B8);
+    final Color primaryColor =
+    isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E61B6);
+    final Color inactiveColor =
+    isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
 
     final int currentIndex = navigationShell.currentIndex;
+
+    final double horizontalMargin = 18.w.clamp(16.0, 22.0);
+    final double systemBottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final double bottomMargin = math.max(16.0, systemBottomInset + 4.0);
+    const double barHeight = 64.0;
+    const double fabSize = 56.0;
 
     return Scaffold(
       backgroundColor: bgApp,
       extendBody: true,
       body: navigationShell,
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: SizedBox(
-        height: 60.w,
-        width: 60.w,
-        child: FloatingActionButton(
-          onPressed: () => context.push('/presensi'),
-          backgroundColor: primaryColor,
-          elevation: isDark ? 2 : 8,
-          shape: const CircleBorder(),
-          child: Icon(Icons.fingerprint, color: Colors.white, size: 32.w),
-        ),
-      ),
-
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 24.h),
+      floatingActionButton: Container(
+        height: fabSize,
+        width: fabSize,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32.r),
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? const [Color(0xFF3B82F6), Color(0xFF1D4ED8)]
+                : const [Color(0xFF2563EB), Color(0xFF154B8C)],
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-              blurRadius: 20.r,
-              offset: const Offset(0, 8),
+              color: const Color(0xFF1E61B6).withValues(
+                alpha: isDark ? 0.45 : 0.35,
+              ),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: BottomAppBar(
-          padding: EdgeInsets.zero,
-          height: 70.h,
-          color: navBgColor,
-          surfaceTintColor: navBgColor,
-          elevation: 0,
-          notchMargin: 10.w,
-          clipBehavior: Clip.antiAlias,
-          shape: _OffsetNotchedShape(
-            AutomaticNotchedShape(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32.r)),
-              const CircleBorder(),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push('/presensi');
+            },
+            child: const Center(
+              child: Icon(
+                Icons.fingerprint_rounded,
+                color: Colors.white,
+                size: 29,
+              ),
             ),
-            -20.w,
           ),
-
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildDotNavItem(
-                      activeIcon: Icons.home_rounded,
-                      inactiveIcon: Icons.home_outlined,
-                      index: 0,
-                      currentIndex: currentIndex,
-                      context: context,
-                      primaryColor: primaryColor,
-                      inactiveColor: inactiveColor,
-                    ),
-                    _buildDotNavItem(
-                      activeIcon: Icons.receipt_long,
-                      inactiveIcon: Icons.receipt_long_outlined,
-                      index: 1,
-                      currentIndex: currentIndex,
-                      context: context,
-                      primaryColor: primaryColor,
-                      inactiveColor: inactiveColor,
-                    ),
-                  ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        margin: EdgeInsets.only(
+          left: horizontalMargin,
+          right: horizontalMargin,
+          bottom: bottomMargin,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          removeBottom: true,
+          child: BottomAppBar(
+            padding: EdgeInsets.zero,
+            height: barHeight,
+            color: navBgColor,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            notchMargin: 7.0,
+            clipBehavior: Clip.antiAlias,
+            shape: _OffsetNotchedShape(
+              AutomaticNotchedShape(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
                 ),
+                const CircleBorder(),
               ),
-
-              SizedBox(width: 60.w),
-
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildDotNavItem(
-                      activeIcon: Icons.edit_document,
-                      inactiveIcon: Icons.edit_document,
-                      index: 2,
-                      currentIndex: currentIndex,
-                      context: context,
-                      primaryColor: primaryColor,
-                      inactiveColor: inactiveColor,
+              -horizontalMargin,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavItem(
+                          context: context,
+                          index: 0,
+                          currentIndex: currentIndex,
+                          activeIcon: Icons.home_rounded,
+                          inactiveIcon: Icons.home_outlined,
+                          label: 'Beranda',
+                          primaryColor: primaryColor,
+                          inactiveColor: inactiveColor,
+                          isDark: isDark,
+                        ),
+                        _buildNavItem(
+                          context: context,
+                          index: 1,
+                          currentIndex: currentIndex,
+                          activeIcon: Icons.receipt_long_rounded,
+                          inactiveIcon: Icons.receipt_long_outlined,
+                          label: 'Riwayat',
+                          primaryColor: primaryColor,
+                          inactiveColor: inactiveColor,
+                          isDark: isDark,
+                        ),
+                      ],
                     ),
-                    _buildDotNavItem(
-                      activeIcon: Icons.person_rounded,
-                      inactiveIcon: Icons.person_outline_rounded,
-                      index: 3,
-                      currentIndex: currentIndex,
-                      context: context,
-                      primaryColor: primaryColor,
-                      inactiveColor: inactiveColor,
+                  ),
+
+                  const SizedBox(width: fabSize + 24),
+
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavItem(
+                          context: context,
+                          index: 2,
+                          currentIndex: currentIndex,
+                          activeIcon: Icons.edit_document,
+                          inactiveIcon: Icons.description_outlined,
+                          label: 'Pengajuan',
+                          primaryColor: primaryColor,
+                          inactiveColor: inactiveColor,
+                          isDark: isDark,
+                        ),
+                        _buildNavItem(
+                          context: context,
+                          index: 3,
+                          currentIndex: currentIndex,
+                          activeIcon: Icons.person_rounded,
+                          inactiveIcon: Icons.person_outline_rounded,
+                          label: 'Profil',
+                          primaryColor: primaryColor,
+                          inactiveColor: inactiveColor,
+                          isDark: isDark,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDotNavItem({
-    required IconData activeIcon,
-    required IconData inactiveIcon,
+  Widget _buildNavItem({
+    required BuildContext context,
     required int index,
     required int currentIndex,
-    required BuildContext context,
+    required IconData activeIcon,
+    required IconData inactiveIcon,
+    required String label,
     required Color primaryColor,
     required Color inactiveColor,
+    required bool isDark,
   }) {
     final bool isSelected = currentIndex == index;
+    final Color activePillBg = isDark
+        ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+        : const Color(0xFFEFF6FF);
 
-    return GestureDetector(
-      onTap: () => _onTap(context, index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 50.w,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onTap(context, index),
+        behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return ScaleTransition(scale: animation, child: child);
-              },
-              child: Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                key: ValueKey<bool>(isSelected),
-                size: 26.sp,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected ? activePillBg : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: AnimatedScale(
+                scale: isSelected ? 1.06 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  isSelected ? activeIcon : inactiveIcon,
+                  size: 21,
+                  color: isSelected ? primaryColor : inactiveColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10.sp.clamp(9.5, 11.0),
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected ? primaryColor : inactiveColor,
+                letterSpacing: -0.1,
               ),
             ),
           ],

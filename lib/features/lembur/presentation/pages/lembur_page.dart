@@ -49,12 +49,27 @@ class _LemburPageState extends State<LemburPage> {
 
   String _formatJam(String rawJam) {
     final trimmed = rawJam.trim();
-    if (trimmed.isEmpty) return '';
-    final parts = trimmed.split(':');
-    if (parts.length >= 2) {
-      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+    if (trimmed.isEmpty || trimmed == '-') return '';
+
+    // 1. Jika formatnya full datetime (misal: 2026-11-16 17:00:00 atau ISO-8601)
+    if (trimmed.contains('T') ||
+        RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(trimmed)) {
+      final parsed = DateTime.tryParse(trimmed);
+      if (parsed != null) {
+        final local = trimmed.endsWith('Z') ? parsed.toLocal() : parsed;
+        return DateFormat('HH:mm').format(local);
+      }
     }
-    return trimmed;
+
+    // 2. Jika formatnya jam saja (misal: 17:00, 17:00:00, atau 17.00)
+    final match = RegExp(r'^(\d{1,2})[:.](\d{1,2})').firstMatch(trimmed);
+    if (match != null) {
+      final hh = match.group(1)!.padLeft(2, '0');
+      final mm = match.group(2)!.padLeft(2, '0');
+      return '$hh:$mm';
+    }
+
+    return '';
   }
 
   String _formatRangeJam(String jamMulai, String jamSelesai) {

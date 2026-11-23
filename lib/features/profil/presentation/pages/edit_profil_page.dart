@@ -27,18 +27,65 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
   File? _imageFile;
   String? _currentImageUrl;
+  String _jabatan = 'Karyawan';
   final ImagePicker _picker = ImagePicker();
+
+  String _extractJabatan(Map<String, dynamic> user) {
+    String? pickFromMap(Map<String, dynamic> map) {
+      final rawJabatan = map['jabatan'];
+      if (rawJabatan is String && rawJabatan.trim().isNotEmpty) {
+        return rawJabatan.trim();
+      }
+      if (rawJabatan is Map) {
+        final nested = rawJabatan['nama'] ??
+            rawJabatan['nama_jabatan'] ??
+            rawJabatan['title'] ??
+            rawJabatan['label'];
+        if (nested != null && nested.toString().trim().isNotEmpty) {
+          return nested.toString().trim();
+        }
+      }
+
+      final directCandidates = [
+        map['nama_jabatan'],
+        map['jabatan_nama'],
+        map['posisi'],
+        map['position'],
+        map['role_label'],
+      ];
+
+      for (final candidate in directCandidates) {
+        if (candidate is String && candidate.trim().isNotEmpty) {
+          return candidate.trim();
+        }
+      }
+      return null;
+    }
+
+    final topLevel = pickFromMap(user);
+    if (topLevel != null) return topLevel;
+
+    final karyawan = user['karyawan'];
+    if (karyawan is Map) {
+      final fromKaryawan = pickFromMap(Map<String, dynamic>.from(karyawan));
+      if (fromKaryawan != null) return fromKaryawan;
+    }
+
+    return 'Karyawan';
+  }
 
   @override
   void initState() {
     super.initState();
     final currentState = context.read<ProfilBloc>().state;
-    if (currentState is ProfilLoaded) {
-      _namaController.text = currentState.user['nama'] ?? '';
-      _emailController.text = currentState.user['email'] ?? '';
-      _noTlpController.text = currentState.user['no_hp'] ?? '';
-      _alamatController.text = currentState.user['alamat'] ?? '';
-      _currentImageUrl = currentState.user['foto_url'];
+    if (currentState is ProfilLoaded && currentState.user is Map) {
+      final userMap = Map<String, dynamic>.from(currentState.user);
+      _namaController.text = userMap['nama']?.toString() ?? '';
+      _emailController.text = userMap['email']?.toString() ?? '';
+      _noTlpController.text = userMap['no_hp']?.toString() ?? '';
+      _alamatController.text = userMap['alamat']?.toString() ?? '';
+      _currentImageUrl = userMap['foto_url']?.toString();
+      _jabatan = _extractJabatan(userMap);
     }
   }
 
@@ -212,27 +259,28 @@ class _EditProfilPageState extends State<EditProfilPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgApp = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF8FAFC);
-    final Color headerBg = isDark
-        ? const Color(0xFF154B8C)
-        : const Color(0xFF1E61B6);
+    final Color bgApp =
+    isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
+    final Color headerBg =
+    isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color textSecondary = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
-    final Color borderColor = isDark
-        ? const Color(0xFF333333)
-        : const Color(0xFFE2E8F0);
-    final Color btnBlue = isDark
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF1E61B6);
+    final Color textSecondary =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color borderColor =
+    isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final Color btnBlue =
+    isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
 
     return BlocConsumer<ProfilBloc, ProfilState>(
       listener: (context, state) {
-        if (state is ProfilUpdateSuccess) {
+        if (state is ProfilLoaded && state.user is Map) {
+          final userMap = Map<String, dynamic>.from(state.user);
+          setState(() {
+            _jabatan = _extractJabatan(userMap);
+            _currentImageUrl = userMap['foto_url']?.toString();
+          });
+        } else if (state is ProfilUpdateSuccess) {
           _showSnackBar('Profil berhasil diperbarui!', Colors.green);
           context.pop();
         } else if (state is ProfilError) {
@@ -376,11 +424,12 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
-                                    'Karyawan',
+                                    _jabatan,
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       color: textSecondary,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
@@ -539,22 +588,17 @@ class _EditProfilPageState extends State<EditProfilPage> {
         int maxLines = 1,
         required bool isDark,
       }) {
-    final Color inputBg = isDark
-        ? const Color(0xFF1A1A1A)
-        : const Color(0xFFF8FAFC);
-    final Color disabledBg = isDark
-        ? const Color(0xFF282828)
-        : const Color(0xFFF1F5F9);
-    final Color inputBorderColor = isDark
-        ? const Color(0xFF333333)
-        : const Color(0xFFE2E8F0);
-    final Color focusedBorderColor = isDark
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF1E61B6);
+    final Color inputBg =
+    isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
+    final Color disabledBg =
+    isDark ? const Color(0xFF282828) : const Color(0xFFF1F5F9);
+    final Color inputBorderColor =
+    isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+    final Color focusedBorderColor =
+    isDark ? const Color(0xFF3B82F6) : const Color(0xFF1E61B6);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final Color disabledTextColor = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF94A3B8);
+    final Color disabledTextColor =
+    isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8);
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 20.h),
