@@ -2,9 +2,11 @@ import 'package:get_it/get_it.dart';
 
 import '../network/api_client.dart';
 import '../services/fcm_service.dart';
+import '../services/notification_preferences_service.dart';
 import '../services/secure_storage_service.dart';
 
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/repositories/auth_repository.dart';
 
 import '../../features/profil/presentation/bloc/notifikasi_bloc.dart';
@@ -68,8 +70,14 @@ Future<void> setupInjection() async {
   );
 
   // Services
+  sl.registerLazySingleton<NotificationPreferencesService>(
+        () => NotificationPreferencesService(),
+  );
   sl.registerLazySingleton<FcmService>(
-        () => FcmService(sl<NotifikasiRepository>()),
+        () => FcmService(
+      sl<NotifikasiRepository>(),
+      sl<NotificationPreferencesService>(),
+    ),
   );
 
   // Global BLoCs (Singleton)
@@ -106,4 +114,8 @@ Future<void> setupInjection() async {
   sl.registerFactory<ReimbursementBloc>(
         () => ReimbursementBloc(repository: sl<ReimbursementRepository>()),
   );
+
+  sl<ApiClient>().setOnSessionExpired((reason) {
+    sl<AuthBloc>().add(SessionExpiredRequested(reason: reason));
+  });
 }

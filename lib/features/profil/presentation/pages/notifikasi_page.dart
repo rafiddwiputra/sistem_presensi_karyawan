@@ -100,14 +100,82 @@ class _NotifikasiViewState extends State<NotifikasiView> {
       ) {
     final kategori = item.kategori.toLowerCase();
     final tipe = item.tipe.toLowerCase();
+    final sumber = item.referensi['sumber']?.toString().toLowerCase() ?? '';
     final metode = item.referensi['metode']?.toString().toLowerCase() ?? '';
     final statusRef = item.referensi['status']?.toString().toLowerCase() ?? '';
 
     if (kategori == 'presensi' || tipe.contains('presensi')) {
-      final isBiometric = metode == 'fingerprint' ||
+      final isBiometric = sumber == 'iot' ||
+          metode == 'fingerprint' ||
           metode == 'biometrik' ||
           tipe.contains('fingerprint') ||
           tipe.contains('biometrik');
+
+      final isMobileGps = sumber == 'mobile' ||
+          metode == 'mobile_gps' ||
+          metode == 'gps';
+
+      final isWebsite = sumber == 'website' || metode == 'website';
+
+      if (isBiometric) {
+        return _NotificationVisualStyle(
+          icon: Icons.fingerprint,
+          iconBgColor: isDark
+              ? const Color(0xFF312E81).withValues(alpha: 0.45)
+              : const Color(0xFFE0E7FF),
+          iconColor: isDark
+              ? const Color(0xFFA5B4FC)
+              : const Color(0xFF4338CA),
+          badgeText: 'Mesin IoT Fingerprint',
+          badgeBgColor: isDark
+              ? const Color(0xFF312E81).withValues(alpha: 0.45)
+              : const Color(0xFFE0E7FF),
+          badgeTextColor: isDark
+              ? const Color(0xFFA5B4FC)
+              : const Color(0xFF4338CA),
+          badgeIcon: Icons.fingerprint,
+        );
+      }
+
+      if (isMobileGps) {
+        return _NotificationVisualStyle(
+          icon: Icons.check_circle,
+          iconBgColor: isDark
+              ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+              : const Color(0xFFCCFBF1),
+          iconColor: isDark
+              ? const Color(0xFF2DD4BF)
+              : const Color(0xFF0F766E),
+          badgeText: 'Mobile GPS',
+          badgeBgColor: isDark
+              ? const Color(0xFF1E3A8A).withValues(alpha: 0.4)
+              : const Color(0xFFDBEAFE),
+          badgeTextColor: isDark
+              ? const Color(0xFF60A5FA)
+              : const Color(0xFF1D4ED8),
+          badgeIcon: Icons.location_on_outlined,
+        );
+      }
+
+      if (isWebsite) {
+        return _NotificationVisualStyle(
+          icon: Icons.check_circle,
+          iconBgColor: isDark
+              ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+              : const Color(0xFFCCFBF1),
+          iconColor: isDark
+              ? const Color(0xFF2DD4BF)
+              : const Color(0xFF0F766E),
+          badgeText: 'Website',
+          badgeBgColor: isDark
+              ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+              : const Color(0xFFCCFBF1),
+          badgeTextColor: isDark
+              ? const Color(0xFF2DD4BF)
+              : const Color(0xFF0F766E),
+          badgeIcon: Icons.language_rounded,
+        );
+      }
 
       return _NotificationVisualStyle(
         icon: Icons.check_circle,
@@ -117,18 +185,14 @@ class _NotifikasiViewState extends State<NotifikasiView> {
         iconColor: isDark
             ? const Color(0xFF2DD4BF)
             : const Color(0xFF0F766E),
-        badgeText: isBiometric ? 'Biometrik Terverifikasi' : 'Presensi Valid',
-        badgeBgColor: isBiometric
-            ? (isDark
-            ? const Color(0xFF312E81).withValues(alpha: 0.4)
-            : const Color(0xFFE0E7FF))
-            : (isDark
+        badgeText: 'Presensi Valid',
+        badgeBgColor: isDark
             ? const Color(0xFF064E3B).withValues(alpha: 0.4)
-            : const Color(0xFFCCFBF1)),
-        badgeTextColor: isBiometric
-            ? (isDark ? const Color(0xFF818CF8) : const Color(0xFF4338CA))
-            : (isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E)),
-        badgeIcon: isBiometric ? Icons.fingerprint : null,
+            : const Color(0xFFCCFBF1),
+        badgeTextColor: isDark
+            ? const Color(0xFF2DD4BF)
+            : const Color(0xFF0F766E),
+        badgeIcon: Icons.verified_outlined,
       );
     }
 

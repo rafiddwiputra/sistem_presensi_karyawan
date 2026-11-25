@@ -1,8 +1,14 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/di/injection.dart';
+import '../../../../core/network/api_client.dart';
 import '../../data/models/reimbursement_model.dart';
 import '../bloc/reimbursement_bloc.dart';
 import '../bloc/reimbursement_event.dart';
@@ -26,7 +32,6 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
     context.read<ReimbursementBloc>().add(LoadRiwayatReimbursement());
   }
 
-  // Helper format tanggal YYYY-MM-DD (atau ISO8601) -> '12 Nov 2026'
   String _formatTanggalUI(String rawDate) {
     if (rawDate.isEmpty) return '-';
     try {
@@ -41,7 +46,10 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
     }
   }
 
-  String _formatNamaFileUI(String rawFileName) {
+  String _formatNamaFileUI(
+      String rawFileName, {
+        String fallbackBase = 'Bukti_Transaksi',
+      }) {
     if (rawFileName.isEmpty) return '';
 
     final int dotIndex = rawFileName.lastIndexOf('.');
@@ -53,12 +61,11 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
         nameWithoutExt.length >= 32 && !nameWithoutExt.contains(' ');
 
     if (isRandomHash) {
-      return 'Bukti_Transaksi$ext';
+      return '$fallbackBase$ext';
     }
     return rawFileName;
   }
 
-  // Tambahkan kembali helper ini
   String _formatNominal(int amount, String? amountLabel) {
     if (amount > 0) {
       final String formatted = amount.toString().replaceAllMapped(
@@ -73,12 +80,12 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
     return 'Rp 0';
   }
 
-  // Helper konfigurasi warna & label berdasarkan field 'status' dari backend
   ({
   String label,
   Color textColor,
   Color bgColor,
   Color amountColor,
+  bool isApproved,
   }) _getStatusStyle(String rawStatus, String? statusLabel, bool isDark) {
     final String normalized = rawStatus.toLowerCase().trim();
 
@@ -90,6 +97,7 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
       textColor: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
       bgColor: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
       amountColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E61B6),
+      isApproved: true,
       );
     } else if (normalized == 'ditolak' || normalized == 'rejected') {
       return (
@@ -99,6 +107,7 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
       textColor: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
       bgColor: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
       amountColor: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+      isApproved: false,
       );
     } else {
       return (
@@ -108,8 +117,32 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
       textColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
       bgColor: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
       amountColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E61B6),
+      isApproved: false,
       );
     }
+  }
+
+  void _showBuktiTransferPreview(ReimbursementModel item, bool isDark) {
+    final String? url = item.buktiTransferUrl;
+    if (url == null || url.trim().isEmpty) return;
+
+    final String displayFileName = _formatNamaFileUI(
+      item.buktiTransferName ?? 'Bukti_Transfer.jpg',
+      fallbackBase: 'Bukti_Transfer',
+    );
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _BuktiTransferPreviewDialog(
+        title: item.keperluan.isNotEmpty ? item.keperluan : 'Bukti Transfer',
+        subtitle:
+        '${_formatTanggalUI(item.tanggal)} • ${_formatNominal(item.nominal, item.amountLabel)}',
+        fileName: displayFileName,
+        fileUrl: url,
+        adminNote: item.catatanAdmin,
+        isDark: isDark,
+      ),
+    );
   }
 
   @override
@@ -397,26 +430,40 @@ class _ReimbursementPageState extends State<ReimbursementPage> {
               isDark,
             );
 
-            final String? adminNote =
-            (item.catatanAdmin != null && item.catatanAdmin!.trim().isNotEmpty)
-                ? 'Catatan Admin:\n"${item.catatanAdmin}"'
+            final String? adminNote = (item.catatanAdmin != null &&
+                item.catatanAdmin!.trim().isNotEmpty)
+                ? 'Catatan Admin:\n"${item.catatanAdmin!.trim()}"'
                 : null;
+
+            final String displayReceiptName =
+            _formatNamaFileUI(item.lampiranName ?? '');
+            final String displayTransferName = item.hasBuktiTransfer
+                ? _formatNamaFileUI(
+              item.buktiTransferName ?? 'Bukti_Transfer.jpg',
+              fallbackBase: 'Bukti_Transfer',
+            )
+                : '';
 
             return ReimbursementHistoryCard(
               date: _formatTanggalUI(item.tanggal),
               status: statusStyle.label,
               statusColor: statusStyle.textColor,
               statusBgColor: statusStyle.bgColor,
+              isApproved: statusStyle.isApproved,
               title: item.keperluan.isNotEmpty ? item.keperluan : '-',
-              fileName: item.lampiranName ?? '',
+              fileName: displayReceiptName,
               amount: _formatNominal(item.nominal, item.amountLabel),
               amountColor: statusStyle.amountColor,
               adminNote: adminNote,
+              hasBuktiTransfer: item.hasBuktiTransfer,
+              buktiTransferFileName: displayTransferName,
+              onViewBuktiTransfer: item.hasBuktiTransfer
+                  ? () => _showBuktiTransferPreview(item, isDark)
+                  : null,
               isDark: isDark,
-              onTap: () {
-                // Opsional: navigasi ke detail reimbursement jika rutenya sudah tersedia
-                // context.push('/detail-reimbursement/${item.id}');
-              },
+              onTap: item.hasBuktiTransfer
+                  ? () => _showBuktiTransferPreview(item, isDark)
+                  : null,
             );
           },
         );
@@ -430,11 +477,15 @@ class ReimbursementHistoryCard extends StatelessWidget {
   final String status;
   final Color statusColor;
   final Color statusBgColor;
+  final bool isApproved;
   final String title;
   final String fileName;
   final String amount;
   final Color amountColor;
   final String? adminNote;
+  final bool hasBuktiTransfer;
+  final String buktiTransferFileName;
+  final VoidCallback? onViewBuktiTransfer;
   final bool isDark;
   final VoidCallback? onTap;
 
@@ -444,11 +495,15 @@ class ReimbursementHistoryCard extends StatelessWidget {
     required this.status,
     required this.statusColor,
     required this.statusBgColor,
+    this.isApproved = false,
     required this.title,
     required this.fileName,
     required this.amount,
     required this.amountColor,
     this.adminNote,
+    this.hasBuktiTransfer = false,
+    this.buktiTransferFileName = '',
+    this.onViewBuktiTransfer,
     required this.isDark,
     this.onTap,
   });
@@ -461,6 +516,16 @@ class ReimbursementHistoryCard extends StatelessWidget {
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1E293B);
     final Color textSecondary =
     isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    final Color noteBg = isApproved
+        ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.35) : const Color(0xFFECFDF5))
+        : (isDark ? const Color(0xFF450A0A) : const Color(0xFFFFF1F2));
+    final Color noteBorder = isApproved
+        ? (isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0))
+        : (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECDD3));
+    final Color noteTextColor = isApproved
+        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857))
+        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFFE11D48));
 
     return GestureDetector(
       onTap: onTap,
@@ -543,13 +608,14 @@ class ReimbursementHistoryCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
-                  size: 20.sp,
-                  color: isDark
-                      ? const Color(0xFF475569)
-                      : const Color(0xFFCBD5E1),
-                ),
+                if (hasBuktiTransfer)
+                  Icon(
+                    Icons.chevron_right,
+                    size: 20.sp,
+                    color: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF1E61B6),
+                  ),
               ],
             ),
 
@@ -575,7 +641,7 @@ class ReimbursementHistoryCard extends StatelessWidget {
                         ),
                         SizedBox(width: 4.w),
                         Text(
-                          'File',
+                          'Struk',
                           style:
                           TextStyle(fontSize: 10.sp, color: textSecondary),
                         ),
@@ -594,29 +660,122 @@ class ReimbursementHistoryCard extends StatelessWidget {
               ),
             ],
 
+            if (hasBuktiTransfer) ...[
+              SizedBox(height: 12.h),
+              InkWell(
+                onTap: onViewBuktiTransfer,
+                borderRadius: BorderRadius.circular(10.r),
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                  EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                        : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF3B82F6).withValues(alpha: 0.45)
+                          : const Color(0xFFBFDBFE),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.receipt_long_rounded,
+                        size: 18.sp,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF1D4ED8),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bukti Transfer Admin',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? const Color(0xFF93C5FD)
+                                    : const Color(0xFF1E40AF),
+                              ),
+                            ),
+                            if (buktiTransferFileName.isNotEmpty) ...[
+                              SizedBox(height: 2.h),
+                              Text(
+                                buktiTransferFileName,
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF1D4ED8),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.visibility_outlined,
+                              size: 12.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Preview',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
             if (adminNote != null) ...[
               SizedBox(height: 12.h),
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF450A0A)
-                      : const Color(0xFFFFF1F2),
+                  color: noteBg,
                   borderRadius: BorderRadius.circular(8.r),
-                  border: isDark
-                      ? Border.all(color: const Color(0xFF7F1D1D))
-                      : null,
+                  border: Border.all(color: noteBorder),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Icons.info_outline,
+                      isApproved
+                          ? Icons.check_circle_outline
+                          : Icons.info_outline,
                       size: 16.sp,
-                      color: isDark
-                          ? const Color(0xFFF87171)
-                          : const Color(0xFFE11D48),
+                      color: noteTextColor,
                     ),
                     SizedBox(width: 8.w),
                     Expanded(
@@ -624,9 +783,7 @@ class ReimbursementHistoryCard extends StatelessWidget {
                         adminNote!,
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: isDark
-                              ? const Color(0xFFFCA5A5)
-                              : const Color(0xFFE11D48),
+                          color: noteTextColor,
                           height: 1.4,
                         ),
                       ),
@@ -660,6 +817,405 @@ class ReimbursementHistoryCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BuktiTransferPreviewDialog extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final String fileName;
+  final String fileUrl;
+  final String? adminNote;
+  final bool isDark;
+
+  const _BuktiTransferPreviewDialog({
+    required this.title,
+    required this.subtitle,
+    required this.fileName,
+    required this.fileUrl,
+    this.adminNote,
+    required this.isDark,
+  });
+
+  @override
+  State<_BuktiTransferPreviewDialog> createState() =>
+      _BuktiTransferPreviewDialogState();
+}
+
+class _BuktiTransferPreviewDialogState
+    extends State<_BuktiTransferPreviewDialog> {
+  Uint8List? _bytes;
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFileBytes();
+  }
+
+  Future<void> _fetchFileBytes() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await sl<ApiClient>().dio.get<List<int>>(
+        widget.fileUrl,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'Accept': '*/*'},
+        ),
+      );
+
+      final data = response.data;
+      if (data == null || data.isEmpty) {
+        throw Exception('File bukti transfer kosong.');
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _bytes = Uint8List.fromList(data);
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Gagal memuat file bukti transfer.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool get _isPdf {
+    if (_bytes != null && _bytes!.length >= 4) {
+      // Magic bytes "%PDF"
+      if (_bytes![0] == 0x25 &&
+          _bytes![1] == 0x50 &&
+          _bytes![2] == 0x44 &&
+          _bytes![3] == 0x46) {
+        return true;
+      }
+    }
+    return widget.fileName.toLowerCase().endsWith('.pdf');
+  }
+
+  Future<void> _saveToDownload() async {
+    if (_bytes == null || _isSaving) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final Directory downloadDir = Directory('/storage/emulated/0/Download');
+      final Directory targetDir =
+      await downloadDir.exists() ? downloadDir : Directory.systemTemp;
+
+      final String safeName = widget.fileName.replaceAll(
+        RegExp(r'[^a-zA-Z0-9._-]'),
+        '_',
+      );
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final File file = File('${targetDir.path}/${timestamp}_$safeName');
+      await file.writeAsBytes(_bytes!, flush: true);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Tersimpan di ${file.path}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Gagal menyimpan file ke perangkat.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color dialogBg =
+    widget.isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color textPrimary =
+    widget.isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color textSecondary =
+    widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color borderColor =
+    widget.isDark ? const Color(0xFF333333) : const Color(0xFFE2E8F0);
+
+    return Dialog(
+      backgroundColor: dialogBg,
+      insetPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.82,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header Modal
+            Padding(
+              padding: EdgeInsets.fromLTRB(18.w, 16.h, 12.w, 12.h),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: widget.isDark
+                          ? const Color(0xFF1E3A8A)
+                          : const Color(0xFFDBEAFE),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Icon(
+                      Icons.receipt_long_rounded,
+                      size: 20.sp,
+                      color: widget.isDark
+                          ? const Color(0xFF60A5FA)
+                          : const Color(0xFF1D4ED8),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bukti Transfer Admin',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          widget.subtitle,
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(Icons.close, color: textSecondary, size: 22.sp),
+                  ),
+                ],
+              ),
+            ),
+            Divider(color: borderColor, height: 1),
+
+            // Area Preview Gambar / PDF
+            Flexible(
+              child: Container(
+                width: double.infinity,
+                color: widget.isDark
+                    ? const Color(0xFF121212)
+                    : const Color(0xFFF1F5F9),
+                child: _buildPreviewContent(textPrimary, textSecondary),
+              ),
+            ),
+
+            // Catatan Admin (jika ada)
+            if (widget.adminNote != null &&
+                widget.adminNote!.trim().isNotEmpty) ...[
+              Divider(color: borderColor, height: 1),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+                child: Text(
+                  'Catatan Admin: "${widget.adminNote!.trim()}"',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: textSecondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+
+            Divider(color: borderColor, height: 1),
+
+            // Footer Aksi
+            Padding(
+              padding: EdgeInsets.all(14.w),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.fileName,
+                      style: TextStyle(fontSize: 11.sp, color: textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  ElevatedButton.icon(
+                    onPressed:
+                    (_bytes != null && !_isSaving) ? _saveToDownload : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.isDark
+                          ? const Color(0xFF3B82F6)
+                          : const Color(0xFF1E61B6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 10.h,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      elevation: 0,
+                    ),
+                    icon: Icon(
+                      Icons.download_rounded,
+                      size: 16.sp,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      _isSaving ? 'Menyimpan...' : 'Simpan',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewContent(Color textPrimary, Color textSecondary) {
+    if (_isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 64.h),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null || _bytes == null) {
+      return Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.broken_image_outlined,
+              size: 44.sp,
+              color: textSecondary,
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              _errorMessage ?? 'File tidak dapat ditampilkan.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13.sp, color: textSecondary),
+            ),
+            SizedBox(height: 12.h),
+            TextButton.icon(
+              onPressed: _fetchFileBytes,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_isPdf) {
+      final double sizeKb = _bytes!.length / 1024;
+      return Padding(
+        padding: EdgeInsets.all(28.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.picture_as_pdf_rounded,
+              size: 56.sp,
+              color: const Color(0xFFDC2626),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              widget.fileName,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w700,
+                color: textPrimary,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'Dokumen PDF (${sizeKb.toStringAsFixed(1)} KB)\nTekan tombol Simpan untuk membuka dari folder Download.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.sp, color: textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        InteractiveViewer(
+          minScale: 0.8,
+          maxScale: 4.0,
+          child: Center(
+            child: Image.memory(
+              _bytes!,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Padding(
+                padding: EdgeInsets.all(24.w),
+                child: Text(
+                  'Format gambar tidak didukung untuk pratinjau langsung.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12.sp, color: textSecondary),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 10.h,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Text(
+              'Cubit layar untuk memperbesar gambar',
+              style: TextStyle(fontSize: 10.sp, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

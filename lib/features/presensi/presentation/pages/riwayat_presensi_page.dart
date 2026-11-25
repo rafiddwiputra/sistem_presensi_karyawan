@@ -67,7 +67,9 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
 
   bool _matchesFilter(String itemStatus, String filter) {
     if (filter == 'Alpha') {
-      return itemStatus == 'Tidak Hadir' || itemStatus == 'Alpha';
+      return itemStatus == 'Tidak-Hadir' ||
+          itemStatus == 'Tidak Hadir' ||
+          itemStatus == 'Alpha';
     }
     return itemStatus == filter;
   }
@@ -511,11 +513,14 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                     return _buildDetailCard(
                       status: item.status,
                       tanggal: item.tanggal,
-                      waktuMasuk: item.waktuMasuk ?? '--:--',
-                      waktuKeluar: item.waktuKeluar ?? '--:--',
-                      menitTerlambat: item.menitTerlambat ?? 0,
+                      waktuMasuk: item.waktuMasuk,
+                      waktuKeluar: item.waktuKeluar,
+                      sumberMasuk: item.sumberMasuk,
+                      sumberKeluar: item.sumberKeluar,
+                      menitTerlambat: item.menitTerlambat,
                       isLembur: item.isLembur,
-                      subtitle: item.subtitle ?? '',
+                      durasiLembur: item.lemburLabel,
+                      keterangan: item.keterangan,
                       isDark: isDark,
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
@@ -627,9 +632,12 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
     required DateTime tanggal,
     required String waktuMasuk,
     required String waktuKeluar,
+    String? sumberMasuk,
+    String? sumberKeluar,
     required int menitTerlambat,
     required bool isLembur,
-    required String subtitle,
+    required String durasiLembur,
+    String? keterangan,
     required bool isDark,
     required Color textPrimary,
     required Color textSecondary,
@@ -649,11 +657,16 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
     final Color borderColor = isDark
         ? const Color(0xFF333333)
         : const Color(0xFFE2E8F0);
+    final Color lemburAccentColor = isDark
+        ? const Color(0xFFA5B4FC)
+        : const Color(0xFF4338CA);
 
     final String formattedDate = _formatDateString(tanggal);
-    final String jamLembur = isLembur ? 'Ya' : '-';
-    final String keterangan = (status == 'Izin' || status == 'Cuti')
-        ? (subtitle.isNotEmpty ? subtitle : 'Keterangan tidak tersedia')
+    final String jamLembur = isLembur ? durasiLembur : '-';
+    final String teksKeterangan = (status == 'Izin' || status == 'Cuti')
+        ? ((keterangan != null && keterangan.trim().isNotEmpty)
+        ? keterangan.trim()
+        : 'Keterangan tidak tersedia')
         : '';
 
     return Container(
@@ -711,7 +724,7 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                   border: Border.all(color: statusColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
-                  status,
+                  status.replaceAll('-', ' '),
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
@@ -726,6 +739,7 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
             child: Divider(color: borderColor, height: 1),
           ),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _buildInfoItem(
@@ -735,6 +749,9 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                   iconColor: Colors.green,
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
+                  footer: waktuMasuk != '--:--'
+                      ? _buildSourceBadge(sumberMasuk, isDark)
+                      : null,
                 ),
               ),
               Expanded(
@@ -745,6 +762,9 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                   iconColor: Colors.red,
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
+                  footer: waktuKeluar != '--:--'
+                      ? _buildSourceBadge(sumberKeluar, isDark)
+                      : null,
                 ),
               ),
             ],
@@ -770,7 +790,8 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                   icon: Icons.nights_stay,
                   label: 'Lembur',
                   value: jamLembur,
-                  iconColor: isLembur ? Colors.indigo : textSecondary,
+                  iconColor: isLembur ? lemburAccentColor : textSecondary,
+                  valueColor: isLembur ? lemburAccentColor : textPrimary,
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
                 ),
@@ -806,7 +827,7 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    keterangan,
+                    teksKeterangan,
                     style: TextStyle(fontSize: 12.sp, color: textPrimary),
                   ),
                 ],
@@ -814,6 +835,65 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget? _buildSourceBadge(String? source, bool isDark) {
+    if (source == null || source.isEmpty) return null;
+
+    final normalized = source.toLowerCase();
+    final IconData icon;
+    final String label;
+    final Color color;
+
+    if (normalized == 'iot' || normalized.contains('fingerprint')) {
+      icon = Icons.fingerprint_rounded;
+      label = 'Mesin IoT';
+      color = isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA);
+    } else if (normalized == 'mobile' || normalized.contains('gps')) {
+      icon = Icons.location_on_outlined;
+      label = 'Mobile GPS';
+      color = isDark ? const Color(0xFF60A5FA) : const Color(0xFF135CAE);
+    } else if (normalized == 'website') {
+      icon = Icons.language_rounded;
+      label = 'Website';
+      color = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E);
+    } else if (normalized == 'system') {
+      icon = Icons.auto_mode_rounded;
+      label = 'Otomatis Sistem';
+      color = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    } else {
+      return null;
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(top: 5.h),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: isDark ? 0.18 : 0.09),
+          borderRadius: BorderRadius.circular(6.r),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12.w, color: color),
+            SizedBox(width: 4.w),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -826,10 +906,15 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
     required Color textPrimary,
     required Color textSecondary,
     Color? valueColor,
+    Widget? footer,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16.w, color: iconColor),
+        Padding(
+          padding: EdgeInsets.only(top: 2.h),
+          child: Icon(icon, size: 16.w, color: iconColor),
+        ),
         SizedBox(width: 8.w),
         Expanded(
           child: Column(
@@ -850,6 +935,7 @@ class _RiwayatPresensiViewState extends State<RiwayatPresensiView> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              ?footer,
             ],
           ),
         ),

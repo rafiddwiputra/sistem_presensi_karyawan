@@ -7,10 +7,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:sistem_presensi_karyawan/core/routes/app_router.dart';
+import 'package:sistem_presensi_karyawan/core/services/notification_preferences_service.dart';
 import 'package:sistem_presensi_karyawan/features/profil/repositories/notifikasi_repository.dart';
 
 class FcmService {
   final NotifikasiRepository _notifikasiRepository;
+  final NotificationPreferencesService _preferencesService;
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
   FlutterLocalNotificationsPlugin();
@@ -34,7 +36,7 @@ class FcmService {
     importance: Importance.max,
   );
 
-  FcmService(this._notifikasiRepository);
+  FcmService(this._notifikasiRepository, this._preferencesService);
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -70,13 +72,16 @@ class FcmService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+        AndroidFlutterLocalNotificationsPlugin
+    >()
         ?.createNotificationChannel(_androidChannel);
 
     // 1. Pesan masuk saat aplikasi sedang dibuka (foreground)
     FirebaseMessaging.onMessage.listen((message) async {
       _notificationReceivedController.add(null);
-      await _showForegroundNotification(message);
+      if (_preferencesService.shouldDisplayNotification(message)) {
+        await _showForegroundNotification(message);
+      }
     });
 
     // 2. User mengetuk notifikasi dari background
@@ -119,6 +124,7 @@ class FcmService {
       if (token != null && token.isNotEmpty) {
         await _sendTokenToBackend(token);
       }
+      await _preferencesService.syncAllTopicSubscriptions();
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Gagal sinkronisasi FCM token: $e');
@@ -177,8 +183,6 @@ class FcmService {
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
-    // Di iOS, payload dengan blok `notification` sudah otomatis ditampilkan oleh sistem
-    // lewat `setForegroundNotificationPresentationOptions`. Lewati local notification agar tidak ganda.
     if (Platform.isIOS && message.notification != null) {
       return;
     }

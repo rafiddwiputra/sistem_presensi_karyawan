@@ -16,6 +16,9 @@ import 'package:sistem_presensi_karyawan/core/services/fcm_service.dart';
 import 'package:sistem_presensi_karyawan/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sistem_presensi_karyawan/features/profil/presentation/bloc/profil_bloc.dart';
 
+import 'core/services/notification_preferences_service.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -30,6 +33,8 @@ void main() async {
 
       await initializeDateFormatting('id_ID', null);
       await setupInjection();
+      await ThemeNotifier.init();
+      await sl<NotificationPreferencesService>().init();
       await sl<FcmService>().initialize();
 
       runApp(
@@ -63,13 +68,39 @@ class EmployeeAttendanceApp extends StatelessWidget {
         return ValueListenableBuilder<ThemeMode>(
           valueListenable: appThemeNotifier,
           builder: (context, currentThemeMode, child) {
-            return MaterialApp.router(
-              title: 'Sistem Presensi Karyawan',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.light,
-              darkTheme: AppTheme.dark,
-              themeMode: currentThemeMode,
-              routerConfig: appRouter,
+            return BlocListener<AuthBloc, AuthState>(
+              listenWhen: (previous, current) => current is AuthUnauthenticated,
+              listener: (context, state) {
+                if (state is AuthUnauthenticated) {
+                  appRouter.go('/login');
+                  final message = state.message;
+                  if (message != null && message.isNotEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      final navContext =
+                          appRouter.routerDelegate.navigatorKey.currentContext;
+                      if (navContext != null) {
+                        ScaffoldMessenger.of(navContext)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              backgroundColor: const Color(0xFFEF4444),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                      }
+                    });
+                  }
+                }
+              },
+              child: MaterialApp.router(
+                title: 'Sistem Presensi Karyawan',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
+                themeMode: currentThemeMode,
+                routerConfig: appRouter,
+              ),
             );
           },
         );

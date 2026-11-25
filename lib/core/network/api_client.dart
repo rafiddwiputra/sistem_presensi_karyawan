@@ -7,8 +7,10 @@ import 'auth_interceptor.dart';
 
 class ApiClient {
   late final Dio dio;
+  late final AuthInterceptor _authInterceptor;
 
   ApiClient(SecureStorageService storageService) {
+    _authInterceptor = AuthInterceptor(storageService);
     dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
@@ -19,16 +21,19 @@ class ApiClient {
       ),
     );
     dio.interceptors.addAll([
-      AuthInterceptor(storageService),
-
+      _authInterceptor,
       if (kDebugMode) SanitizingLogInterceptor(),
     ]);
+  }
+
+  void setOnSessionExpired(void Function(String reason)? callback) {
+    _authInterceptor.onSessionExpired = callback;
   }
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue:
-        'https://builds-polo-attached-therapy.trycloudflare.com/api/v1/mobile',
+    'https://tomatoes-baskets-kurt-kingston.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {
@@ -63,7 +68,7 @@ class ApiClient {
       final rawErrors = data['errors'];
       if (rawErrors is Map) {
         final errors = rawErrors.map<String, List<String>>(
-          (key, value) =>
+              (key, value) =>
               MapEntry(key.toString(), List<String>.from(value as List)),
         );
         final message = (data['message'] as String?) ?? 'Data tidak valid.';
@@ -76,7 +81,7 @@ class ApiClient {
 
     final message =
         (data is Map ? data['message'] as String? : null) ??
-        'Terjadi kesalahan pada server.';
+            'Terjadi kesalahan pada server.';
     return ServerException(message, statusCode: statusCode);
   }
 }
@@ -127,9 +132,9 @@ class SanitizingLogInterceptor extends Interceptor {
     if (data is FormData) {
       final fields = data.fields
           .map((e) {
-            final isSensitive = _sensitiveKeys.contains(e.key.toLowerCase());
-            return '${e.key}: ${isSensitive ? '***' : e.value}';
-          })
+        final isSensitive = _sensitiveKeys.contains(e.key.toLowerCase());
+        return '${e.key}: ${isSensitive ? '***' : e.value}';
+      })
           .join(', ');
       return '{$fields}';
     }

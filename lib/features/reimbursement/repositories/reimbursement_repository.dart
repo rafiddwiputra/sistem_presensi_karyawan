@@ -36,7 +36,16 @@ class ReimbursementRepository {
           final Map<String, dynamic> itemMap =
           Map<String, dynamic>.from(rawItem as Map);
 
-          if (itemMap['detail'] == null && itemMap['id'] != null) {
+          final String status =
+          (itemMap['status'] ?? '').toString().toLowerCase().trim();
+          final dynamic detail = itemMap['detail'];
+          final bool missingDetail = detail == null;
+          final bool missingTransferProof =
+              (status == 'disetujui' || status == 'approved') &&
+                  (detail is! Map || detail['transfer_proof'] == null);
+
+          if ((missingDetail || missingTransferProof) &&
+              itemMap['id'] != null) {
             final int? id = itemMap['id'] is int
                 ? itemMap['id'] as int
                 : int.tryParse(itemMap['id'].toString());
@@ -45,7 +54,6 @@ class ReimbursementRepository {
               try {
                 return await getDetailReimbursement(id);
               } catch (_) {
-                // Fallback ke data summary jika detail gagal dimuat
                 return ReimbursementModel.fromJson(itemMap);
               }
             }

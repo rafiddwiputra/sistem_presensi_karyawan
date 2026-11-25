@@ -24,6 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatusRequested>(_onCheckAuthStatusRequested);
     on<LoginRequested>(_onLoginRequested);
     on<LogoutRequested>(_onLogoutRequested);
+    on<SessionExpiredRequested>(_onSessionExpiredRequested);
   }
 
   Future<void> _onCheckAuthStatusRequested(
@@ -38,10 +39,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthSuccess(savedUser));
         unawaited(fcmService.syncTokenWithBackend());
       } else {
-        emit(AuthUnauthenticated());
+        emit(const AuthUnauthenticated());
       }
     } catch (_) {
-      emit(AuthUnauthenticated());
+      emit(const AuthUnauthenticated());
     }
   }
 
@@ -72,10 +73,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await fcmService.unregisterTokenFromBackend();
       await authRepository.logout();
-    } catch (e) {
+    } catch (_) {
       // Abaikan error API saat logout, paksa hapus sesi lokal
     } finally {
-      emit(AuthUnauthenticated());
+      emit(const AuthUnauthenticated());
     }
+  }
+
+  Future<void> _onSessionExpiredRequested(
+      SessionExpiredRequested event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(AuthUnauthenticated(message: event.reason));
   }
 }

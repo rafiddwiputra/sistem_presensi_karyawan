@@ -19,15 +19,23 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
 
       try {
         final remoteUser = await repository.getProfil();
-
         emit(ProfilLoaded(remoteUser));
       } on AppException catch (e) {
+        final isAccessRevoked = e is UnauthorizedException ||
+            (e is ServerException && e.statusCode == 403);
+
+        if (isAccessRevoked) {
+          await repository.clearProfilLocal();
+          emit(ProfilError(e.message));
+          return;
+        }
+
         if (localUser == null) {
           emit(ProfilError(e.message));
         }
-      } catch (e) {
+      } catch (_) {
         if (localUser == null) {
-          emit(ProfilError('Terjadi kesalahan tidak terduga.'));
+          emit(const ProfilError('Terjadi kesalahan tidak terduga.'));
         }
       }
     });
@@ -44,12 +52,11 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
         );
 
         emit(ProfilUpdateSuccess());
-
         add(LoadProfilRequested());
       } on AppException catch (e) {
         emit(ProfilError(e.message));
-      } catch (e) {
-        emit(ProfilError('Gagal memperbarui profil.'));
+      } catch (_) {
+        emit(const ProfilError('Gagal memperbarui profil.'));
       }
     });
 

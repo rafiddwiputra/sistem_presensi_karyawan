@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sistem_presensi_karyawan/app/theme/theme_notifier.dart';
+import 'package:sistem_presensi_karyawan/core/di/injection.dart';
+import 'package:sistem_presensi_karyawan/core/services/notification_preferences_service.dart';
 
 class PengaturanPage extends StatefulWidget {
   const PengaturanPage({super.key});
@@ -12,39 +14,84 @@ class PengaturanPage extends StatefulWidget {
 }
 
 class _PengaturanPageState extends State<PengaturanPage> {
-  // State untuk Toggle Notifikasi
+  final NotificationPreferencesService _notifPrefs =
+  sl<NotificationPreferencesService>();
+
   bool _isPengingatPresensi = true;
   bool _isInfoIzinCuti = true;
-
-  // State untuk Toggle Tampilan
   bool _isDarkMode = false;
   bool _isLightMode = true;
 
-  // Fungsi untuk mengatur logika Tampilan
+  @override
+  void initState() {
+    super.initState();
+    _isPengingatPresensi = _notifPrefs.isPengingatPresensi;
+    _isInfoIzinCuti = _notifPrefs.isInfoIzinCuti;
+    _isDarkMode = appThemeNotifier.value == ThemeMode.dark;
+    _isLightMode = !_isDarkMode;
+  }
+
+  Future<void> _onTogglePengingatPresensi(bool value) async {
+    setState(() => _isPengingatPresensi = value);
+    await _notifPrefs.setPengingatPresensi(value);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            value
+                ? 'Notifikasi pengingat presensi diaktifkan'
+                : 'Notifikasi pengingat presensi dinonaktifkan',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  Future<void> _onToggleInfoIzinCuti(bool value) async {
+    setState(() => _isInfoIzinCuti = value);
+    await _notifPrefs.setInfoIzinCuti(value);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            value
+                ? 'Notifikasi informasi izin & cuti diaktifkan'
+                : 'Notifikasi informasi izin & cuti dinonaktifkan',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   void _setDarkMode(bool value) {
-    if (value) {
-      setState(() {
-        _isDarkMode = true;
-        _isLightMode = false;
-      });
-      ThemeNotifier.setDarkMode();
-    }
+    if (!value) return;
+    setState(() {
+      _isDarkMode = true;
+      _isLightMode = false;
+    });
+    ThemeNotifier.setDarkMode();
   }
 
   void _setLightMode(bool value) {
-    if (value) {
-      setState(() {
-        _isLightMode = true;
-        _isDarkMode = false;
-      });
-      ThemeNotifier.setLightMode();
-    }
+    if (!value) return;
+    setState(() {
+      _isLightMode = true;
+      _isDarkMode = false;
+    });
+    ThemeNotifier.setLightMode();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Kunci utama: Mendeteksi apakah saat ini sedang Dark Mode
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color headerBlue =
+    isDark ? const Color(0xFF154B8C) : const Color(0xFF1E61B6);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -58,7 +105,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
               left: 20.w,
               right: 20.w,
             ),
-            color: const Color(0xFF1E61B6),
+            color: headerBlue,
             child: Row(
               children: [
                 GestureDetector(
@@ -101,8 +148,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           title: 'Pengingat Presensi',
                           subtitle: 'Pengingat masuk dan pulang kerja',
                           value: _isPengingatPresensi,
-                          onChanged: (val) =>
-                              setState(() => _isPengingatPresensi = val),
+                          onChanged: _onTogglePengingatPresensi,
                           isDark: isDark,
                         ),
                         _buildDivider(isDark),
@@ -111,8 +157,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           title: 'Informasi Izin dan Cuti',
                           subtitle: 'Pembaruan status pengajuan',
                           value: _isInfoIzinCuti,
-                          onChanged: (val) =>
-                              setState(() => _isInfoIzinCuti = val),
+                          onChanged: _onToggleInfoIzinCuti,
                           isDark: isDark,
                         ),
                       ],
@@ -127,7 +172,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                     child: Column(
                       children: [
                         _buildToggleItem(
-                          isIconBlank: true,
+                          icon: Icons.dark_mode_outlined,
                           title: 'Dark Mode',
                           subtitle: 'Mode Gelap',
                           value: _isDarkMode,
@@ -136,7 +181,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                         ),
                         _buildDivider(isDark),
                         _buildToggleItem(
-                          isIconBlank: true,
+                          icon: Icons.light_mode_outlined,
                           title: 'Light Mode',
                           subtitle: 'Mode Terang',
                           value: _isLightMode,
@@ -156,7 +201,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                       icon: Icons.shield_outlined,
                       title: 'Keamanan Akun',
                       subtitle: 'Kelola keamanan akunmu',
-                      onTap: () {},
+                      onTap: () => context.push('/ubah-password'),
                       isDark: isDark,
                     ),
                   ),
@@ -172,7 +217,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           icon: Icons.help_outline,
                           title: 'Tim Developer',
                           subtitle: 'Pengembang Sistem',
-                          onTap: () {},
+                          onTap: () => context.push('/tim-developer'),
                           isDark: isDark,
                         ),
                         _buildDivider(isDark),
@@ -180,7 +225,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                           icon: Icons.info_outline,
                           title: 'Tentang Aplikasi',
                           subtitle: 'Ketentuan layanan dan kebijakan',
-                          onTap: () {},
+                          onTap: () => context.push('/tentang-aplikasi'),
                           isDark: isDark,
                         ),
                       ],
@@ -192,14 +237,27 @@ class _PengaturanPageState extends State<PengaturanPage> {
                   Center(
                     child: Column(
                       children: [
-                        Container(
-                          width: 48.w,
-                          height: 48.w,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF282828)
-                                : const Color(0xFFEFF6FF),
-                            shape: BoxShape.circle,
+                        ClipOval(
+                          child: Image.asset(
+                            'assets/images/logo.jpeg',
+                            width: 48.w,
+                            height: 48.w,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 48.w,
+                              height: 48.w,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF282828)
+                                    : const Color(0xFFEFF6FF),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.fingerprint_rounded,
+                                color: const Color(0xFF1E61B6),
+                                size: 24.sp,
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(height: 16.h),
@@ -215,35 +273,12 @@ class _PengaturanPageState extends State<PengaturanPage> {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'Versi x.x.x (Build xxxx.xx)',
+                          'Versi 1.0.0 (Build 1)',
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: isDark
                                 ? const Color(0xFF94A3B8)
                                 : const Color(0xFF64748B),
-                          ),
-                        ),
-                        SizedBox(height: 12.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 6.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF1E3A8A)
-                                : const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: Text(
-                            'In Comming',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? const Color(0xFF60A5FA)
-                                  : const Color(0xFF3B82F6),
-                            ),
                           ),
                         ),
                       ],
@@ -324,12 +359,12 @@ class _PengaturanPageState extends State<PengaturanPage> {
             child: isIconBlank
                 ? null
                 : Icon(
-                    icon,
-                    color: isDark
-                        ? const Color(0xFF60A5FA)
-                        : const Color(0xFF1D4ED8),
-                    size: 22.sp,
-                  ),
+              icon,
+              color: isDark
+                  ? const Color(0xFF60A5FA)
+                  : const Color(0xFF1D4ED8),
+              size: 22.sp,
+            ),
           ),
           SizedBox(width: 16.w),
           Expanded(

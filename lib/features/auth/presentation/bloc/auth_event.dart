@@ -25,3 +25,12 @@ class LogoutRequested extends AuthEvent {
   @override
   List<Object?> get props => [];
 }
+
+class SessionExpiredRequested extends AuthEvent {
+  final String reason;
+
+  const SessionExpiredRequested({required this.reason});
+
+  @override
+  List<Object?> get props => [reason];
+}

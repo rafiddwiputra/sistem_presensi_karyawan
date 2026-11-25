@@ -42,6 +42,9 @@ import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/ubah
 
 import '../../features/lembur/presentation/pages/lembur_berhasil_page.dart';
 
+import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/tentang_aplikasi_page.dart';
+import 'package:sistem_presensi_karyawan/features/profil/presentation/pages/tim_developer_page.dart';
+
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Helper aman untuk membaca tanggal dari `state.extra`
@@ -127,6 +130,17 @@ final GoRouter appRouter = GoRouter(
       path: '/pengaturan',
       name: 'pengaturan',
       builder: (context, state) => const PengaturanPage(),
+    ),
+
+    GoRoute(
+      path: '/tim-developer',
+      name: 'tim-developer',
+      builder: (context, state) => const TimDeveloperPage(),
+    ),
+    GoRoute(
+      path: '/tentang-aplikasi',
+      name: 'tentang-aplikasi',
+      builder: (context, state) => const TentangAplikasiPage(),
     ),
 
     // --- PRESENSI ---

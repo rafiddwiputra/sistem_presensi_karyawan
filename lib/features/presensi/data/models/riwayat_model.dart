@@ -37,18 +37,27 @@ class RiwayatItem {
   final DateTime tanggal;
   final String status;
   final bool isLembur;
+  final int menitLembur;
+  final String? durasiLembur;
   final String waktuMasuk;
   final String waktuKeluar;
+  final String? sumberMasuk;
+  final String? sumberKeluar;
   final int menitTerlambat;
+  final String? keterangan;
 
   const RiwayatItem({
     required this.tanggal,
     required this.status,
     required this.isLembur,
+    this.menitLembur = 0,
+    this.durasiLembur,
     required this.waktuMasuk,
     required this.waktuKeluar,
-    this.menitTerlambat =
-        0, // Dihapus required-nya karena sudah ada nilai default
+    this.sumberMasuk,
+    this.sumberKeluar,
+    this.menitTerlambat = 0,
+    this.keterangan,
   });
 
   factory RiwayatItem.fromJson(Map<String, dynamic> json) {
@@ -65,14 +74,33 @@ class RiwayatItem {
       tanggal: parsedDate,
       status: json['status'] as String? ?? '-',
       isLembur: json['is_lembur'] as bool? ?? false,
+      menitLembur: json['menit_lembur'] as int? ?? 0,
+      durasiLembur: json['durasi_lembur']?.toString(),
       waktuMasuk: json['waktu_masuk'] as String? ?? '--:--',
       waktuKeluar: json['waktu_keluar'] as String? ?? '--:--',
-      // Ini yang ditambahkan agar data dari Laravel terbaca:
+      sumberMasuk: json['sumber_masuk']?.toString(),
+      sumberKeluar: json['sumber_keluar']?.toString(),
       menitTerlambat: json['menit_terlambat'] as int? ?? 0,
+      keterangan: json['keterangan']?.toString(),
     );
   }
 
   String get subtitle => isLembur ? 'Lembur' : '';
+
+  String get lemburLabel {
+    if (!isLembur) return '-';
+    if (durasiLembur != null && durasiLembur!.trim().isNotEmpty) {
+      return durasiLembur!.trim();
+    }
+    if (menitLembur > 0) {
+      final jam = menitLembur ~/ 60;
+      final sisaMenit = menitLembur % 60;
+      if (jam > 0 && sisaMenit > 0) return '$jam jam $sisaMenit menit';
+      if (jam > 0) return '$jam jam';
+      return '$sisaMenit menit';
+    }
+    return 'Ya';
+  }
 }
 
 class RiwayatResponse {
