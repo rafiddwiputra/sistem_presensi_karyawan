@@ -193,7 +193,7 @@ class _PresensiViewState extends State<PresensiView> {
           // LOGIKA TOMBOL PRESENSI
           // ==========================================
           final bool isSudahMasuk = data?.presensi.waktuMasuk != null;
-          final bool isModePulang = data?.aksiBerikutnya == 'Pulang';
+          final bool isModePulang = data?.aksiBerikutnya == 'Keluar' || data?.aksiBerikutnya == 'Pulang';
           final bool isSelesai = data?.presensiSelesai == true;
 
           bool isTombolAktif = false;

@@ -33,7 +33,7 @@ class ApiClient {
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue:
-    'https://tomatoes-baskets-kurt-kingston.trycloudflare.com/api/v1/mobile',
+    'https://classification-film-bumper-okay.trycloudflare.com/api/v1/mobile',
   );
 
   AppException mapError(Object error) {
